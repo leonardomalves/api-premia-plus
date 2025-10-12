@@ -1,0 +1,33 @@
+<?php
+
+use App\Http\Controllers\Api\Customer\CustomerController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API v1 - Customer Routes
+|--------------------------------------------------------------------------
+|
+| Rotas para usuários comuns (customers)
+| Prefixo: /api/v1/customer/*
+| Middleware: auth:sanctum
+|
+*/
+
+Route::prefix('customer')->middleware('auth:sanctum')->group(function () {
+    
+    // Dados do usuário autenticado
+    Route::get('/me', [CustomerController::class, 'show']);
+    Route::put('/profile', [CustomerController::class, 'updateProfile']);
+    Route::post('/change-password', [CustomerController::class, 'changePassword']);
+    
+    // Rede e estatísticas do usuário
+    Route::get('/network', [CustomerController::class, 'network']);
+    Route::get('/sponsor', [CustomerController::class, 'sponsor']);
+    Route::get('/statistics', [CustomerController::class, 'statistics']);
+    
+    // Usuários específicos (com verificação de permissão)
+    Route::get('/users/{uuid}/network', [CustomerController::class, 'userNetwork']);
+    Route::get('/users/{uuid}/sponsor', [CustomerController::class, 'userSponsor']);
+    Route::get('/users/{uuid}/statistics', [CustomerController::class, 'userStatistics']);
+});
