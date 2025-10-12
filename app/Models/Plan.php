@@ -17,6 +17,7 @@ class Plan extends Model
         'price',
         'grant_tickets',
         'status',
+        'ticket_level',
         'commission_level_1',
         'commission_level_2',
         'commission_level_3',
