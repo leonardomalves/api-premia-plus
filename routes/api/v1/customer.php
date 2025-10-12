@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Customer\CustomerController;
+use App\Http\Controllers\Api\Customer\CustomerPlanController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,4 +31,10 @@ Route::prefix('customer')->middleware('auth:sanctum')->group(function () {
     Route::get('/users/{uuid}/network', [CustomerController::class, 'userNetwork']);
     Route::get('/users/{uuid}/sponsor', [CustomerController::class, 'userSponsor']);
     Route::get('/users/{uuid}/statistics', [CustomerController::class, 'userStatistics']);
+    
+    // Planos (apenas leitura)
+    Route::get('/plans', [CustomerPlanController::class, 'index']);
+    Route::get('/plans/{uuid}', [CustomerPlanController::class, 'show']);
+    Route::get('/plans/promotional/list', [CustomerPlanController::class, 'promotional']);
+    Route::get('/plans/search', [CustomerPlanController::class, 'search']);
 });

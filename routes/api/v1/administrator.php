@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Administrator\AdministratorController;
+use App\Http\Controllers\Api\Administrator\AdministratorPlanController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -36,4 +37,9 @@ Route::prefix('administrator')->middleware(['auth:sanctum', 'admin'])->group(fun
     Route::post('/users/bulk-update', [AdministratorController::class, 'bulkUpdate']);
     Route::post('/users/bulk-delete', [AdministratorController::class, 'bulkDelete']);
     Route::post('/users/export', [AdministratorController::class, 'exportUsers']);
+    
+    // Gerenciamento de planos (CRUD completo)
+    Route::apiResource('plans', AdministratorPlanController::class);
+    Route::post('/plans/{uuid}/toggle-status', [AdministratorPlanController::class, 'toggleStatus']);
+    Route::get('/plans/statistics/overview', [AdministratorPlanController::class, 'statistics']);
 });
