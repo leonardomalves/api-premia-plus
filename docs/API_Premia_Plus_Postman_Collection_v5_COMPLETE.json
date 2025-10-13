@@ -1,0 +1,1245 @@
+{
+	"info": {
+		"_postman_id": "api-premia-plus-collection-v5-complete",
+		"name": "API Premia Plus v5 - COMPLETA",
+		"description": "Collection completa com TODOS os endpoints da API Premia Plus incluindo Auth, Customer, Administrator e Shared",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "api-premia-plus-v5-complete"
+	},
+	"item": [
+		{
+			"name": "🔐 Autenticação (Auth)",
+			"item": [
+				{
+					"name": "Registrar Usuário",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"João Silva\",\n    \"email\": \"joao@example.com\",\n    \"username\": \"joao123\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"phone\": \"11999999999\",\n    \"sponsor\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "register"]
+						},
+						"description": "Registra um novo usuário no sistema"
+					}
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"joao@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "login"]
+						},
+						"description": "Faz login do usuário e retorna token de acesso"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/logout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "logout"]
+						},
+						"description": "Faz logout do usuário"
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/refresh",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "refresh"]
+						},
+						"description": "Renova o token de acesso"
+					}
+				},
+				{
+					"name": "Meus Dados",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "me"]
+						},
+						"description": "Retorna dados do usuário autenticado"
+					}
+				},
+				{
+					"name": "Meu Perfil",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "profile"]
+						},
+						"description": "Retorna perfil completo do usuário"
+					}
+				},
+				{
+					"name": "Atualizar Perfil",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Novo Nome\",\n    \"phone\": \"11888888888\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "profile"]
+						},
+						"description": "Atualiza dados do perfil do usuário"
+					}
+				},
+				{
+					"name": "Alterar Senha",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"current_password\": \"password123\",\n    \"password\": \"newpassword123\",\n    \"password_confirmation\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/change-password",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "change-password"]
+						},
+						"description": "Altera a senha do usuário"
+					}
+				}
+			]
+		},
+		{
+			"name": "👤 Customer - Perfil",
+			"item": [
+				{
+					"name": "Meu Perfil (Customer)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "me"]
+						},
+						"description": "Retorna dados do usuário autenticado (versão customer)"
+					}
+				},
+				{
+					"name": "Atualizar Perfil (Customer)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Novo Nome\",\n    \"phone\": \"11888888888\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "profile"]
+						},
+						"description": "Atualiza dados do perfil do usuário (versão customer)"
+					}
+				},
+				{
+					"name": "Alterar Senha (Customer)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"current_password\": \"password123\",\n    \"password\": \"newpassword123\",\n    \"password_confirmation\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/change-password",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "change-password"]
+						},
+						"description": "Altera a senha do usuário (versão customer)"
+					}
+				}
+			]
+		},
+		{
+			"name": "🛒 Customer - Carrinho",
+			"item": [
+				{
+					"name": "Adicionar ao Carrinho",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"plan_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/cart/add",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "cart", "add"]
+						},
+						"description": "Adiciona item ao carrinho. Se já existir item, atualiza o plan_id (regra: 1 item não pago por usuário)"
+					}
+				},
+				{
+					"name": "Ver Carrinho",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/cart",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "cart"]
+						},
+						"description": "Visualiza o carrinho atual do usuário"
+					}
+				},
+				{
+					"name": "Remover do Carrinho",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/cart/remove",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "cart", "remove"]
+						},
+						"description": "Remove item do carrinho (marca como abandoned)"
+					}
+				},
+				{
+					"name": "Limpar Carrinho",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/cart/clear",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "cart", "clear"]
+						},
+						"description": "Limpa todo o carrinho (marca todos como abandoned)"
+					}
+				},
+				{
+					"name": "Finalizar Compra (Checkout)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/cart/checkout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "cart", "checkout"]
+						},
+						"description": "Finaliza a compra criando Order a partir do Cart"
+					}
+				}
+			]
+		},
+		{
+			"name": "📦 Customer - Planos",
+			"item": [
+				{
+					"name": "Listar Planos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/plans",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "plans"]
+						},
+						"description": "Lista todos os planos ativos disponíveis"
+					}
+				},
+				{
+					"name": "Ver Plano Específico",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/plans/{{plan_uuid}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "plans", "{{plan_uuid}}"]
+						},
+						"description": "Visualiza detalhes de um plano específico"
+					}
+				},
+				{
+					"name": "Planos Promocionais",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/plans/promotional/list",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "plans", "promotional", "list"]
+						},
+						"description": "Lista apenas planos promocionais"
+					}
+				},
+				{
+					"name": "Buscar Planos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/plans/search?search=premium&price_range=medium",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "plans", "search"],
+							"query": [
+								{
+									"key": "search",
+									"value": "premium"
+								},
+								{
+									"key": "price_range",
+									"value": "medium"
+								}
+							]
+						},
+						"description": "Busca planos por nome/descrição e faixa de preço"
+					}
+				}
+			]
+		},
+		{
+			"name": "👥 Customer - Rede",
+			"item": [
+				{
+					"name": "Minha Rede",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/network",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "network"]
+						},
+						"description": "Lista usuários patrocinados pelo usuário autenticado"
+					}
+				},
+				{
+					"name": "Meu Patrocinador",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/sponsor",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "sponsor"]
+						},
+						"description": "Retorna dados do patrocinador do usuário autenticado"
+					}
+				},
+				{
+					"name": "Minhas Estatísticas",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/statistics",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "statistics"]
+						},
+						"description": "Retorna estatísticas do usuário autenticado"
+					}
+				},
+				{
+					"name": "Rede de Usuário Específico",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/users/{{user_uuid}}/network",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "users", "{{user_uuid}}", "network"]
+						},
+						"description": "Lista rede de usuário específico"
+					}
+				},
+				{
+					"name": "Patrocinador de Usuário Específico",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/users/{{user_uuid}}/sponsor",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "users", "{{user_uuid}}", "sponsor"]
+						},
+						"description": "Retorna patrocinador de usuário específico"
+					}
+				},
+				{
+					"name": "Estatísticas de Usuário Específico",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/users/{{user_uuid}}/statistics",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "users", "{{user_uuid}}", "statistics"]
+						},
+						"description": "Retorna estatísticas de usuário específico"
+					}
+				}
+			]
+		},
+		{
+			"name": "👑 Administrator - Usuários",
+			"item": [
+				{
+					"name": "Listar Todos os Usuários",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users"]
+						},
+						"description": "Lista todos os usuários do sistema (admin apenas)"
+					}
+				},
+				{
+					"name": "Ver Usuário Específico",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users/{{user_uuid}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users", "{{user_uuid}}"]
+						},
+						"description": "Retorna dados de um usuário específico (admin apenas)"
+					}
+				},
+				{
+					"name": "Criar Usuário",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Usuário Admin\",\n    \"email\": \"admin@example.com\",\n    \"username\": \"admin123\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"phone\": \"11999999999\",\n    \"role\": \"admin\",\n    \"sponsor\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users"]
+						},
+						"description": "Cria um novo usuário (admin apenas)"
+					}
+				},
+				{
+					"name": "Atualizar Usuário",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Nome Atualizado\",\n    \"email\": \"novo@example.com\",\n    \"phone\": \"11888888888\",\n    \"role\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users/{{user_uuid}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users", "{{user_uuid}}"]
+						},
+						"description": "Atualiza dados de um usuário (admin apenas)"
+					}
+				},
+				{
+					"name": "Deletar Usuário",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users/{{user_uuid}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users", "{{user_uuid}}"]
+						},
+						"description": "Remove um usuário (admin apenas)"
+					}
+				},
+				{
+					"name": "Rede de Usuário (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users/{{user_uuid}}/network",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users", "{{user_uuid}}", "network"]
+						},
+						"description": "Lista rede de usuário específico (admin apenas)"
+					}
+				},
+				{
+					"name": "Patrocinador de Usuário (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users/{{user_uuid}}/sponsor",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users", "{{user_uuid}}", "sponsor"]
+						},
+						"description": "Retorna patrocinador de usuário específico (admin apenas)"
+					}
+				},
+				{
+					"name": "Estatísticas de Usuário (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users/{{user_uuid}}/statistics",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users", "{{user_uuid}}", "statistics"]
+						},
+						"description": "Retorna estatísticas de usuário específico (admin apenas)"
+					}
+				}
+			]
+		},
+		{
+			"name": "📊 Administrator - Sistema",
+			"item": [
+				{
+					"name": "Estatísticas do Sistema",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/statistics",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "statistics"]
+						},
+						"description": "Retorna estatísticas gerais do sistema (admin apenas)"
+					}
+				},
+				{
+					"name": "Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/dashboard",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "dashboard"]
+						},
+						"description": "Retorna dados do dashboard administrativo"
+					}
+				},
+				{
+					"name": "Atualização em Massa de Usuários",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_ids\": [1, 2, 3],\n    \"updates\": {\n        \"status\": \"active\",\n        \"role\": \"user\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users/bulk-update",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users", "bulk-update"]
+						},
+						"description": "Atualiza múltiplos usuários de uma vez"
+					}
+				},
+				{
+					"name": "Deleção em Massa de Usuários",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_ids\": [1, 2, 3]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users/bulk-delete",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users", "bulk-delete"]
+						},
+						"description": "Remove múltiplos usuários de uma vez"
+					}
+				},
+				{
+					"name": "Exportar Usuários",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"format\": \"csv\",\n    \"filters\": {\n        \"role\": \"user\",\n        \"status\": \"active\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users/export",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users", "export"]
+						},
+						"description": "Exporta lista de usuários em formato CSV/Excel"
+					}
+				}
+			]
+		},
+		{
+			"name": "📦 Administrator - Planos",
+			"item": [
+				{
+					"name": "Listar Todos os Planos (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/plans",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "plans"]
+						},
+						"description": "Lista todos os planos (admin apenas)"
+					}
+				},
+				{
+					"name": "Ver Plano Específico (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/plans/{{plan_uuid}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "plans", "{{plan_uuid}}"]
+						},
+						"description": "Retorna dados de um plano específico (admin apenas)"
+					}
+				},
+				{
+					"name": "Criar Plano",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Plano Teste\",\n    \"description\": \"Descrição do plano teste\",\n    \"price\": 299.90,\n    \"grant_tickets\": 30,\n    \"status\": \"active\",\n    \"commission_level_1\": 10.00,\n    \"commission_level_2\": 5.00,\n    \"commission_level_3\": 2.50,\n    \"is_promotional\": false,\n    \"overlap\": 1,\n    \"start_date\": \"2025-01-01\",\n    \"end_date\": \"2025-12-31\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/plans",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "plans"]
+						},
+						"description": "Cria um novo plano (admin apenas)"
+					}
+				},
+				{
+					"name": "Atualizar Plano",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Plano Atualizado\",\n    \"description\": \"Nova descrição\",\n    \"price\": 399.90,\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/plans/{{plan_uuid}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "plans", "{{plan_uuid}}"]
+						},
+						"description": "Atualiza um plano existente (admin apenas)"
+					}
+				},
+				{
+					"name": "Deletar Plano",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/plans/{{plan_uuid}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "plans", "{{plan_uuid}}"]
+						},
+						"description": "Remove um plano (admin apenas)"
+					}
+				},
+				{
+					"name": "Alternar Status do Plano",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/plans/{{plan_uuid}}/toggle-status",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "plans", "{{plan_uuid}}", "toggle-status"]
+						},
+						"description": "Alterna status ativo/inativo do plano"
+					}
+				},
+				{
+					"name": "Estatísticas dos Planos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/plans/statistics/overview",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "plans", "statistics", "overview"]
+						},
+						"description": "Retorna estatísticas gerais dos planos"
+					}
+				}
+			]
+		},
+		{
+			"name": "🔧 Sistema - Health & Test",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "health"]
+						},
+						"description": "Verifica status de saúde da API"
+					}
+				},
+				{
+					"name": "Test Endpoint",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/test",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "test"]
+						},
+						"description": "Endpoint de teste da API"
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_uuid",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "plan_uuid",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
