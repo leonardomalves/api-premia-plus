@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CreateUserSeed::class,
             PlanSeed::class,
+            SimpleUplineSeed::class,
         ]);
     }
 }
