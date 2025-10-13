@@ -33,13 +33,7 @@ class Ticket extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Relacionamento com TicketClass (quando o modelo for criado)
-     */
-    // public function ticketClass(): BelongsTo
-    // {
-    //     return $this->belongsTo(TicketClass::class, 'ticket_level');
-    // }
+
 
     /**
      * Scope para tickets ativos
