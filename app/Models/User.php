@@ -84,4 +84,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(User::class, 'sponsor_id');
     }
+
+    /**
+     * Relacionamento com Commission (comissões que o usuário recebe)
+     */
+    public function commissions()
+    {
+        return $this->hasMany(Commission::class, 'user_id');
+    }
+
+    /**
+     * Relacionamento com Commission (comissões originadas pelas compras do usuário)
+     */
+    public function originCommissions()
+    {
+        return $this->hasMany(Commission::class, 'origin_user_id');
+    }
 }
