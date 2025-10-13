@@ -26,9 +26,27 @@ class WalletTicket extends Model
         'expiration_date' => 'date',
     ];
 
+    /**
+     * Relacionamento com User
+     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-    //
+
+    /**
+     * Relacionamento com Order
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * Relacionamento com Plan
+     */
+    public function plan()
+    {
+        return $this->belongsTo(Plan::class);
+    }
 }
