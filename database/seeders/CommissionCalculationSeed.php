@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Plan;
+use App\Models\Commission;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -125,24 +126,30 @@ class CommissionCalculationSeed extends Seeder
     }
     
     /**
-     * Salva a comissão calculada
+     * Salva a comissão calculada usando updateOrCreate para evitar duplicação
      */
     private function saveCommission(Order $order, User $upline, int $level, float $amount, float $rate): void
     {
-        // Por enquanto, apenas exibe a comissão
-        // Você pode implementar a lógica de salvamento aqui
-        $this->command->info("   📝 Comissão calculada: {$upline->name} - Nível {$level} - R$ " . number_format($amount, 2, ',', '.') . " ({$rate}%)");
+        // Usar updateOrCreate para evitar duplicação
+        $commission = Commission::updateOrCreate(
+            [
+                'order_id' => $order->id,
+                'user_id' => $upline->id,
+                'origin_user_id' => $order->user_id,
+            ],
+            [
+                'amount' => $amount,
+                'available_at' => now()->addDays(30), // Disponível em 30 dias
+            ]
+        );
+
+        $this->command->info("   📝 Comissão salva: {$upline->name} - Nível {$level} - R$ " . number_format($amount, 2, ',', '.') . " ({$rate}%)");
         
-        // Exemplo de como salvar no banco:
-        // Commission::create([
-        //     'order_id' => $order->id,
-        //     'upline_id' => $upline->id,
-        //     'level' => $level,
-        //     'amount' => $amount,
-        //     'rate' => $rate,
-        //     'plan_name' => $order->plan_metadata['name'],
-        //     'plan_price' => $order->plan_metadata['price']
-        // ]);
+        if ($commission->wasRecentlyCreated) {
+            $this->command->info("   ✅ Nova comissão criada (ID: {$commission->id})");
+        } else {
+            $this->command->info("   🔄 Comissão atualizada (ID: {$commission->id})");
+        }
     }
     
     /**
@@ -163,6 +170,18 @@ class CommissionCalculationSeed extends Seeder
         $this->command->info("   - Profundidade configurada: {$this->maxLevels} níveis");
         $this->command->info("   - Orders processadas: " . Order::where('status', 'approved')->count());
         $this->command->info("   - Usuários com uplines: " . User::whereNotNull('sponsor_id')->count());
+        
+        // Estatísticas das comissões
+        $totalCommissions = Commission::count();
+        $totalAmount = Commission::sum('amount');
+        $paidCommissions = Commission::where('paid', true)->count();
+        $availableCommissions = Commission::where('available_at', '<=', now())->where('paid', false)->count();
+        
+        $this->command->info('💰 Estatísticas de Comissões Salvas:');
+        $this->command->info("   - Total de comissões: {$totalCommissions}");
+        $this->command->info("   - Valor total: R$ " . number_format($totalAmount, 2, ',', '.'));
+        $this->command->info("   - Comissões pagas: {$paidCommissions}");
+        $this->command->info("   - Comissões disponíveis: {$availableCommissions}");
         
         // Mostrar exemplo de metadados de plano
         $order = Order::where('status', 'approved')->first();
