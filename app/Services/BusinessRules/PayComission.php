@@ -67,12 +67,22 @@ class PayComission
                 $upline = User::find($uplineData['id']);
                 $level = $uplineData['level'];
                 
+                // Criar comissão
                 $result = $this->createCommission($order, $upline, $level, $planMetadata);
                 
                 if ($result['success']) {
                     $totalAmount += $result['amount'];
                     $commissionsCreated++;
                     Log::info("✅ Comissão criada: {$upline->name} - Nível {$level} - R$ " . number_format($result['amount'], 2, ',', '.'));
+                    
+                    // PAGAR IMEDIATAMENTE
+                    $paymentResult = $this->processCommissionPayment($result['commission']);
+                    
+                    if ($paymentResult['success']) {
+                        Log::info("💰 PAGO IMEDIATAMENTE: {$upline->name} - R$ " . number_format($result['amount'], 2, ',', '.'));
+                    } else {
+                        Log::error("❌ Erro ao pagar comissão: {$paymentResult['message']}");
+                    }
                 } else {
                     Log::error("❌ Erro ao criar comissão: {$result['message']}");
                 }
@@ -282,7 +292,7 @@ class PayComission
                 ],
                 [
                     'amount' => $commissionAmount,
-                    'available_at' => now()->addDays(30), // Disponível em 30 dias
+                    'available_at' => now(), // Disponível imediatamente para pagamento
                 ]
             );
             
