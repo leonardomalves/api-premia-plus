@@ -4,25 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Order extends Model
+class Cart extends Model
 {
-    use SoftDeletes;
-
     protected $fillable = [
         'uuid',
         'user_id',
-        'user_metadata',
         'plan_id',
-        'plan_metadata',
+        'order_id',
         'status',
     ];
 
     protected $casts = [
-        'user_metadata' => 'array',
-        'plan_metadata' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
@@ -42,10 +37,10 @@ class Order extends Model
     }
 
     /**
-     * Relacionamento com Cart
+     * Relacionamento com Order
      */
-    public function cart(): HasOne
+    public function order(): BelongsTo
     {
-        return $this->hasOne(Cart::class);
+        return $this->belongsTo(Order::class);
     }
 }

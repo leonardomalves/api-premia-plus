@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\Customer\CustomerPlanController;
+use App\Http\Controllers\Api\Customer\CustomerCartController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -37,4 +38,11 @@ Route::prefix('customer')->middleware('auth:sanctum')->group(function () {
     Route::get('/plans/{uuid}', [CustomerPlanController::class, 'show']);
     Route::get('/plans/promotional/list', [CustomerPlanController::class, 'promotional']);
     Route::get('/plans/search', [CustomerPlanController::class, 'search']);
+    
+    // Carrinho (1 item não pago por usuário)
+    Route::post('/cart/add', [CustomerCartController::class, 'addToCart']);
+    Route::get('/cart', [CustomerCartController::class, 'viewCart']);
+    Route::delete('/cart/remove', [CustomerCartController::class, 'removeFromCart']);
+    Route::delete('/cart/clear', [CustomerCartController::class, 'clearCart']);
+    Route::post('/cart/checkout', [CustomerCartController::class, 'checkout']);
 });
