@@ -322,14 +322,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"plan_id\": 1\n}"
+							"raw": "{\n    \"plan_uuid\": \"{{plan_uuid}}\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/customer/cart/add",
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "customer", "cart", "add"]
 						},
-						"description": "Adiciona item ao carrinho. Se já existir item, atualiza o plan_id (regra: 1 item não pago por usuário)"
+						"description": "Adiciona item ao carrinho usando plan_uuid. Se já existir item, atualiza o plano (regra: 1 item não pago por usuário)"
 					}
 				},
 				{

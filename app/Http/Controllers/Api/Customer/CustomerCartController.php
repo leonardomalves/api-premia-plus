@@ -20,10 +20,10 @@ class CustomerCartController extends Controller
     {
         try {
             $user = $request->user();
-            $planId = $request->input('plan_id');
+            $planUuid = $request->input('plan_uuid');
 
             // Validar se o plano existe e está ativo
-            $plan = Plan::where('id', $planId)
+            $plan = Plan::where('uuid', $planUuid)
                 ->where('status', 'active')
                 ->first();
 
@@ -42,7 +42,7 @@ class CustomerCartController extends Controller
             if ($existingCart) {
                 // Atualizar o plan_id do carrinho existente
                 $existingCart->update([
-                    'plan_id' => $planId
+                    'plan_id' => $plan->id
                 ]);
 
                 return response()->json([
@@ -58,7 +58,7 @@ class CustomerCartController extends Controller
                 $cart = Cart::create([
                     'uuid' => Str::uuid(),
                     'user_id' => $user->id,
-                    'plan_id' => $planId,
+                    'plan_id' => $plan->id,
                     'status' => 'active'
                 ]);
 
