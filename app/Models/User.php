@@ -100,4 +100,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Commission::class, 'origin_user_id');
     }
+
+    /**
+     * Relacionamento com Ticket (tickets do usuário)
+     */
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class);
+    }
 }
