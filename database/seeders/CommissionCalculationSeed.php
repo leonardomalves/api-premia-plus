@@ -47,9 +47,9 @@ class CommissionCalculationSeed extends Seeder
     private function calculateCommissions(Order $order): void
     {
         $buyer = $order->user;
-        $plan = $order->plan;
+        $planMetadata = $order->plan_metadata;
         
-        $this->command->info("🛒 Processando order do usuário: {$buyer->name} (Plano: {$plan->name})");
+        $this->command->info("🛒 Processando order do usuário: {$buyer->name} (Plano: {$planMetadata['name']})");
         
         // Buscar uplines até o nível configurado
         $uplines = $this->getUplines($buyer, $this->maxLevels);
@@ -61,7 +61,7 @@ class CommissionCalculationSeed extends Seeder
         
         // Calcular comissões para cada nível
         foreach ($uplines as $level => $upline) {
-            $this->calculateLevelCommission($order, $upline, $level + 1);
+            $this->calculateLevelCommission($order, $upline, $level + 1, $planMetadata);
         }
     }
     
@@ -92,17 +92,17 @@ class CommissionCalculationSeed extends Seeder
     /**
      * Calcula comissão para um nível específico
      */
-    private function calculateLevelCommission(Order $order, User $upline, int $level): void
+    private function calculateLevelCommission(Order $order, User $upline, int $level, array $planMetadata): void
     {
-        $plan = $order->plan;
-        $commissionRate = $this->getCommissionRate($plan, $level);
+        $commissionRate = $this->getCommissionRateFromMetadata($planMetadata, $level);
         
         if ($commissionRate <= 0) {
             $this->command->warn("   ⚠️ Taxa de comissão zero para nível {$level}");
             return;
         }
         
-        $commissionAmount = $plan->price * ($commissionRate / 100);
+        $planPrice = (float) $planMetadata['price'];
+        $commissionAmount = $planPrice * ($commissionRate / 100);
         
         $this->command->info("   💰 Nível {$level}: {$upline->name} - R$ " . number_format($commissionAmount, 2, ',', '.') . " ({$commissionRate}%)");
         
@@ -112,14 +112,14 @@ class CommissionCalculationSeed extends Seeder
     }
     
     /**
-     * Obtém a taxa de comissão baseada no plano e nível
+     * Obtém a taxa de comissão baseada nos metadados do plano e nível
      */
-    private function getCommissionRate(Plan $plan, int $level): float
+    private function getCommissionRateFromMetadata(array $planMetadata, int $level): float
     {
         return match($level) {
-            1 => (float) $plan->commission_level_1,
-            2 => (float) $plan->commission_level_2,
-            3 => (float) $plan->commission_level_3,
+            1 => (float) $planMetadata['commission_level_1'],
+            2 => (float) $planMetadata['commission_level_2'],
+            3 => (float) $planMetadata['commission_level_3'],
             default => 0.0
         };
     }
@@ -131,7 +131,18 @@ class CommissionCalculationSeed extends Seeder
     {
         // Por enquanto, apenas exibe a comissão
         // Você pode implementar a lógica de salvamento aqui
-        $this->command->info("   📝 Comissão calculada: {$upline->name} - Nível {$level} - R$ " . number_format($amount, 2, ',', '.'));
+        $this->command->info("   📝 Comissão calculada: {$upline->name} - Nível {$level} - R$ " . number_format($amount, 2, ',', '.') . " ({$rate}%)");
+        
+        // Exemplo de como salvar no banco:
+        // Commission::create([
+        //     'order_id' => $order->id,
+        //     'upline_id' => $upline->id,
+        //     'level' => $level,
+        //     'amount' => $amount,
+        //     'rate' => $rate,
+        //     'plan_name' => $order->plan_metadata['name'],
+        //     'plan_price' => $order->plan_metadata['price']
+        // ]);
     }
     
     /**
@@ -152,5 +163,16 @@ class CommissionCalculationSeed extends Seeder
         $this->command->info("   - Profundidade configurada: {$this->maxLevels} níveis");
         $this->command->info("   - Orders processadas: " . Order::where('status', 'approved')->count());
         $this->command->info("   - Usuários com uplines: " . User::whereNotNull('sponsor_id')->count());
+        
+        // Mostrar exemplo de metadados de plano
+        $order = Order::where('status', 'approved')->first();
+        if ($order && $order->plan_metadata) {
+            $this->command->info('📦 Exemplo de metadados de plano:');
+            $this->command->info("   - Nome: {$order->plan_metadata['name']}");
+            $this->command->info("   - Preço: R$ " . number_format($order->plan_metadata['price'], 2, ',', '.'));
+            $this->command->info("   - Comissão Nível 1: {$order->plan_metadata['commission_level_1']}%");
+            $this->command->info("   - Comissão Nível 2: {$order->plan_metadata['commission_level_2']}%");
+            $this->command->info("   - Comissão Nível 3: {$order->plan_metadata['commission_level_3']}%");
+        }
     }
 }
