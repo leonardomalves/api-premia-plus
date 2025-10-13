@@ -8,7 +8,7 @@ use App\Models\Order;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
-class PayComission
+class PayComissionService
 {
     /**
      * Processa comissões para uma order específica
