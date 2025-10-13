@@ -11,6 +11,86 @@ use Illuminate\Support\Facades\DB;
 class PayComission
 {
     /**
+     * Processa comissões para uma order específica
+     */
+    public function processOrderCommissions(Order $order): array
+    {
+        Log::info("💰 Processando comissões para order: {$order->uuid}");
+        
+        if ($order->status !== 'approved') {
+            Log::warning("⚠️ Order não está aprovada: {$order->status}");
+            return [
+                'success' => false,
+                'message' => 'Order não está aprovada',
+                'order' => $order,
+                'commissions_created' => 0,
+                'total_amount' => 0
+            ];
+        }
+        
+        $user = $order->user;
+        if (!$user) {
+            Log::warning('⚠️ Usuário não encontrado na order');
+            return [
+                'success' => false,
+                'message' => 'Usuário não encontrado na order',
+                'order' => $order,
+                'commissions_created' => 0,
+                'total_amount' => 0
+            ];
+        }
+        
+        // Buscar uplines usando UpLinesService
+        $upLinesService = new UpLinesService();
+        $uplinesResult = $upLinesService->run($order);
+        
+        if (!$uplinesResult['success'] || empty($uplinesResult['uplines'])) {
+            Log::info("ℹ️ Nenhum upline encontrado para order {$order->uuid}");
+            return [
+                'success' => true,
+                'message' => 'Nenhum upline encontrado',
+                'order' => $order,
+                'commissions_created' => 0,
+                'total_amount' => 0
+            ];
+        }
+        
+        Log::info("📊 Encontrados " . count($uplinesResult['uplines']) . " uplines para processar");
+        
+        // Processar comissões em transação
+        return DB::transaction(function () use ($order, $uplinesResult) {
+            $totalAmount = 0;
+            $commissionsCreated = 0;
+            $planMetadata = $order->plan_metadata;
+            
+            foreach ($uplinesResult['uplines'] as $uplineData) {
+                $upline = User::find($uplineData['id']);
+                $level = $uplineData['level'];
+                
+                $result = $this->createCommission($order, $upline, $level, $planMetadata);
+                
+                if ($result['success']) {
+                    $totalAmount += $result['amount'];
+                    $commissionsCreated++;
+                    Log::info("✅ Comissão criada: {$upline->name} - Nível {$level} - R$ " . number_format($result['amount'], 2, ',', '.'));
+                } else {
+                    Log::error("❌ Erro ao criar comissão: {$result['message']}");
+                }
+            }
+            
+            Log::info("💰 Processamento concluído: {$commissionsCreated} comissões, R$ " . number_format($totalAmount, 2, ',', '.'));
+            
+            return [
+                'success' => true,
+                'message' => 'Comissões processadas com sucesso',
+                'order' => $order,
+                'commissions_created' => $commissionsCreated,
+                'total_amount' => $totalAmount
+            ];
+        });
+    }
+
+    /**
      * Paga comissões para um usuário específico
      */
     public function payUserCommissions(string $userUuid): array
@@ -173,6 +253,70 @@ class PayComission
         }
     }
     
+    /**
+     * Cria uma comissão para um upline específico
+     */
+    private function createCommission(Order $order, User $upline, int $level, array $planMetadata): array
+    {
+        try {
+            // Calcular taxa de comissão baseada no nível
+            $commissionRate = $this->getCommissionRateFromMetadata($planMetadata, $level);
+            
+            if ($commissionRate <= 0) {
+                return [
+                    'success' => false,
+                    'message' => "Taxa de comissão zero para nível {$level}",
+                    'amount' => 0
+                ];
+            }
+            
+            $planPrice = (float) $planMetadata['price'];
+            $commissionAmount = $planPrice * ($commissionRate / 100);
+            
+            // Usar updateOrCreate para evitar duplicação
+            $commission = Commission::updateOrCreate(
+                [
+                    'order_id' => $order->id,
+                    'user_id' => $upline->id,
+                    'origin_user_id' => $order->user_id,
+                ],
+                [
+                    'amount' => $commissionAmount,
+                    'available_at' => now()->addDays(30), // Disponível em 30 dias
+                ]
+            );
+            
+            return [
+                'success' => true,
+                'message' => 'Comissão criada/atualizada com sucesso',
+                'amount' => $commissionAmount,
+                'commission' => $commission
+            ];
+            
+        } catch (\Exception $e) {
+            Log::error("❌ Erro ao criar comissão: " . $e->getMessage());
+            
+            return [
+                'success' => false,
+                'message' => 'Erro ao criar comissão: ' . $e->getMessage(),
+                'amount' => 0
+            ];
+        }
+    }
+    
+    /**
+     * Obtém taxa de comissão dos metadados do plano
+     */
+    private function getCommissionRateFromMetadata(array $planMetadata, int $level): float
+    {
+        return match($level) {
+            1 => (float) $planMetadata['commission_level_1'],
+            2 => (float) $planMetadata['commission_level_2'],
+            3 => (float) $planMetadata['commission_level_3'],
+            default => 0.0
+        };
+    }
+
     /**
      * Executa o pagamento real (implementar conforme necessário)
      */

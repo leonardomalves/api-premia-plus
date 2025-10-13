@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Order;
 use App\Models\User;
 use App\Services\BusinessRules\UpLinesService;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -12,7 +13,13 @@ class UplineFinderSeed extends Seeder
     public function run(): void
 
     {
-        $uplinesService = new UpLinesService();
-        $uplinesService->run('d26b09dd-0c6b-4442-9c75-09868680c034');
+        $order = Order::where('status', 'approved')
+        ->with('user')
+        ->first();
+
+        foreach ($order as $order) {
+            $uplinesService = new UpLinesService();
+            $uplinesService->run($order->user);
+        }
     }
 }

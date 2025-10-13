@@ -3,6 +3,7 @@
 namespace App\Services\BusinessRules;
 
 use App\Models\User;
+use App\Models\Order;
 use Illuminate\Support\Facades\Log;
 
 class UpLinesService
@@ -13,33 +14,32 @@ class UpLinesService
     private $maxLevels = 3;
     
     /**
-     * Busca uplines para todos os usuários ou um usuário específico
+     * Busca uplines para uma order específica
      */
-    public function run(?string $userUuid = null): array
+    public function run(Order $order): array
     {
-        Log::info('🔍 Iniciando busca de uplines...');
+        Log::info("🔍 Iniciando busca de uplines para order: {$order->uuid}");
         
-        // Buscar usuários
-        if ($userUuid) {
-            $users = User::where('uuid', $userUuid)->get();
-        } else {
-            $users = User::all();
+        $user = $order->user;
+        
+        if (!$user) {
+            Log::warning('⚠️ Usuário não encontrado na order.');
+            return [
+                'success' => false,
+                'message' => 'Usuário não encontrado na order',
+                'order' => $order,
+                'uplines' => []
+            ];
         }
         
-        if ($users->isEmpty()) {
-            Log::warning('⚠️ Nenhum usuário encontrado.');
-            return [];
-        }
+        Log::info("👤 Processando usuário: {$user->name} (ID: {$user->id})");
         
-        Log::info("👥 Processando {$users->count()} usuários...");
-        
-        $results = [];
-        foreach ($users as $user) {
-            $results[] = $this->findUplines($user);
-        }
+        $result = $this->findUplines($user);
+        $result['order'] = $order;
+        $result['success'] = true;
         
         Log::info('✅ Busca de uplines concluída!');
-        return $results;
+        return $result;
     }
     
     /**
