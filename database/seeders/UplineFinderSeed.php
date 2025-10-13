@@ -21,7 +21,7 @@ class UplineFinderSeed extends Seeder
         $this->command->info('🔍 Iniciando busca de uplines...');
         
         // Buscar todos os usuários
-        $users = User::all();
+        $users = User::where('uuid', '1868fb8c-d68a-469d-8eaf-1022a02657c7')->get();
         
         if ($users->isEmpty()) {
             $this->command->warn('⚠️ Nenhum usuário encontrado. Execute primeiro o CreateUserSeed.');
