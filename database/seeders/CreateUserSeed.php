@@ -162,7 +162,7 @@ class CreateUserSeed extends Seeder
             'status' => $status,
         ];
 
-        $response = (new HttpClient())->apiRequest("{$this->baseUrl}/users/{$userUuid}", $data, $headers, 'PUT');
+        $response = (new HttpClient())->apiRequest("{$this->baseUrl}/administrator/users/{$userUuid}", $data, $headers, 'PUT');
 
         if ($response->status != 200) {
             $this->command->warn("⚠️ Não foi possível atualizar role/status do usuário {$userUuid}");
