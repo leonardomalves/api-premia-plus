@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Administrator;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class AdministratorController extends Controller
@@ -56,6 +57,45 @@ class AdministratorController extends Controller
         return response()->json([
             'user' => $user,
         ]);
+    }
+
+    /**
+     * Store a newly created user (admin only)
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'username' => 'required|string|max:255|unique:users,username',
+            'password' => 'required|string|min:8|confirmed',
+            'phone' => 'sometimes|nullable|string|max:20',
+            'role' => 'sometimes|in:user,admin,moderator,support,finance',
+            'status' => 'sometimes|in:active,inactive,suspended',
+            'sponsor_uuid' => 'sometimes|nullable|exists:users,uuid',
+        ]);
+
+        $sponsorId = null;
+        if (!empty($validated['sponsor_uuid'])) {
+            $sponsor = User::where('uuid', $validated['sponsor_uuid'])->first();
+            $sponsorId = $sponsor?->id;
+        }
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'username' => $validated['username'],
+            'password' => Hash::make($validated['password']),
+            'phone' => $validated['phone'] ?? null,
+            'role' => $validated['role'] ?? 'user',
+            'status' => $validated['status'] ?? 'active',
+            'sponsor_id' => $sponsorId,
+        ]);
+
+        return response()->json([
+            'message' => 'Usuário criado com sucesso',
+            'user' => $user->load('sponsor'),
+        ], 201);
     }
 
     /**
@@ -259,6 +299,131 @@ class AdministratorController extends Controller
             'message' => "{$updatedCount} usuários atualizados com sucesso",
             'updated_count' => $updatedCount,
             'errors' => $errors,
+        ]);
+    }
+
+    /**
+     * Remove multiple users (admin only)
+     */
+    public function bulkDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'user_uuids' => 'required|array|min:1',
+            'user_uuids.*' => 'required|exists:users,uuid',
+        ]);
+
+        $currentUser = $request->user();
+        $uuids = collect($validated['user_uuids'])->unique();
+
+        $users = User::whereIn('uuid', $uuids)->get();
+
+        $deleted = 0;
+        $errors = [];
+
+        foreach ($users as $user) {
+            if ($user->id === $currentUser->id) {
+                $errors[] = 'Você não pode excluir sua própria conta.';
+                continue;
+            }
+
+            try {
+                $user->delete();
+                $deleted++;
+            } catch (\Exception $e) {
+                $errors[] = "Erro ao excluir usuário {$user->uuid}: " . $e->getMessage();
+            }
+        }
+
+        $status = $deleted > 0 ? 200 : 422;
+
+        return response()->json([
+            'message' => $deleted > 0 ? "{$deleted} usuários excluídos com sucesso" : 'Nenhum usuário foi excluído',
+            'deleted_count' => $deleted,
+            'errors' => $errors,
+        ], $status);
+    }
+
+    /**
+     * Export users data (admin only)
+     */
+    public function exportUsers(Request $request)
+    {
+        $users = User::with('sponsor')
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('username', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->role, function ($query, $role) {
+                $query->where('role', $role);
+            })
+            ->when($request->status, function ($query, $status) {
+                $query->where('status', $status);
+            })
+            ->when($request->sponsor_uuid, function ($query, $sponsorUuid) {
+                $sponsor = User::where('uuid', $sponsorUuid)->first();
+                if ($sponsor) {
+                    $query->where('sponsor_id', $sponsor->id);
+                }
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $export = $users->map(function ($user) {
+            return [
+                'uuid' => $user->uuid,
+                'name' => $user->name,
+                'email' => $user->email,
+                'username' => $user->username,
+                'role' => $user->role,
+                'status' => $user->status,
+                'phone' => $user->phone,
+                'sponsor_uuid' => $user->sponsor?->uuid,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Exportação gerada com sucesso',
+            'total' => $export->count(),
+            'users' => $export,
+        ]);
+    }
+
+    /**
+     * Dashboard overview (admin only)
+     */
+    public function dashboard(Request $request)
+    {
+        $totalUsers = User::count();
+        $activeUsers = User::where('status', 'active')->count();
+        $inactiveUsers = User::where('status', 'inactive')->count();
+        $suspendedUsers = User::where('status', 'suspended')->count();
+
+        $newUsersLast30Days = User::where('created_at', '>=', now()->subDays(30))->count();
+
+        $topSponsors = User::withCount('sponsored')
+            ->orderBy('sponsored_count', 'desc')
+            ->take(5)
+            ->get(['uuid', 'name', 'email', 'sponsored_count']);
+
+        $recentUsers = User::orderBy('created_at', 'desc')
+            ->take(5)
+            ->get(['uuid', 'name', 'email', 'role', 'status', 'created_at']);
+
+        return response()->json([
+            'summary' => [
+                'total_users' => $totalUsers,
+                'active_users' => $activeUsers,
+                'inactive_users' => $inactiveUsers,
+                'suspended_users' => $suspendedUsers,
+                'new_users_last_30_days' => $newUsersLast30Days,
+            ],
+            'top_sponsors' => $topSponsors,
+            'recent_users' => $recentUsers,
         ]);
     }
 }

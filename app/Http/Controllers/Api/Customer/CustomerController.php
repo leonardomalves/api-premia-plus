@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class CustomerController extends Controller
 {
@@ -17,6 +20,34 @@ class CustomerController extends Controller
         
         return response()->json([
             'user' => $user->load('sponsor'),
+        ]);
+    }
+
+    /**
+     * Update authenticated user's profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'phone' => 'sometimes|nullable|string|max:20',
+            'email' => ['sometimes', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'username' => ['sometimes', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
+        ]);
+
+        if (empty($validated)) {
+            return response()->json([
+                'message' => 'Nenhuma alteração fornecida.',
+            ], 422);
+        }
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Perfil atualizado com sucesso',
+            'user' => $user->fresh()->load('sponsor'),
         ]);
     }
 
@@ -98,6 +129,33 @@ class CustomerController extends Controller
 
         return response()->json([
             'statistics' => $stats,
+        ]);
+    }
+
+    /**
+     * Change authenticated user's password
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['A senha atual está incorreta.'],
+            ]);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return response()->json([
+            'message' => 'Senha alterada com sucesso',
         ]);
     }
 
