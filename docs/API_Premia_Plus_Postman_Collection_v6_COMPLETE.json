@@ -1,17 +1,17 @@
 {
 	"info": {
-		"_postman_id": "api-premia-plus-collection-v5-complete",
-		"name": "API Premia Plus v5 - COMPLETA",
-		"description": "Collection completa com TODOS os endpoints da API Premia Plus incluindo Auth, Customer, Administrator e Shared",
+		"_postman_id": "api-premia-plus-collection-v6-complete",
+		"name": "API Premia Plus v6 - COMPLETE",
+		"description": "Complete collection with ALL API Premia Plus endpoints including Auth, Customer, Administrator and Shared with English standardization and monitoring features",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "api-premia-plus-v5-complete"
+		"_exporter_id": "api-premia-plus-v6-complete"
 	},
 	"item": [
 		{
-			"name": "🔐 Autenticação (Auth)",
+			"name": "🔐 Authentication (Auth)",
 			"item": [
 				{
-					"name": "Registrar Usuário",
+					"name": "Register User",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -33,7 +33,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "register"]
 						},
-						"description": "Registra um novo usuário no sistema"
+						"description": "Register a new user in the system"
 					}
 				},
 				{
@@ -59,7 +59,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "login"]
 						},
-						"description": "Faz login do usuário e retorna token de acesso"
+						"description": "User login and returns access token"
 					}
 				},
 				{
@@ -81,7 +81,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "logout"]
 						},
-						"description": "Faz logout do usuário"
+						"description": "User logout"
 					}
 				},
 				{
@@ -103,7 +103,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "refresh"]
 						},
-						"description": "Renova o token de acesso"
+						"description": "Refresh access token"
 					}
 				},
 				{
@@ -125,7 +125,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "me"]
 						},
-						"description": "Retorna dados do usuário autenticado"
+						"description": "Returns authenticated user data"
 					}
 				},
 				{
@@ -147,7 +147,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "profile"]
 						},
-						"description": "Retorna perfil completo do usuário"
+						"description": "Returns complete user profile"
 					}
 				},
 				{
@@ -177,7 +177,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "profile"]
 						},
-						"description": "Atualiza dados do perfil do usuário"
+						"description": "Updates user profile data"
 					}
 				},
 				{
@@ -207,7 +207,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "change-password"]
 						},
-						"description": "Altera a senha do usuário"
+						"description": "Changes user password"
 					}
 				}
 			]
@@ -663,7 +663,7 @@
 			]
 		},
 		{
-			"name": "👑 Administrator - Usuários",
+			"name": "👑 Administrator - Users",
 			"item": [
 				{
 					"name": "Listar Todos os Usuários",
@@ -836,7 +836,7 @@
 					}
 				},
 				{
-					"name": "Estatísticas de Usuário (Admin)",
+					"name": "User Statistics (Admin)",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -854,7 +854,97 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "administrator", "users", "{{user_uuid}}", "statistics"]
 						},
-						"description": "Retorna estatísticas de usuário específico (admin apenas)"
+						"description": "Returns specific user statistics (admin only)"
+					}
+				},
+				{
+					"name": "Bulk Update Users",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_ids\": [\"uuid1\", \"uuid2\", \"uuid3\"],\n    \"updates\": {\n        \"status\": \"active\",\n        \"is_admin\": false\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users/bulk-update",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users", "bulk-update"]
+						},
+						"description": "Bulk update multiple users (admin only)"
+					}
+				},
+				{
+					"name": "Bulk Delete Users",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_ids\": [\"uuid1\", \"uuid2\", \"uuid3\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users/bulk-delete",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users", "bulk-delete"]
+						},
+						"description": "Bulk delete multiple users (admin only)"
+					}
+				},
+				{
+					"name": "Export Users",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"format\": \"csv\",\n    \"filters\": {\n        \"status\": \"active\",\n        \"created_at_from\": \"2024-01-01\",\n        \"created_at_to\": \"2024-12-31\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/users/export",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "users", "export"]
+						},
+						"description": "Export users data in specified format (admin only)"
 					}
 				}
 			]
@@ -1174,7 +1264,7 @@
 			]
 		},
 		{
-			"name": "🔧 Sistema - Health & Test",
+			"name": "🔧 System - Health & Monitoring",
 			"item": [
 				{
 					"name": "Health Check",
@@ -1191,7 +1281,25 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "health"]
 						},
-						"description": "Verifica status de saúde da API"
+						"description": "Check API health status"
+					}
+				},
+				{
+					"name": "Health Check Detailed",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/health/detailed",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "health", "detailed"]
+						},
+						"description": "Detailed health check with metrics and system information"
 					}
 				},
 				{
@@ -1209,7 +1317,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "test"]
 						},
-						"description": "Endpoint de teste da API"
+						"description": "API test endpoint"
 					}
 				}
 			]
