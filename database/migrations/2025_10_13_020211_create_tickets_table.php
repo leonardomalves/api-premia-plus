@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('ticket_level')->default(1);
+            $table->integer('ticket_level')->default(1);
             $table->string('number', 20)->nullable();
             $table->decimal('price', 10, 2);
             $table->enum('status', ['active', 'used', 'expired', 'refunded'])->default('active');

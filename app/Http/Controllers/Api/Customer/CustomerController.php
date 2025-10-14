@@ -155,7 +155,7 @@ class CustomerController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Senha alterada com sucesso',
+            'message' => 'Password changed successfully',
         ]);
     }
 

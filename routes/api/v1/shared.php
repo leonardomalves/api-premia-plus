@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\Shared\HealthController;
 use App\Http\Controllers\Api\Shared\TestController;
+use App\Services\Monitoring\HealthCheckService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,11 +21,21 @@ Route::group([], function () {
     
     // Rotas públicas
     Route::get('/health', [HealthController::class, 'check']);
+    Route::get('/health/detailed', function (HealthCheckService $healthCheck) {
+        return response()->json($healthCheck->check());
+    });
     Route::get('/test', [TestController::class, 'index']);
     
     // Rotas com autenticação (qualquer usuário autenticado)
     Route::middleware('auth:sanctum')->group(function () {
-        // Rotas compartilhadas que qualquer usuário autenticado pode acessar
-        // (se necessário no futuro)
+        // Métricas e monitoramento (apenas usuários autenticados)
+        Route::get('/metrics/user', function (Request $request) {
+            $user = $request->user();
+            return response()->json([
+                'user_id' => $user->id,
+                'requests_today' => cache()->get('user_requests_' . $user->id . '_' . today(), 0),
+                'last_activity' => $user->updated_at,
+            ]);
+        });
     });
 });

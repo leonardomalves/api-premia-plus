@@ -8,20 +8,20 @@ use App\Models\Order;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
-class PayComissionService
+class PayCommissionService
 {
     /**
-     * Processa comissões para uma order específica
+     * Process commissions for a specific order
      */
     public function processOrderCommissions(Order $order): array
     {
-        Log::info("💰 Processando comissões para order: {$order->uuid}");
+        Log::info("💰 Processing commissions for order: {$order->uuid}");
         
         if ($order->status !== 'approved') {
-            Log::warning("⚠️ Order não está aprovada: {$order->status}");
+            Log::warning("⚠️ Order is not approved: {$order->status}");
             return [
                 'success' => false,
-                'message' => 'Order não está aprovada',
+                'message' => 'Order is not approved',
                 'order' => $order,
                 'commissions_created' => 0,
                 'total_amount' => 0
@@ -30,34 +30,34 @@ class PayComissionService
         
         $user = $order->user;
         if (!$user) {
-            Log::warning('⚠️ Usuário não encontrado na order');
+            Log::warning('⚠️ User not found in order');
             return [
                 'success' => false,
-                'message' => 'Usuário não encontrado na order',
+                'message' => 'User not found in order',
                 'order' => $order,
                 'commissions_created' => 0,
                 'total_amount' => 0
             ];
         }
         
-        // Buscar uplines usando UpLinesService
+        // Find uplines using UpLinesService
         $upLinesService = new UpLinesService();
         $uplinesResult = $upLinesService->run($order);
         
         if (!$uplinesResult['success'] || empty($uplinesResult['uplines'])) {
-            Log::info("ℹ️ Nenhum upline encontrado para order {$order->uuid}");
+            Log::info("ℹ️ No uplines found for order {$order->uuid}");
             return [
                 'success' => true,
-                'message' => 'Nenhum upline encontrado',
+                'message' => 'No uplines found',
                 'order' => $order,
                 'commissions_created' => 0,
                 'total_amount' => 0
             ];
         }
         
-        Log::info("📊 Encontrados " . count($uplinesResult['uplines']) . " uplines para processar");
+        Log::info("📊 Found " . count($uplinesResult['uplines']) . " uplines to process");
         
-        // Processar comissões em transação
+        // Process commissions in transaction
         return DB::transaction(function () use ($order, $uplinesResult) {
             $totalAmount = 0;
             $commissionsCreated = 0;
@@ -67,32 +67,32 @@ class PayComissionService
                 $upline = User::find($uplineData['id']);
                 $level = $uplineData['level'];
                 
-                // Criar comissão
+                // Create commission
                 $result = $this->createCommission($order, $upline, $level, $planMetadata);
                 
                 if ($result['success']) {
                     $totalAmount += $result['amount'];
                     $commissionsCreated++;
-                    Log::info("✅ Comissão criada: {$upline->name} - Nível {$level} - R$ " . number_format($result['amount'], 2, ',', '.'));
+                    Log::info("✅ Commission created: {$upline->name} - Level {$level} - R$ " . number_format($result['amount'], 2, ',', '.'));
                     
-                    // PAGAR IMEDIATAMENTE
+                    // PAY IMMEDIATELY
                     $paymentResult = $this->processCommissionPayment($result['commission']);
                     
                     if ($paymentResult['success']) {
-                        Log::info("💰 PAGO IMEDIATAMENTE: {$upline->name} - R$ " . number_format($result['amount'], 2, ',', '.'));
+                        Log::info("💰 PAID IMMEDIATELY: {$upline->name} - R$ " . number_format($result['amount'], 2, ',', '.'));
                     } else {
-                        Log::error("❌ Erro ao pagar comissão: {$paymentResult['message']}");
+                        Log::error("❌ Error paying commission: {$paymentResult['message']}");
                     }
                 } else {
-                    Log::error("❌ Erro ao criar comissão: {$result['message']}");
+                    Log::error("❌ Error creating commission: {$result['message']}");
                 }
             }
             
-            Log::info("💰 Processamento concluído: {$commissionsCreated} comissões, R$ " . number_format($totalAmount, 2, ',', '.'));
+            Log::info("💰 Processing completed: {$commissionsCreated} commissions, R$ " . number_format($totalAmount, 2, ',', '.'));
             
             return [
                 'success' => true,
-                'message' => 'Comissões processadas com sucesso',
+                'message' => 'Commissions processed successfully',
                 'order' => $order,
                 'commissions_created' => $commissionsCreated,
                 'total_amount' => $totalAmount
@@ -101,43 +101,43 @@ class PayComissionService
     }
 
     /**
-     * Paga comissões para um usuário específico
+     * Pay commissions for a specific user
      */
     public function payUserCommissions(string $userUuid): array
     {
-        Log::info("💰 Iniciando pagamento de comissões para usuário: {$userUuid}");
+        Log::info("💰 Starting commission payment for user: {$userUuid}");
         
         $user = User::where('uuid', $userUuid)->first();
         
         if (!$user) {
-            Log::warning("⚠️ Usuário não encontrado: {$userUuid}");
+            Log::warning("⚠️ User not found: {$userUuid}");
             return [
                 'success' => false,
-                'message' => 'Usuário não encontrado',
+                'message' => 'User not found',
                 'commissions_paid' => 0,
                 'total_amount' => 0
             ];
         }
         
-        // Buscar comissões disponíveis para pagamento
+        // Find available commissions for payment
         $availableCommissions = Commission::where('user_id', $user->id)
             ->where('available_at', '<=', now())
             ->where('paid', false)
             ->get();
             
         if ($availableCommissions->isEmpty()) {
-            Log::info("ℹ️ Nenhuma comissão disponível para pagamento");
+            Log::info("ℹ️ No commissions available for payment");
             return [
                 'success' => true,
-                'message' => 'Nenhuma comissão disponível para pagamento',
+                'message' => 'No commissions available for payment',
                 'commissions_paid' => 0,
                 'total_amount' => 0
             ];
         }
         
-        Log::info("📊 Encontradas {$availableCommissions->count()} comissões disponíveis");
+        Log::info("📊 Found {$availableCommissions->count()} available commissions");
         
-        // Processar pagamentos em transação
+        // Process payments in transaction
         return DB::transaction(function () use ($availableCommissions, $user) {
             $totalAmount = 0;
             $commissionsPaid = 0;
@@ -148,17 +148,17 @@ class PayComissionService
                 if ($result['success']) {
                     $totalAmount += $commission->amount;
                     $commissionsPaid++;
-                    Log::info("✅ Comissão paga: R$ " . number_format($commission->amount, 2, ',', '.'));
+                    Log::info("✅ Commission paid: R$ " . number_format($commission->amount, 2, ',', '.'));
                 } else {
-                    Log::error("❌ Erro ao pagar comissão ID {$commission->id}: {$result['message']}");
+                    Log::error("❌ Error paying commission ID {$commission->id}: {$result['message']}");
                 }
             }
             
-            Log::info("💰 Pagamento concluído: {$commissionsPaid} comissões, R$ " . number_format($totalAmount, 2, ',', '.'));
+            Log::info("💰 Payment completed: {$commissionsPaid} commissions, R$ " . number_format($totalAmount, 2, ',', '.'));
             
             return [
                 'success' => true,
-                'message' => 'Pagamento processado com sucesso',
+                'message' => 'Payment processed successfully',
                 'commissions_paid' => $commissionsPaid,
                 'total_amount' => $totalAmount,
                 'user' => $user
@@ -167,30 +167,30 @@ class PayComissionService
     }
     
     /**
-     * Paga todas as comissões disponíveis
+     * Pay all available commissions
      */
     public function payAllAvailableCommissions(): array
     {
-        Log::info('💰 Iniciando pagamento de todas as comissões disponíveis...');
+        Log::info('💰 Starting payment of all available commissions...');
         
-        // Buscar todas as comissões disponíveis
+        // Find all available commissions
         $availableCommissions = Commission::where('available_at', '<=', now())
             ->where('paid', false)
             ->get();
             
         if ($availableCommissions->isEmpty()) {
-            Log::info('ℹ️ Nenhuma comissão disponível para pagamento');
+            Log::info('ℹ️ No commissions available for payment');
             return [
                 'success' => true,
-                'message' => 'Nenhuma comissão disponível para pagamento',
+                'message' => 'No commissions available for payment',
                 'commissions_paid' => 0,
                 'total_amount' => 0
             ];
         }
         
-        Log::info("📊 Encontradas {$availableCommissions->count()} comissões disponíveis");
+        Log::info("📊 Found {$availableCommissions->count()} available commissions");
         
-        // Agrupar por usuário
+        // Group by user
         $commissionsByUser = $availableCommissions->groupBy('user_id');
         
         $totalCommissionsPaid = 0;
@@ -208,11 +208,11 @@ class PayComissionService
             }
         }
         
-        Log::info("💰 Pagamento global concluído: {$totalCommissionsPaid} comissões, R$ " . number_format($totalAmount, 2, ',', '.'));
+        Log::info("💰 Global payment completed: {$totalCommissionsPaid} commissions, R$ " . number_format($totalAmount, 2, ',', '.'));
         
         return [
             'success' => true,
-            'message' => 'Pagamento global processado com sucesso',
+            'message' => 'Global payment processed successfully',
             'commissions_paid' => $totalCommissionsPaid,
             'total_amount' => $totalAmount,
             'users_processed' => count($usersProcessed)
@@ -220,62 +220,62 @@ class PayComissionService
     }
     
     /**
-     * Processa o pagamento de uma comissão específica
+     * Process payment for a specific commission
      */
     private function processCommissionPayment(Commission $commission): array
     {
         try {
-            // Verificar se a comissão já foi paga
+            // Check if commission is already paid
             if ($commission->paid) {
                 return [
                     'success' => false,
-                    'message' => 'Comissão já foi paga'
+                    'message' => 'Commission already paid'
                 ];
             }
             
-            // Verificar se está disponível para pagamento
+            // Check if it's available for payment
             if ($commission->available_at > now()) {
                 return [
                     'success' => false,
-                    'message' => 'Comissão ainda não está disponível para pagamento'
+                    'message' => 'Commission not yet available for payment'
                 ];
             }
             
-            // Aqui você implementaria a lógica de pagamento real
-            // Por exemplo: integração com gateway de pagamento, transferência bancária, etc.
+            // Here you would implement the real payment logic
+            // For example: payment gateway integration, bank transfer, etc.
             $this->executePayment($commission);
             
-            // Marcar como paga
+            // Mark as paid
             $commission->update(['paid' => true]);
             
             return [
                 'success' => true,
-                'message' => 'Comissão paga com sucesso'
+                'message' => 'Commission paid successfully'
             ];
             
         } catch (\Exception $e) {
-            Log::error("❌ Erro ao processar pagamento da comissão ID {$commission->id}: " . $e->getMessage());
+            Log::error("❌ Error processing payment for commission ID {$commission->id}: " . $e->getMessage());
             
             return [
                 'success' => false,
-                'message' => 'Erro ao processar pagamento: ' . $e->getMessage()
+                'message' => 'Error processing payment: ' . $e->getMessage()
             ];
         }
     }
     
     /**
-     * Cria uma comissão para um upline específico
+     * Create a commission for a specific upline
      */
     private function createCommission(Order $order, User $upline, int $level, array $planMetadata): array
     {
         try {
-            // Calcular taxa de comissão baseada no nível
+            // Calculate commission rate based on level
             $commissionRate = $this->getCommissionRateFromMetadata($planMetadata, $level);
             
             if ($commissionRate <= 0) {
                 return [
                     'success' => false,
-                    'message' => "Taxa de comissão zero para nível {$level}",
+                    'message' => "Zero commission rate for level {$level}",
                     'amount' => 0
                 ];
             }
@@ -283,7 +283,7 @@ class PayComissionService
             $planPrice = (float) $planMetadata['price'];
             $commissionAmount = $planPrice * ($commissionRate / 100);
             
-            // Usar updateOrCreate para evitar duplicação
+            // Use updateOrCreate to avoid duplication
             $commission = Commission::updateOrCreate(
                 [
                     'order_id' => $order->id,
@@ -292,30 +292,30 @@ class PayComissionService
                 ],
                 [
                     'amount' => $commissionAmount,
-                    'available_at' => now(), // Disponível imediatamente para pagamento
+                    'available_at' => now(), // Available immediately for payment
                 ]
             );
             
             return [
                 'success' => true,
-                'message' => 'Comissão criada/atualizada com sucesso',
+                'message' => 'Commission created/updated successfully',
                 'amount' => $commissionAmount,
                 'commission' => $commission
             ];
             
         } catch (\Exception $e) {
-            Log::error("❌ Erro ao criar comissão: " . $e->getMessage());
+            Log::error("❌ Error creating commission: " . $e->getMessage());
             
             return [
                 'success' => false,
-                'message' => 'Erro ao criar comissão: ' . $e->getMessage(),
+                'message' => 'Error creating commission: ' . $e->getMessage(),
                 'amount' => 0
             ];
         }
     }
     
     /**
-     * Obtém taxa de comissão dos metadados do plano
+     * Get commission rate from plan metadata
      */
     private function getCommissionRateFromMetadata(array $planMetadata, int $level): float
     {
@@ -328,25 +328,25 @@ class PayComissionService
     }
 
     /**
-     * Executa o pagamento real (implementar conforme necessário)
+     * Execute the actual payment (implement as needed)
      */
     private function executePayment(Commission $commission): void
     {
-        // TODO: Implementar lógica de pagamento real
-        // Exemplos:
-        // - Integração com gateway de pagamento
-        // - Transferência bancária
-        // - Adicionar saldo na carteira do usuário
-        // - Enviar para sistema de pagamentos externo
+        // TODO: Implement real payment logic
+        // Examples:
+        // - Payment gateway integration
+        // - Bank transfer
+        // - Add balance to user wallet
+        // - Send to external payment system
         
-        Log::info("💳 Executando pagamento de R$ " . number_format($commission->amount, 2, ',', '.') . " para usuário ID {$commission->user_id}");
+        Log::info("💳 Executing payment of R$ " . number_format($commission->amount, 2, ',', '.') . " for user ID {$commission->user_id}");
         
-        // Por enquanto, apenas simula o pagamento
-        // sleep(1); // Simula processamento
+        // For now, just simulate payment
+        // sleep(1); // Simulate processing
     }
     
     /**
-     * Exibe estatísticas de comissões
+     * Show commission statistics
      */
     public function showStatistics(): array
     {
@@ -356,12 +356,12 @@ class PayComissionService
         $availableCommissions = Commission::where('available_at', '<=', now())->where('paid', false)->count();
         $pendingCommissions = Commission::where('available_at', '>', now())->where('paid', false)->count();
         
-        Log::info('📊 Estatísticas de Comissões:');
-        Log::info("   - Total de comissões: {$totalCommissions}");
-        Log::info("   - Valor total: R$ " . number_format($totalAmount, 2, ',', '.'));
-        Log::info("   - Comissões pagas: {$paidCommissions}");
-        Log::info("   - Comissões disponíveis: {$availableCommissions}");
-        Log::info("   - Comissões pendentes: {$pendingCommissions}");
+        Log::info('📊 Commission Statistics:');
+        Log::info("   - Total commissions: {$totalCommissions}");
+        Log::info("   - Total amount: R$ " . number_format($totalAmount, 2, ',', '.'));
+        Log::info("   - Paid commissions: {$paidCommissions}");
+        Log::info("   - Available commissions: {$availableCommissions}");
+        Log::info("   - Pending commissions: {$pendingCommissions}");
         
         return [
             'total_commissions' => $totalCommissions,
@@ -373,7 +373,7 @@ class PayComissionService
     }
     
     /**
-     * Busca comissões de um usuário
+     * Get user commissions
      */
     public function getUserCommissions(string $userUuid): array
     {
@@ -382,7 +382,7 @@ class PayComissionService
         if (!$user) {
             return [
                 'success' => false,
-                'message' => 'Usuário não encontrado'
+                'message' => 'User not found'
             ];
         }
         

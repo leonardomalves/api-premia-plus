@@ -22,11 +22,16 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'phone' => 'nullable|string|max:20',
-            'sponsor_id' => 'nullable|exists:users,id',
+            'sponsor' => 'nullable|string|exists:users,username',
             'username' => 'required|string|max:255|unique:users',
         ]);
 
-        $sponsor = User::where('username', $request->sponsor)->first();
+        // Buscar sponsor por username se fornecido
+        $sponsorId = null;
+        if ($request->sponsor) {
+            $sponsor = User::where('username', $request->sponsor)->first();
+            $sponsorId = $sponsor?->id;
+        }
 
         $user = User::create([
             'name' => $request->name,
@@ -34,7 +39,7 @@ class AuthController extends Controller
             'username' => $request->username,
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
-            'sponsor_id' => $sponsor->id ?? null,
+            'sponsor_id' => $sponsorId,
             'role' => 'user',
             'status' => 'active',
         ]);
@@ -43,7 +48,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Usuário registrado com sucesso',
-            'user' => $user,
+            'user' => $user->load('sponsor'),
             'access_token' => $token,
             'token_type' => 'Bearer',
         ], 201);
@@ -92,7 +97,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Logout realizado com sucesso',
+            'message' => 'Successfully logged out',
         ]);
     }
 
@@ -191,7 +196,7 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Senha alterada com sucesso',
+            'message' => 'Password changed successfully',
         ]);
     }
 }

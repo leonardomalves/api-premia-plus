@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Order;
-use App\Services\BusinessRules\PayComissionService;
+use App\Services\BusinessRules\PayCommissionService;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -25,7 +25,7 @@ class UplineFinderSeed extends Seeder
         
         $this->command->info("📊 Encontradas {$orders->count()} orders aprovadas");
         
-        $payCommission = new PayComissionService();
+        $payCommission = new PayCommissionService();
         
         foreach ($orders as $order) {
             $this->command->info("🛒 Processando order: {$order->uuid} - Usuário: {$order->user->name}");
