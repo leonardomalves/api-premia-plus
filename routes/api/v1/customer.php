@@ -35,9 +35,9 @@ Route::prefix('customer')->middleware('auth:sanctum')->group(function () {
     
     // Planos (apenas leitura)
     Route::get('/plans', [CustomerPlanController::class, 'index']);
-    Route::get('/plans/{uuid}', [CustomerPlanController::class, 'show']);
-    Route::get('/plans/promotional/list', [CustomerPlanController::class, 'promotional']);
     Route::get('/plans/search', [CustomerPlanController::class, 'search']);
+    Route::get('/plans/promotional/list', [CustomerPlanController::class, 'promotional']);
+    Route::get('/plans/{uuid}', [CustomerPlanController::class, 'show']);
     
     // Carrinho (1 item não pago por usuário)
     Route::post('/cart/add', [CustomerCartController::class, 'addToCart']);
