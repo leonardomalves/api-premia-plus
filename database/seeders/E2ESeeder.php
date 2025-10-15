@@ -11,11 +11,16 @@ class E2ESeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([            
-            CreateAdminSeed::class,
-            CreateUsersSeed::class,
-            PlanSeed::class,
-            AddToCartSeed::class,
-        ]);
+        $this->command->info('🚀 Iniciando simulação E2E completa...');
+                $this->call([
+                    AdminDirectSeed::class,     // 1. Criar admins DIRETAMENTE no banco
+                    PlanSeed::class,            // 2. Criar planos ANTES dos usuários
+                    CreateUsersSeed::class,     // 3. Criar usuários via API
+                    AddToCartSeed::class,       // 4. Simular adição ao carrinho
+                    ProcessCartStatusSeed::class,   // 5. Processar carrinhos → orders
+                    ProcessOrderStatusSeed::class,  // 6. Aprovar/rejeitar orders
+                ]);
+
+        $this->command->info('✅ Simulação E2E completa finalizada!');
     }
 }

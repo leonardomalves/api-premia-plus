@@ -68,7 +68,7 @@ class ProcessOrderStatusSeed extends Seeder
             $planName = $order->plan_metadata['name'] ?? 'N/A';
             
             $this->command->line("  ✅ Order {$order->uuid} → Aprovada | {$userEmail} | {$planName}");
-            // ExecuteBusinessRuleJob::dispatch($order->id); // Desabilitado para seeding
+            ExecuteBusinessRuleJob::dispatch($order->id);
         } catch (\Exception $e) {
             $this->command->error("  ❌ Erro ao aprovar order {$order->uuid}: {$e->getMessage()}");
         }
