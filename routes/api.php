@@ -12,12 +12,8 @@
 */
 
 // API v1 - Segmented Routes
-Route::prefix('v1')->group(function () {
-    require __DIR__.'/api/v1/auth.php';
-    require __DIR__.'/api/v1/customer.php';
-    require __DIR__.'/api/v1/administrator.php';
-    require __DIR__.'/api/v1/shared.php';
-});
+require __DIR__.'/api/v1/group.php';
+
 
 // Future versions
 // Route::prefix('v2')->group(function () {
