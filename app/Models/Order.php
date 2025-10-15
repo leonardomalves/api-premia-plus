@@ -19,11 +19,19 @@ class Order extends Model
         'plan_id',
         'plan_metadata',
         'status',
+        'amount',
+        'currency',
+        'payment_method',
+        'payment_details',
+        'paid_at',
     ];
 
     protected $casts = [
         'user_metadata' => 'array',
         'plan_metadata' => 'array',
+        'payment_details' => 'array',
+        'paid_at' => 'datetime',
+        'amount' => 'decimal:2',
     ];
 
     /**

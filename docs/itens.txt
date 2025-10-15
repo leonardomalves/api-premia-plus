@@ -1,0 +1,40 @@
+Conta do vendedor 
+id: 1621411413
+nickname: TESTUSER1724995220
+password: HtfoQzNOPZ
+Email: test_user_1724995220@testuser.com
+login_access_token: APP_USR-7092-010409-57a7d77372b5e3b6e4732bb04d25a4a9-1621411413
+
+Conta comprador 
+ id: 1623 346374 (codigo de verificacao de usuario)
+ nickname: TESTUSER189080843
+ password: 3eMKe8asUZ
+ login_access_token: APP_USR-7092-010409-8818f2c32c2e4fb72724a89a798c0824-1623346374
+ 
+  
+ --------------------------------------------------------------
+ 1 - Liberação mais rapida do saldo de acordo com o plano, mas tem que ter atenção quando a cancelamentos e chargsbacks
+ 2 - Fazer com que o plano de comissões do produto seja dinamico e configuravel diretamente por ele, percentuais, niveis e afins
+ 3 - PaymentDate em orders
+ 4 - Criar um plano onde o ativo possa informar a quantidade de tickts que ele quer comprar, para não assinantes o preço do ticket deve ser 30% mais caro que o mais caro 
+ 5 - Planos tem que ser publico
+ 6 - Testar login de usuários com status variados [OK]
+ 7 - Carrinho abandonado = 48h
+ 8 - Quando clicar em pagar, ai gera ordem
+ 
+ --------------------------------------------------------------
+ 
+ Agora precisamos de uma seed que pegue cada usuário e faça o seguinte:
+ 
+ 1 - Autentique ele
+ 2 - Visite a lista de pacotes
+ 3 - Adcione um pacote ao carrinho
+ 
+ Pagou uma ordem
+ Confirmou pagamento
+  
+ 
+ 
+#Fluxo do usuário:
+1 - Acessa a lista de sorteios
+2 - 

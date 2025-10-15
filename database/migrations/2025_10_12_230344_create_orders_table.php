@@ -22,6 +22,13 @@ return new class extends Migration
             $table->json('plan_metadata');
 
             $table->enum('status', ['pending', 'approved', 'rejected', 'cancelled'])->default('pending');
+
+            $table->decimal('amount', 10, 2)->default(0);
+            $table->string('currency', 3)->default('BRL');
+            $table->string('payment_method')->nullable();
+            $table->json('payment_details')->nullable();
+            $table->timestamp('paid_at')->nullable();
+
             $table->softDeletes();
             $table->timestamps();
         });
