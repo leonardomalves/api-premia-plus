@@ -66,7 +66,7 @@ class CreateUsersSeed extends Seeder
 
         $this->command->info('👥 Criando usuários de teste...');
 
-        for ($i = 1; $i <= 5000; $i++) {
+        for ($i = 1; $i <= 15; $i++) {
             $role = $roles[array_rand($roles)];
             $status = $statuses[array_rand($statuses)];
 

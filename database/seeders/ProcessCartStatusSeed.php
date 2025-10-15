@@ -80,6 +80,8 @@ class ProcessCartStatusSeed extends Seeder
                 'status' => 'pending' // Orders iniciam como pending
             ]);
 
+            $cart->update(['order_id' => $order->id]);
+
             $this->command->line("  ✅ Carrinho {$cart->uuid} → Completado | Order: {$order->uuid}");
 
         } catch (\Exception $e) {

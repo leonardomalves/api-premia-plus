@@ -11,6 +11,8 @@ use Illuminate\Database\Seeder;
 
 class PayCommissionTestSeed extends Seeder
 {
+
+
     /**
      * Run the database seeds.
      */

@@ -40,7 +40,7 @@ class ExecuteBusinessRuleJob implements ShouldQueue
         }
 
         try {
-            $result = $executeBusinessRule->execute($order);
+            $result = app(ExecuteBusinessRule::class)->execute($order);
             Log::info("Business rules executed successfully", $result);
         } catch (\Exception $e) {
             Log::error("Error executing business rules for Order {$this->orderId}: " . $e->getMessage());
