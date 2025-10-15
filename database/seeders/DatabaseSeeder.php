@@ -24,6 +24,12 @@ class DatabaseSeeder extends Seeder
             
             // Simular comportamento real dos usuários
             AddToCartSeed::class,
+            
+            // Processar carrinhos e criar orders
+            ProcessCartStatusSeed::class,
+            
+            // Processar status das orders (aprovar/rejeitar/cancelar)
+            ProcessOrderStatusSeed::class,
         ]);
     }
 }
