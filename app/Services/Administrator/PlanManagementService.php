@@ -69,9 +69,15 @@ class PlanManagementService
     /**
      * Buscar plano por UUID
      */
-    public function findPlanByUuid(string $uuid): ?Plan
+    public function findPlanByUuid(string $uuid): Plan
     {
-        return Plan::where('uuid', $uuid)->first();
+        $plan = Plan::where('uuid', $uuid)->first();
+        
+        if (!$plan) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Plano não encontrado');
+        }
+        
+        return $plan;
     }
 
     /**
@@ -138,5 +144,22 @@ class PlanManagementService
             'max_price' => Plan::max('price'),
             'total_tickets' => Plan::sum('grant_tickets'),
         ];
+    }
+
+    /**
+     * Alternar status do plano
+     */
+    public function toggleStatus(string $uuid): Plan
+    {
+        $plan = Plan::where('uuid', $uuid)->first();
+        
+        if (!$plan) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Plano não encontrado');
+        }
+
+        $plan->status = $plan->status === 'active' ? 'inactive' : 'active';
+        $plan->save();
+
+        return $plan;
     }
 }

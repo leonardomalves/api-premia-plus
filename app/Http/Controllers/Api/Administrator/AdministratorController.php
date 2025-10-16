@@ -52,15 +52,13 @@ class AdministratorController extends Controller
         try {
             $user = $this->userService->findUserByUuid($uuid);
 
-            if (!$user) {
-                return response()->json([
-                    'message' => 'Usuário não encontrado',
-                ], 404);
-            }
-
             return response()->json([
                 'user' => $user,
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Usuário não encontrado',
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao buscar usuário',
@@ -112,11 +110,6 @@ class AdministratorController extends Controller
     {
         try {
             $user = $this->userService->findUserByUuid($uuid);
-            if (!$user) {
-                return response()->json([
-                    'message' => 'Usuário não encontrado',
-                ], 404);
-            }
 
             $request->validate([
                 'name' => 'sometimes|string|max:255',
@@ -140,6 +133,10 @@ class AdministratorController extends Controller
                 'message' => 'Dados inválidos',
                 'errors' => $e->errors()
             ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Usuário não encontrado',
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao atualizar usuário',
@@ -159,6 +156,10 @@ class AdministratorController extends Controller
             return response()->json([
                 'message' => 'Usuário excluído com sucesso',
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Usuário não encontrado',
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
@@ -174,6 +175,10 @@ class AdministratorController extends Controller
         try {
             $networkData = $this->userService->getUserNetwork($uuid);
             return response()->json($networkData);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Usuário não encontrado',
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao buscar rede do usuário',
@@ -190,6 +195,10 @@ class AdministratorController extends Controller
         try {
             $sponsorData = $this->userService->getUserSponsor($uuid);
             return response()->json($sponsorData);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Usuário não encontrado',
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
@@ -207,6 +216,10 @@ class AdministratorController extends Controller
             return response()->json([
                 'statistics' => $stats,
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Usuário não encontrado',
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao buscar estatísticas do usuário',

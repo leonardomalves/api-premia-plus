@@ -21,14 +21,35 @@ class AdministratorRaffleController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $filters = [
-                'status' => $request->get('status'),
-                'min_prize' => $request->float('min_prize'),
-                'max_prize' => $request->float('max_prize'),
-                'search' => $request->get('search'),
-                'sort_by' => $request->get('sort_by', 'created_at'),
-                'sort_order' => $request->get('sort_order', 'desc'),
-            ];
+            $filters = [];
+            
+            if ($request->has('status') && !empty($request->get('status'))) {
+                $filters['status'] = $request->get('status');
+            }
+            
+            if ($request->has('min_prize') && $request->get('min_prize') !== null && $request->get('min_prize') !== '') {
+                $filters['min_prize'] = $request->float('min_prize');
+            }
+            
+            if ($request->has('max_prize') && $request->get('max_prize') !== null && $request->get('max_prize') !== '') {
+                $filters['max_prize'] = $request->float('max_prize');
+            }
+            
+            if ($request->has('search') && !empty($request->get('search'))) {
+                $filters['search'] = $request->get('search');
+            }
+            
+            if ($request->has('sort_by') && !empty($request->get('sort_by'))) {
+                $filters['sort_by'] = $request->get('sort_by');
+            } else {
+                $filters['sort_by'] = 'created_at';
+            }
+            
+            if ($request->has('sort_order') && !empty($request->get('sort_order'))) {
+                $filters['sort_order'] = $request->get('sort_order');
+            } else {
+                $filters['sort_order'] = 'desc';
+            }
 
             $perPage = $request->get('per_page', 15);
             $result = $this->raffleService->listRaffles($filters, $perPage);
@@ -37,7 +58,6 @@ class AdministratorRaffleController extends Controller
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Erro ao listar raffles',
                 'error' => $e->getMessage()
             ], 500);
@@ -53,17 +73,18 @@ class AdministratorRaffleController extends Controller
             $raffle = $this->raffleService->findRaffleByUuid($uuid);
 
             return response()->json([
-                'success' => true,
-                'message' => 'Raffle encontrado com sucesso',
-                'data' => $raffle
+                'raffle' => $raffle
             ]);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Raffle não encontrado'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Raffle não encontrado',
+                'message' => 'Erro ao buscar raffle',
                 'error' => $e->getMessage()
-            ], 404);
+            ], 500);
         }
     }
 
@@ -92,20 +113,17 @@ class AdministratorRaffleController extends Controller
             $raffle = $this->raffleService->createRaffle($validated);
 
             return response()->json([
-                'success' => true,
                 'message' => 'Raffle criado com sucesso',
-                'data' => $raffle
+                'raffle' => $raffle
             ], 201);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Dados inválidos',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Erro ao criar raffle',
                 'error' => $e->getMessage()
             ], 500);
@@ -136,20 +154,21 @@ class AdministratorRaffleController extends Controller
             $updatedRaffle = $this->raffleService->updateRaffle($raffle, $validated);
 
             return response()->json([
-                'success' => true,
                 'message' => 'Raffle atualizado com sucesso',
-                'data' => $updatedRaffle
+                'raffle' => $updatedRaffle
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Dados inválidos',
                 'errors' => $e->errors()
             ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Raffle não encontrado'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Erro ao atualizar raffle',
                 'error' => $e->getMessage()
             ], 500);
@@ -165,13 +184,15 @@ class AdministratorRaffleController extends Controller
             $this->raffleService->deleteRaffle($uuid);
 
             return response()->json([
-                'success' => true,
                 'message' => 'Raffle removido com sucesso'
             ]);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Raffle não encontrado'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Erro ao remover raffle',
                 'error' => $e->getMessage()
             ], 500);
@@ -187,14 +208,16 @@ class AdministratorRaffleController extends Controller
             $raffle = $this->raffleService->restoreRaffle($uuid);
 
             return response()->json([
-                'success' => true,
                 'message' => 'Raffle restaurado com sucesso',
-                'data' => $raffle
+                'raffle' => $raffle
             ]);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Raffle não encontrado'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Erro ao restaurar raffle',
                 'error' => $e->getMessage()
             ], 500);
@@ -210,14 +233,16 @@ class AdministratorRaffleController extends Controller
             $result = $this->raffleService->toggleRaffleStatus($uuid);
 
             return response()->json([
-                'success' => true,
                 'message' => $result['message'],
-                'data' => $result['raffle']
+                'raffle' => $result['raffle']
             ]);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Raffle não encontrado'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Erro ao alterar status',
                 'error' => $e->getMessage()
             ], 500);
@@ -233,16 +258,11 @@ class AdministratorRaffleController extends Controller
             $stats = $this->raffleService->getRaffleStatistics();
 
             return response()->json([
-                'success' => true,
-                'message' => 'Estatísticas dos raffles',
-                'data' => [
-                    'statistics' => $stats
-                ]
+                'statistics' => $stats
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Erro ao gerar estatísticas',
                 'error' => $e->getMessage()
             ], 500);

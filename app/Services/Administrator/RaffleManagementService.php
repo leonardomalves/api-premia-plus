@@ -19,11 +19,11 @@ class RaffleManagementService
             $query->where('status', $filters['status']);
         }
 
-        if (isset($filters['min_prize']) && is_numeric($filters['min_prize'])) {
+        if (isset($filters['min_prize']) && $filters['min_prize'] > 0) {
             $query->where('prize_value', '>=', $filters['min_prize']);
         }
 
-        if (isset($filters['max_prize']) && is_numeric($filters['max_prize'])) {
+        if (isset($filters['max_prize']) && $filters['max_prize'] > 0) {
             $query->where('prize_value', '<=', $filters['max_prize']);
         }
 
@@ -62,9 +62,9 @@ class RaffleManagementService
     /**
      * Buscar raffle por UUID
      */
-    public function findRaffleByUuid(string $uuid): ?Raffle
+    public function findRaffleByUuid(string $uuid): Raffle
     {
-        return Raffle::with('creator')->where('uuid', $uuid)->first();
+        return Raffle::with('creator')->where('uuid', $uuid)->firstOrFail();
     }
 
     /**

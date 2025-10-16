@@ -48,9 +48,9 @@ class UserManagementService
     /**
      * Buscar usuário por UUID
      */
-    public function findUserByUuid(string $uuid): ?User
+    public function findUserByUuid(string $uuid): User
     {
-        return User::with('sponsor')->where('uuid', $uuid)->first();
+        return User::with('sponsor')->where('uuid', $uuid)->firstOrFail();
     }
 
     /**

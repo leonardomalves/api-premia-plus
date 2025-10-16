@@ -24,15 +24,39 @@ class AdministratorPlanController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $filters = [
-                'status' => $request->get('status'),
-                'promotional' => $request->boolean('promotional'),
-                'min_price' => $request->float('min_price'),
-                'max_price' => $request->float('max_price'),
-                'search' => $request->get('search'),
-                'sort_by' => $request->get('sort_by', 'created_at'),
-                'sort_order' => $request->get('sort_order', 'desc'),
-            ];
+            $filters = [];
+            
+            if ($request->has('status') && !empty($request->get('status'))) {
+                $filters['status'] = $request->get('status');
+            }
+            
+            if ($request->has('promotional')) {
+                $filters['promotional'] = $request->boolean('promotional');
+            }
+            
+            if ($request->has('min_price') && $request->get('min_price') !== null && $request->get('min_price') !== '') {
+                $filters['min_price'] = $request->float('min_price');
+            }
+            
+            if ($request->has('max_price') && $request->get('max_price') !== null && $request->get('max_price') !== '') {
+                $filters['max_price'] = $request->float('max_price');
+            }
+            
+            if ($request->has('search') && !empty($request->get('search'))) {
+                $filters['search'] = $request->get('search');
+            }
+            
+            if ($request->has('sort_by') && !empty($request->get('sort_by'))) {
+                $filters['sort_by'] = $request->get('sort_by');
+            } else {
+                $filters['sort_by'] = 'created_at';
+            }
+            
+            if ($request->has('sort_order') && !empty($request->get('sort_order'))) {
+                $filters['sort_order'] = $request->get('sort_order');
+            } else {
+                $filters['sort_order'] = 'desc';
+            }
 
             $perPage = $request->get('per_page', 15);
             $result = $this->planService->listPlans($filters, $perPage);
@@ -63,15 +87,22 @@ class AdministratorPlanController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Plano encontrado com sucesso',
-                'data' => $plan
+                'data' => [
+                    'plan' => $plan
+                ]
             ], 200);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Plano não encontrado'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao buscar plano',
                 'error' => $e->getMessage()
-            ], 404);
+            ], 500);
         }
     }
 
@@ -127,10 +158,8 @@ class AdministratorPlanController extends Controller
     public function update(Request $request, string $uuid): JsonResponse
     {
         try {
-            $plan = $this->planService->findPlanByUuid($uuid);
-            
             $validated = $request->validate([
-                'name' => ['sometimes', 'string', 'max:255', Rule::unique('plans', 'name')->ignore($plan->id)],
+                'name' => ['sometimes', 'string', 'max:255', Rule::unique('plans', 'name')->ignore(Plan::where('uuid', $uuid)->first()?->id)],
                 'description' => 'sometimes|string|max:1000',
                 'price' => 'sometimes|numeric|min:0',
                 'grant_tickets' => 'sometimes|integer|min:0',
@@ -144,7 +173,7 @@ class AdministratorPlanController extends Controller
                 'end_date' => 'nullable|date|after:start_date',
             ]);
             
-            $plan = $this->planService->updatePlan($plan, $validated);
+            $plan = $this->planService->updatePlan($uuid, $validated);
 
             return response()->json([
                 'success' => true,
@@ -160,6 +189,11 @@ class AdministratorPlanController extends Controller
                 'message' => 'Dados inválidos',
                 'errors' => $e->errors()
             ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Plano não encontrado'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -182,6 +216,11 @@ class AdministratorPlanController extends Controller
                 'message' => 'Plano deletado com sucesso'
             ], 200);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Plano não encontrado'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -197,17 +236,24 @@ class AdministratorPlanController extends Controller
     public function toggleStatus(string $uuid): JsonResponse
     {
         try {
-            $result = $this->planService->togglePlanStatus($uuid);
+            $plan = $this->planService->toggleStatus($uuid);
+            
+            $message = $plan->status === 'active' ? 'Plano ativado com sucesso' : 'Plano desativado com sucesso';
 
             return response()->json([
                 'success' => true,
-                'message' => $result['message'],
+                'message' => $message,
                 'data' => [
-                    'plan' => $result['plan'],
-                    'new_status' => $result['new_status']
+                    'plan' => $plan,
+                    'new_status' => $plan->status
                 ]
             ], 200);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Plano não encontrado'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
