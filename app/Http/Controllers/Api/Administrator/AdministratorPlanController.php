@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Administrator;
 
 use App\Http\Controllers\Controller;
 use App\Models\Plan;
+use App\Services\Administrator\PlanManagementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -11,68 +12,35 @@ use Illuminate\Validation\Rule;
 
 class AdministratorPlanController extends Controller
 {
+    protected PlanManagementService $planService;
+
+    public function __construct(PlanManagementService $planService)
+    {
+        $this->planService = $planService;
+    }
     /**
      * Listar todos os planos (admin)
      */
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Plan::query();
+            $filters = [
+                'status' => $request->get('status'),
+                'promotional' => $request->boolean('promotional'),
+                'min_price' => $request->float('min_price'),
+                'max_price' => $request->float('max_price'),
+                'search' => $request->get('search'),
+                'sort_by' => $request->get('sort_by', 'created_at'),
+                'sort_order' => $request->get('sort_order', 'desc'),
+            ];
 
-            // Filtros
-            if ($request->has('status')) {
-                $query->where('status', $request->get('status'));
-            }
-
-            if ($request->has('promotional')) {
-                $query->where('is_promotional', $request->boolean('promotional'));
-            }
-
-            if ($request->has('min_price')) {
-                $query->where('price', '>=', $request->float('min_price'));
-            }
-
-            if ($request->has('max_price')) {
-                $query->where('price', '<=', $request->float('max_price'));
-            }
-
-            // Busca por nome
-            if ($request->has('search')) {
-                $searchTerm = $request->get('search');
-                $query->where(function($q) use ($searchTerm) {
-                    $q->where('name', 'like', "%{$searchTerm}%")
-                      ->orWhere('description', 'like', "%{$searchTerm}%");
-                });
-            }
-
-            // Ordenação
-            $sortBy = $request->get('sort_by', 'created_at');
-            $sortOrder = $request->get('sort_order', 'desc');
-            
-            $allowedSorts = ['name', 'price', 'status', 'created_at', 'updated_at'];
-            if (in_array($sortBy, $allowedSorts)) {
-                $query->orderBy($sortBy, $sortOrder);
-            }
-
-            // Paginação
             $perPage = $request->get('per_page', 15);
-            $plans = $query->paginate($perPage);
+            $result = $this->planService->listPlans($filters, $perPage);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Planos listados com sucesso',
-                'data' => [
-                    'plans' => $plans->items(),
-                    'pagination' => [
-                        'current_page' => $plans->currentPage(),
-                        'per_page' => $plans->perPage(),
-                        'total' => $plans->total(),
-                        'last_page' => $plans->lastPage(),
-                        'from' => $plans->firstItem(),
-                        'to' => $plans->lastItem(),
-                    ],
-                    'filters' => $request->only(['status', 'promotional', 'min_price', 'max_price', 'search', 'sort_by', 'sort_order'])
-                ]
+                'data' => $result
             ], 200);
 
         } catch (\Exception $e) {
@@ -85,26 +53,17 @@ class AdministratorPlanController extends Controller
     }
 
     /**
-     * Mostrar detalhes de um plano (admin)
+     * Buscar plano específico por UUID (admin)
      */
     public function show(string $uuid): JsonResponse
     {
         try {
-            $plan = Plan::where('uuid', $uuid)->first();
-
-            if (!$plan) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Plano não encontrado'
-                ], 404);
-            }
+            $plan = $this->planService->findPlanByUuid($uuid);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Plano encontrado com sucesso',
-                'data' => [
-                    'plan' => $plan
-                ]
+                'data' => $plan
             ], 200);
 
         } catch (\Exception $e) {
@@ -112,7 +71,7 @@ class AdministratorPlanController extends Controller
                 'success' => false,
                 'message' => 'Erro ao buscar plano',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 404);
         }
     }
 
@@ -136,11 +95,8 @@ class AdministratorPlanController extends Controller
                 'start_date' => 'required|date',
                 'end_date' => 'nullable|date|after:start_date',
             ]);
-
-            $plan = Plan::create([
-                'uuid' => Str::uuid(),
-                ...$validated
-            ]);
+            
+            $plan = $this->planService->createPlan($validated);
 
             return response()->json([
                 'success' => true,
@@ -171,15 +127,8 @@ class AdministratorPlanController extends Controller
     public function update(Request $request, string $uuid): JsonResponse
     {
         try {
-            $plan = Plan::where('uuid', $uuid)->first();
-
-            if (!$plan) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Plano não encontrado'
-                ], 404);
-            }
-
+            $plan = $this->planService->findPlanByUuid($uuid);
+            
             $validated = $request->validate([
                 'name' => ['sometimes', 'string', 'max:255', Rule::unique('plans', 'name')->ignore($plan->id)],
                 'description' => 'sometimes|string|max:1000',
@@ -194,14 +143,14 @@ class AdministratorPlanController extends Controller
                 'start_date' => 'sometimes|date',
                 'end_date' => 'nullable|date|after:start_date',
             ]);
-
-            $plan->update($validated);
+            
+            $plan = $this->planService->updatePlan($plan, $validated);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Plano atualizado com sucesso',
                 'data' => [
-                    'plan' => $plan->fresh()
+                    'plan' => $plan
                 ]
             ], 200);
 
@@ -226,16 +175,7 @@ class AdministratorPlanController extends Controller
     public function destroy(string $uuid): JsonResponse
     {
         try {
-            $plan = Plan::where('uuid', $uuid)->first();
-
-            if (!$plan) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Plano não encontrado'
-                ], 404);
-            }
-
-            $plan->delete();
+            $this->planService->deletePlan($uuid);
 
             return response()->json([
                 'success' => true,
@@ -257,26 +197,14 @@ class AdministratorPlanController extends Controller
     public function toggleStatus(string $uuid): JsonResponse
     {
         try {
-            $plan = Plan::where('uuid', $uuid)->first();
+            $result = $this->planService->togglePlanStatus($uuid);
 
-            if (!$plan) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Plano não encontrado'
-                ], 404);
-            }
-
-            $newStatus = $plan->status === 'active' ? 'inactive' : 'active';
-            $plan->update(['status' => $newStatus]);
-
-            $statusText = $newStatus === 'active' ? 'ativado' : 'desativado';
-            
             return response()->json([
                 'success' => true,
-                'message' => "Plano {$statusText} com sucesso",
+                'message' => $result['message'],
                 'data' => [
-                    'plan' => $plan->fresh(),
-                    'new_status' => $newStatus
+                    'plan' => $result['plan'],
+                    'new_status' => $result['new_status']
                 ]
             ], 200);
 
@@ -295,16 +223,7 @@ class AdministratorPlanController extends Controller
     public function statistics(): JsonResponse
     {
         try {
-            $stats = [
-                'total_plans' => Plan::count(),
-                'active_plans' => Plan::where('status', 'active')->count(),
-                'inactive_plans' => Plan::where('status', 'inactive')->count(),
-                'promotional_plans' => Plan::where('is_promotional', true)->count(),
-                'average_price' => Plan::avg('price'),
-                'min_price' => Plan::min('price'),
-                'max_price' => Plan::max('price'),
-                'total_tickets' => Plan::sum('grant_tickets'),
-            ];
+            $stats = $this->planService->getPlanStatistics();
 
             return response()->json([
                 'success' => true,

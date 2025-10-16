@@ -3,68 +3,41 @@
 namespace App\Http\Controllers\Api\Administrator;
 
 use App\Http\Controllers\Controller;
-use App\Models\Raffle;
+use App\Services\Administrator\RaffleManagementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 class AdministratorRaffleController extends Controller
 {
+    protected RaffleManagementService $raffleService;
+
+    public function __construct(RaffleManagementService $raffleService)
+    {
+        $this->raffleService = $raffleService;
+    }
     /**
      * Listar todos os raffles (admin)
      */
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Raffle::with('creator');
+            $filters = [
+                'status' => $request->get('status'),
+                'min_prize' => $request->float('min_prize'),
+                'max_prize' => $request->float('max_prize'),
+                'search' => $request->get('search'),
+                'sort_by' => $request->get('sort_by', 'created_at'),
+                'sort_order' => $request->get('sort_order', 'desc'),
+            ];
 
-            // Filtros
-            if ($request->has('status')) {
-                $query->where('status', $request->get('status'));
-            }
+            $perPage = $request->get('per_page', 15);
+            $result = $this->raffleService->listRaffles($filters, $perPage);
 
-            if ($request->has('min_prize')) {
-                $query->where('prize_value', '>=', $request->float('min_prize'));
-            }
-
-            if ($request->has('max_prize')) {
-                $query->where('prize_value', '<=', $request->float('max_prize'));
-            }
-
-            // Busca por título/descrição
-            if ($request->has('search')) {
-                $searchTerm = $request->get('search');
-                $query->where(function($q) use ($searchTerm) {
-                    $q->where('title', 'like', "%{$searchTerm}%")
-                      ->orWhere('description', 'like', "%{$searchTerm}%");
-                });
-            }
-
-            // Ordenação
-            $sortBy = $request->get('sort_by', 'created_at');
-            $sortOrder = $request->get('sort_order', 'desc');
-            
-            if (in_array($sortBy, ['created_at', 'title', 'prize_value', 'status'])) {
-                $query->orderBy($sortBy, $sortOrder === 'asc' ? 'asc' : 'desc');
-            }
-
-            $raffles = $query->paginate($request->get('per_page', 15));
-
-            return response()->json([
-                'raffles' => $raffles,
-                'filters' => [
-                    'status' => $request->get('status'),
-                    'search' => $request->get('search'),
-                    'min_prize' => $request->get('min_prize'),
-                    'max_prize' => $request->get('max_prize'),
-                    'sort_by' => $sortBy,
-                    'sort_order' => $sortOrder,
-                ],
-            ]);
+            return response()->json($result);
 
         } catch (\Exception $e) {
             return response()->json([
+                'success' => false,
                 'message' => 'Erro ao listar raffles',
                 'error' => $e->getMessage()
             ], 500);
@@ -77,15 +50,19 @@ class AdministratorRaffleController extends Controller
     public function show(string $uuid): JsonResponse
     {
         try {
-            $raffle = Raffle::with('creator')->where('uuid', $uuid)->firstOrFail();
+            $raffle = $this->raffleService->findRaffleByUuid($uuid);
 
             return response()->json([
-                'raffle' => $raffle
+                'success' => true,
+                'message' => 'Raffle encontrado com sucesso',
+                'data' => $raffle
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Raffle não encontrado'
+                'success' => false,
+                'message' => 'Raffle não encontrado',
+                'error' => $e->getMessage()
             ], 404);
         }
     }
@@ -95,7 +72,6 @@ class AdministratorRaffleController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
- 
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255|unique:raffles,title',
@@ -113,22 +89,23 @@ class AdministratorRaffleController extends Controller
             ]);
 
             $validated['created_by'] = $request->user()->id;
-            $validated['status'] = $validated['status'] ?? 'pending';
-
-            $raffle = Raffle::create($validated);
+            $raffle = $this->raffleService->createRaffle($validated);
 
             return response()->json([
+                'success' => true,
                 'message' => 'Raffle criado com sucesso',
-                'raffle' => $raffle->load('creator')
+                'data' => $raffle
             ], 201);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
+                'success' => false,
                 'message' => 'Dados inválidos',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
+                'success' => false,
                 'message' => 'Erro ao criar raffle',
                 'error' => $e->getMessage()
             ], 500);
@@ -141,7 +118,7 @@ class AdministratorRaffleController extends Controller
     public function update(Request $request, string $uuid): JsonResponse
     {
         try {
-            $raffle = Raffle::where('uuid', $uuid)->firstOrFail();
+            $raffle = $this->raffleService->findRaffleByUuid($uuid);
 
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|max:255|unique:raffles,title,' . $raffle->id,
@@ -154,36 +131,25 @@ class AdministratorRaffleController extends Controller
                 'max_tickets_per_user' => 'sometimes|required|integer|min:1|max:1000',
                 'status' => 'sometimes|in:pending,active,inactive,cancelled',
                 'notes' => 'nullable|string|max:2000'
-            ], [
-                'title.unique' => 'Já existe um raffle com este título',
-                'description.required' => 'A descrição é obrigatória quando fornecida',
-                'prize_value.min' => 'O valor do prêmio deve ser maior que zero',
-                'operation_cost.min' => 'O custo operacional não pode ser negativo',
-                'unit_ticket_value.min' => 'O valor unitário do ticket deve ser maior que zero',
-                'tickets_required.min' => 'Deve haver pelo menos 1 ticket',
-                'min_ticket_level.min' => 'O nível mínimo não pode ser negativo',
-                'max_tickets_per_user.min' => 'Cada usuário deve poder comprar pelo menos 1 ticket',
-                'status.in' => 'Status deve ser: pending, active, inactive ou cancelled'
             ]);
-
-            $raffle->update($validated);
+            
+            $updatedRaffle = $this->raffleService->updateRaffle($raffle, $validated);
 
             return response()->json([
+                'success' => true,
                 'message' => 'Raffle atualizado com sucesso',
-                'raffle' => $raffle->load('creator')
+                'data' => $updatedRaffle
             ]);
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'Raffle não encontrado'
-            ], 404);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
+                'success' => false,
                 'message' => 'Dados inválidos',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
+                'success' => false,
                 'message' => 'Erro ao atualizar raffle',
                 'error' => $e->getMessage()
             ], 500);
@@ -196,20 +162,16 @@ class AdministratorRaffleController extends Controller
     public function destroy(string $uuid): JsonResponse
     {
         try {
-            $raffle = Raffle::where('uuid', $uuid)->firstOrFail();
-            
-            $raffle->delete();
+            $this->raffleService->deleteRaffle($uuid);
 
             return response()->json([
+                'success' => true,
                 'message' => 'Raffle removido com sucesso'
             ]);
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'Raffle não encontrado'
-            ], 404);
         } catch (\Exception $e) {
             return response()->json([
+                'success' => false,
                 'message' => 'Erro ao remover raffle',
                 'error' => $e->getMessage()
             ], 500);
@@ -222,21 +184,17 @@ class AdministratorRaffleController extends Controller
     public function restore(string $uuid): JsonResponse
     {
         try {
-            $raffle = Raffle::withTrashed()->where('uuid', $uuid)->firstOrFail();
-            
-            $raffle->restore();
+            $raffle = $this->raffleService->restoreRaffle($uuid);
 
             return response()->json([
+                'success' => true,
                 'message' => 'Raffle restaurado com sucesso',
-                'raffle' => $raffle->load('creator')
+                'data' => $raffle
             ]);
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'Raffle não encontrado'
-            ], 404);
         } catch (\Exception $e) {
             return response()->json([
+                'success' => false,
                 'message' => 'Erro ao restaurar raffle',
                 'error' => $e->getMessage()
             ], 500);
@@ -249,22 +207,17 @@ class AdministratorRaffleController extends Controller
     public function toggleStatus(string $uuid): JsonResponse
     {
         try {
-            $raffle = Raffle::where('uuid', $uuid)->firstOrFail();
-            
-            $newStatus = $raffle->status === 'active' ? 'inactive' : 'active';
-            $raffle->update(['status' => $newStatus]);
+            $result = $this->raffleService->toggleRaffleStatus($uuid);
 
             return response()->json([
-                'message' => "Status alterado para {$newStatus}",
-                'raffle' => $raffle->load('creator')
+                'success' => true,
+                'message' => $result['message'],
+                'data' => $result['raffle']
             ]);
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'Raffle não encontrado'
-            ], 404);
         } catch (\Exception $e) {
             return response()->json([
+                'success' => false,
                 'message' => 'Erro ao alterar status',
                 'error' => $e->getMessage()
             ], 500);
@@ -277,26 +230,19 @@ class AdministratorRaffleController extends Controller
     public function statistics(): JsonResponse
     {
         try {
-            $stats = [
-                'total_raffles' => Raffle::count(),
-                'active_raffles' => Raffle::where('status', 'active')->count(),
-                'pending_raffles' => Raffle::where('status', 'pending')->count(),
-                'inactive_raffles' => Raffle::where('status', 'inactive')->count(),
-                'cancelled_raffles' => Raffle::where('status', 'cancelled')->count(),
-                'total_prize_value' => Raffle::where('status', 'active')->sum('prize_value'),
-                'avg_prize_value' => Raffle::where('status', 'active')->avg('prize_value'),
-                'recent_raffles' => Raffle::with('creator')
-                    ->orderBy('created_at', 'desc')
-                    ->limit(5)
-                    ->get()
-            ];
+            $stats = $this->raffleService->getRaffleStatistics();
 
             return response()->json([
-                'statistics' => $stats
+                'success' => true,
+                'message' => 'Estatísticas dos raffles',
+                'data' => [
+                    'statistics' => $stats
+                ]
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
+                'success' => false,
                 'message' => 'Erro ao gerar estatísticas',
                 'error' => $e->getMessage()
             ], 500);

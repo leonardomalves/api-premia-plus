@@ -4,47 +4,44 @@ namespace App\Http\Controllers\Api\Administrator;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Administrator\UserManagementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class AdministratorController extends Controller
 {
+    protected UserManagementService $userService;
+
+    public function __construct(UserManagementService $userService)
+    {
+        $this->userService = $userService;
+    }
     /**
      * Display a listing of users (admin only)
      */
     public function index(Request $request)
     {
-        $users = User::with('sponsor')
-            ->when($request->search, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('username', 'like', "%{$search}%");
-            })
-            ->when($request->role, function ($query, $role) {
-                $query->where('role', $role);
-            })
-            ->when($request->status, function ($query, $status) {
-                $query->where('status', $status);
-            })
-            ->when($request->sponsor_uuid, function ($query, $sponsorUuid) {
-                $sponsor = User::where('uuid', $sponsorUuid)->first();
-                if ($sponsor) {
-                    $query->where('sponsor_id', $sponsor->id);
-                }
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate($request->per_page ?? 15);
-
-        return response()->json([
-            'users' => $users,
-            'filters' => [
+        try {
+            $filters = [
                 'search' => $request->search,
                 'role' => $request->role,
                 'status' => $request->status,
                 'sponsor_uuid' => $request->sponsor_uuid,
-            ],
-        ]);
+            ];
+
+            $users = $this->userService->listUsers($filters, $request->per_page ?? 15);
+
+            return response()->json([
+                'users' => $users,
+                'filters' => $filters,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao listar usuários',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -52,11 +49,24 @@ class AdministratorController extends Controller
      */
     public function show(Request $request, $uuid)
     {
-        $user = User::with('sponsor')->where('uuid', $uuid)->firstOrFail();
+        try {
+            $user = $this->userService->findUserByUuid($uuid);
 
-        return response()->json([
-            'user' => $user,
-        ]);
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Usuário não encontrado',
+                ], 404);
+            }
+
+            return response()->json([
+                'user' => $user,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao buscar usuário',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -64,38 +74,35 @@ class AdministratorController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email',
-            'username' => 'required|string|max:255|unique:users,username',
-            'password' => 'required|string|min:8|confirmed',
-            'phone' => 'sometimes|nullable|string|max:20',
-            'role' => 'sometimes|in:user,admin,moderator,support,finance',
-            'status' => 'sometimes|in:active,inactive,suspended',
-            'sponsor_uuid' => 'sometimes|nullable|exists:users,uuid',
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255|unique:users,email',
+                'username' => 'required|string|max:255|unique:users,username',
+                'password' => 'required|string|min:8|confirmed',
+                'phone' => 'sometimes|nullable|string|max:20',
+                'role' => 'sometimes|in:user,admin,moderator,support,finance',
+                'status' => 'sometimes|in:active,inactive,suspended',
+                'sponsor_uuid' => 'sometimes|nullable|exists:users,uuid',
+            ]);
 
-        $sponsorId = null;
-        if (!empty($validated['sponsor_uuid'])) {
-            $sponsor = User::where('uuid', $validated['sponsor_uuid'])->first();
-            $sponsorId = $sponsor?->id;
+            $user = $this->userService->createUser($validated);
+
+            return response()->json([
+                'message' => 'Usuário criado com sucesso',
+                'user' => $user,
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Dados inválidos',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao criar usuário',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'username' => $validated['username'],
-            'password' => Hash::make($validated['password']),
-            'phone' => $validated['phone'] ?? null,
-            'role' => $validated['role'] ?? 'user',
-            'status' => $validated['status'] ?? 'active',
-            'sponsor_id' => $sponsorId,
-        ]);
-
-        return response()->json([
-            'message' => 'Usuário criado com sucesso',
-            'user' => $user->load('sponsor'),
-        ], 201);
     }
 
     /**
@@ -103,38 +110,42 @@ class AdministratorController extends Controller
      */
     public function update(Request $request, $uuid)
     {
-        $user = User::where('uuid', $uuid)->firstOrFail();
-
-        $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => ['sometimes', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'username' => ['sometimes', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'phone' => 'sometimes|nullable|string|max:20',
-            'role' => 'sometimes|in:user,admin,moderator,support,finance',
-            'status' => 'sometimes|in:active,inactive,suspended',
-            'sponsor_uuid' => 'sometimes|nullable|exists:users,uuid',
-        ]);
-
-        // Buscar sponsor por UUID se fornecido
-        $sponsorId = null;
-        if ($request->sponsor_uuid) {
-            $sponsor = User::where('uuid', $request->sponsor_uuid)->first();
-            if ($sponsor) {
-                $sponsorId = $sponsor->id;
+        try {
+            $user = $this->userService->findUserByUuid($uuid);
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Usuário não encontrado',
+                ], 404);
             }
+
+            $request->validate([
+                'name' => 'sometimes|string|max:255',
+                'email' => ['sometimes', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+                'username' => ['sometimes', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
+                'phone' => 'sometimes|nullable|string|max:20',
+                'role' => 'sometimes|in:user,admin,moderator,support,finance',
+                'status' => 'sometimes|in:active,inactive,suspended',
+                'sponsor_uuid' => 'sometimes|nullable|exists:users,uuid',
+            ]);
+
+            $updateData = $request->only(['name', 'email', 'username', 'phone', 'role', 'status', 'sponsor_uuid']);
+            $updatedUser = $this->userService->updateUser($uuid, $updateData);
+
+            return response()->json([
+                'message' => 'Usuário atualizado com sucesso',
+                'user' => $updatedUser,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Dados inválidos',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao atualizar usuário',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $updateData = $request->only(['name', 'email', 'username', 'phone', 'role', 'status']);
-        if ($sponsorId !== null) {
-            $updateData['sponsor_id'] = $sponsorId;
-        }
-
-        $user->update($updateData);
-
-        return response()->json([
-            'message' => 'Usuário atualizado com sucesso',
-            'user' => $user->fresh()->load('sponsor'),
-        ]);
     }
 
     /**
@@ -142,20 +153,17 @@ class AdministratorController extends Controller
      */
     public function destroy(Request $request, $uuid)
     {
-        $user = User::where('uuid', $uuid)->firstOrFail();
-        
-        // Não permitir que o admin se exclua
-        if ($user->id === $request->user()->id) {
+        try {
+            $this->userService->deleteUser($uuid, $request->user()->id);
+
             return response()->json([
-                'message' => 'Você não pode excluir sua própria conta.',
-            ], 403);
+                'message' => 'Usuário excluído com sucesso',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], $e->getMessage() === 'Você não pode excluir sua própria conta.' ? 403 : 500);
         }
-
-        $user->delete();
-
-        return response()->json([
-            'message' => 'Usuário excluído com sucesso',
-        ]);
     }
 
     /**
@@ -163,21 +171,15 @@ class AdministratorController extends Controller
      */
     public function network(Request $request, $uuid)
     {
-        $targetUser = User::where('uuid', $uuid)->firstOrFail();
-        
-        $network = User::where('sponsor_id', $targetUser->id)
-            ->with('sponsor')
-            ->paginate(15);
-
-        return response()->json([
-            'network' => $network,
-            'total_network' => User::where('sponsor_id', $targetUser->id)->count(),
-            'target_user' => [
-                'uuid' => $targetUser->uuid,
-                'name' => $targetUser->name,
-                'email' => $targetUser->email,
-            ],
-        ]);
+        try {
+            $networkData = $this->userService->getUserNetwork($uuid);
+            return response()->json($networkData);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao buscar rede do usuário',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -185,30 +187,14 @@ class AdministratorController extends Controller
      */
     public function sponsor(Request $request, $uuid)
     {
-        $targetUser = User::where('uuid', $uuid)->firstOrFail();
-        
-        if (!$targetUser->sponsor_id) {
+        try {
+            $sponsorData = $this->userService->getUserSponsor($uuid);
+            return response()->json($sponsorData);
+        } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Usuário não possui patrocinador',
-            ], 404);
+                'message' => $e->getMessage(),
+            ], $e->getMessage() === 'Usuário não possui patrocinador' ? 404 : 500);
         }
-
-        $sponsor = User::find($targetUser->sponsor_id);
-
-        return response()->json([
-            'sponsor' => [
-                'uuid' => $sponsor->uuid,
-                'name' => $sponsor->name,
-                'email' => $sponsor->email,
-                'phone' => $sponsor->phone,
-                'created_at' => $sponsor->created_at,
-            ],
-            'target_user' => [
-                'uuid' => $targetUser->uuid,
-                'name' => $targetUser->name,
-                'email' => $targetUser->email,
-            ],
-        ]);
     }
 
     /**
@@ -216,27 +202,17 @@ class AdministratorController extends Controller
      */
     public function statistics(Request $request, $uuid)
     {
-        $targetUser = User::where('uuid', $uuid)->firstOrFail();
-        
-        $stats = [
-            'total_network' => User::where('sponsor_id', $targetUser->id)->count(),
-            'active_network' => User::where('sponsor_id', $targetUser->id)->where('status', 'active')->count(),
-            'inactive_network' => User::where('sponsor_id', $targetUser->id)->where('status', 'inactive')->count(),
-            'suspended_network' => User::where('sponsor_id', $targetUser->id)->where('status', 'suspended')->count(),
-            'account_created_at' => $targetUser->created_at,
-            'last_login' => $targetUser->updated_at,
-            'user_info' => [
-                'uuid' => $targetUser->uuid,
-                'name' => $targetUser->name,
-                'email' => $targetUser->email,
-                'role' => $targetUser->role,
-                'status' => $targetUser->status,
-            ],
-        ];
-
-        return response()->json([
-            'statistics' => $stats,
-        ]);
+        try {
+            $stats = $this->userService->getUserStatistics($uuid);
+            return response()->json([
+                'statistics' => $stats,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao buscar estatísticas do usuário',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -244,24 +220,17 @@ class AdministratorController extends Controller
      */
     public function systemStatistics(Request $request)
     {
-        $stats = [
-            'total_users' => User::count(),
-            'active_users' => User::where('status', 'active')->count(),
-            'inactive_users' => User::where('status', 'inactive')->count(),
-            'suspended_users' => User::where('status', 'suspended')->count(),
-            'users_by_role' => User::selectRaw('role, count(*) as count')
-                ->groupBy('role')
-                ->pluck('count', 'role'),
-            'users_by_status' => User::selectRaw('status, count(*) as count')
-                ->groupBy('status')
-                ->pluck('count', 'status'),
-            'users_with_sponsors' => User::whereNotNull('sponsor_id')->count(),
-            'users_without_sponsors' => User::whereNull('sponsor_id')->count(),
-        ];
-
-        return response()->json([
-            'system_statistics' => $stats,
-        ]);
+        try {
+            $stats = $this->userService->getSystemStatistics();
+            return response()->json([
+                'system_statistics' => $stats,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao buscar estatísticas do sistema',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -269,37 +238,33 @@ class AdministratorController extends Controller
      */
     public function bulkUpdate(Request $request)
     {
-        $request->validate([
-            'user_uuids' => 'required|array',
-            'user_uuids.*' => 'required|exists:users,uuid',
-            'updates' => 'required|array',
-            'updates.role' => 'sometimes|in:user,admin,moderator,support,finance',
-            'updates.status' => 'sometimes|in:active,inactive,suspended',
-        ]);
+        try {
+            $request->validate([
+                'user_uuids' => 'required|array',
+                'user_uuids.*' => 'required|exists:users,uuid',
+                'updates' => 'required|array',
+                'updates.role' => 'sometimes|in:user,admin,moderator,support,finance',
+                'updates.status' => 'sometimes|in:active,inactive,suspended',
+            ]);
 
-        $userUuids = $request->user_uuids;
-        $updates = $request->updates;
+            $result = $this->userService->bulkUpdateUsers($request->user_uuids, $request->updates);
 
-        $updatedCount = 0;
-        $errors = [];
-
-        foreach ($userUuids as $uuid) {
-            try {
-                $user = User::where('uuid', $uuid)->first();
-                if ($user) {
-                    $user->update($updates);
-                    $updatedCount++;
-                }
-            } catch (\Exception $e) {
-                $errors[] = "Erro ao atualizar usuário {$uuid}: " . $e->getMessage();
-            }
+            return response()->json([
+                'message' => "{$result['updated_count']} usuários atualizados com sucesso",
+                'updated_count' => $result['updated_count'],
+                'errors' => $result['errors'],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Dados inválidos',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro na atualização em massa',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'message' => "{$updatedCount} usuários atualizados com sucesso",
-            'updated_count' => $updatedCount,
-            'errors' => $errors,
-        ]);
     }
 
     /**
@@ -307,40 +272,32 @@ class AdministratorController extends Controller
      */
     public function bulkDelete(Request $request)
     {
-        $validated = $request->validate([
-            'user_uuids' => 'required|array|min:1',
-            'user_uuids.*' => 'required|exists:users,uuid',
-        ]);
+        try {
+            $validated = $request->validate([
+                'user_uuids' => 'required|array|min:1',
+                'user_uuids.*' => 'required|exists:users,uuid',
+            ]);
 
-        $currentUser = $request->user();
-        $uuids = collect($validated['user_uuids'])->unique();
+            $result = $this->userService->bulkDeleteUsers($validated['user_uuids'], $request->user()->id);
 
-        $users = User::whereIn('uuid', $uuids)->get();
+            $status = $result['deleted_count'] > 0 ? 200 : 422;
 
-        $deleted = 0;
-        $errors = [];
-
-        foreach ($users as $user) {
-            if ($user->id === $currentUser->id) {
-                $errors[] = 'Você não pode excluir sua própria conta.';
-                continue;
-            }
-
-            try {
-                $user->delete();
-                $deleted++;
-            } catch (\Exception $e) {
-                $errors[] = "Erro ao excluir usuário {$user->uuid}: " . $e->getMessage();
-            }
+            return response()->json([
+                'message' => $result['deleted_count'] > 0 ? "{$result['deleted_count']} usuários excluídos com sucesso" : 'Nenhum usuário foi excluído',
+                'deleted_count' => $result['deleted_count'],
+                'errors' => $result['errors'],
+            ], $status);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Dados inválidos',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro na exclusão em massa',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $status = $deleted > 0 ? 200 : 422;
-
-        return response()->json([
-            'message' => $deleted > 0 ? "{$deleted} usuários excluídos com sucesso" : 'Nenhum usuário foi excluído',
-            'deleted_count' => $deleted,
-            'errors' => $errors,
-        ], $status);
     }
 
     /**
@@ -348,49 +305,27 @@ class AdministratorController extends Controller
      */
     public function exportUsers(Request $request)
     {
-        $users = User::with('sponsor')
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('username', 'like', "%{$search}%");
-                });
-            })
-            ->when($request->role, function ($query, $role) {
-                $query->where('role', $role);
-            })
-            ->when($request->status, function ($query, $status) {
-                $query->where('status', $status);
-            })
-            ->when($request->sponsor_uuid, function ($query, $sponsorUuid) {
-                $sponsor = User::where('uuid', $sponsorUuid)->first();
-                if ($sponsor) {
-                    $query->where('sponsor_id', $sponsor->id);
-                }
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        $export = $users->map(function ($user) {
-            return [
-                'uuid' => $user->uuid,
-                'name' => $user->name,
-                'email' => $user->email,
-                'username' => $user->username,
-                'role' => $user->role,
-                'status' => $user->status,
-                'phone' => $user->phone,
-                'sponsor_uuid' => $user->sponsor?->uuid,
-                'created_at' => $user->created_at,
-                'updated_at' => $user->updated_at,
+        try {
+            $filters = [
+                'search' => $request->search,
+                'role' => $request->role,
+                'status' => $request->status,
+                'sponsor_uuid' => $request->sponsor_uuid,
             ];
-        });
 
-        return response()->json([
-            'message' => 'Exportação gerada com sucesso',
-            'total' => $export->count(),
-            'users' => $export,
-        ]);
+            $exportData = $this->userService->exportUsers($filters);
+
+            return response()->json([
+                'message' => 'Exportação gerada com sucesso',
+                'total' => count($exportData),
+                'users' => $exportData,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao exportar usuários',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -398,32 +333,14 @@ class AdministratorController extends Controller
      */
     public function dashboard(Request $request)
     {
-        $totalUsers = User::count();
-        $activeUsers = User::where('status', 'active')->count();
-        $inactiveUsers = User::where('status', 'inactive')->count();
-        $suspendedUsers = User::where('status', 'suspended')->count();
-
-        $newUsersLast30Days = User::where('created_at', '>=', now()->subDays(30))->count();
-
-        $topSponsors = User::withCount('sponsored')
-            ->orderBy('sponsored_count', 'desc')
-            ->take(5)
-            ->get(['uuid', 'name', 'email', 'sponsored_count']);
-
-        $recentUsers = User::orderBy('created_at', 'desc')
-            ->take(5)
-            ->get(['uuid', 'name', 'email', 'role', 'status', 'created_at']);
-
-        return response()->json([
-            'summary' => [
-                'total_users' => $totalUsers,
-                'active_users' => $activeUsers,
-                'inactive_users' => $inactiveUsers,
-                'suspended_users' => $suspendedUsers,
-                'new_users_last_30_days' => $newUsersLast30Days,
-            ],
-            'top_sponsors' => $topSponsors,
-            'recent_users' => $recentUsers,
-        ]);
+        try {
+            $dashboardData = $this->userService->getDashboardData();
+            return response()->json($dashboardData);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao carregar dashboard',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
