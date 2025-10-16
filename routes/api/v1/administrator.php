@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Administrator\AdministratorController;
 use App\Http\Controllers\Api\Administrator\AdministratorPlanController;
+use App\Http\Controllers\Api\Administrator\AdministratorRaffleController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -42,4 +43,13 @@ Route::prefix('administrator')->middleware(['auth:sanctum', 'admin'])->group(fun
     Route::apiResource('plans', AdministratorPlanController::class);
     Route::post('/plans/{uuid}/toggle-status', [AdministratorPlanController::class, 'toggleStatus']);
     Route::get('/plans/statistics/overview', [AdministratorPlanController::class, 'statistics']);
+    
+    // Gerenciamento de raffles (CRUD completo - apenas admins)
+    // Rotas especiais primeiro (para evitar conflito com apiResource)
+    Route::get('/raffles/statistics/overview', [AdministratorRaffleController::class, 'statistics']);
+    Route::post('/raffles/{uuid}/restore', [AdministratorRaffleController::class, 'restore']);
+    Route::post('/raffles/{uuid}/toggle-status', [AdministratorRaffleController::class, 'toggleStatus']);
+    
+    // CRUD padrão
+    Route::apiResource('raffles', AdministratorRaffleController::class, ['parameter' => 'uuid']);
 });

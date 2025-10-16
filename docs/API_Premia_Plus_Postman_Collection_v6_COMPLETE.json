@@ -1,8 +1,8 @@
 {
 	"info": {
 		"_postman_id": "api-premia-plus-collection-v6-complete",
-		"name": "API Premia Plus v6 - COMPLETE",
-		"description": "Complete collection with ALL API Premia Plus endpoints including Auth, Customer, Administrator and Shared with English standardization and monitoring features",
+		"name": "API Premia Plus v6 - COMPLETE + Raffles",
+		"description": "Complete collection with ALL API Premia Plus endpoints including Auth, Customer, Administrator, Raffles System and Shared with English standardization and monitoring features",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "api-premia-plus-v6-complete"
 	},
@@ -1089,6 +1089,240 @@
 			]
 		},
 		{
+			"name": "🎲 Administrator - Raffles",
+			"item": [
+				{
+					"name": "Listar Todos os Raffles (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/raffles?status=active&search=iPhone&min_prize=1000&max_prize=10000&sort_by=prize_value&sort_order=desc&per_page=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "raffles"],
+							"query": [
+								{
+									"key": "status",
+									"value": "active",
+									"description": "Filtrar por status (draft, active, inactive, cancelled)"
+								},
+								{
+									"key": "search",
+									"value": "iPhone",
+									"description": "Buscar em título/descrição"
+								},
+								{
+									"key": "min_prize",
+									"value": "1000",
+									"description": "Valor mínimo do prêmio"
+								},
+								{
+									"key": "max_prize",
+									"value": "10000",
+									"description": "Valor máximo do prêmio"
+								},
+								{
+									"key": "sort_by",
+									"value": "prize_value",
+									"description": "Ordenar por (created_at, title, prize_value, status)"
+								},
+								{
+									"key": "sort_order",
+									"value": "desc",
+									"description": "Ordem (asc, desc)"
+								},
+								{
+									"key": "per_page",
+									"value": "10",
+									"description": "Items por página"
+								}
+							]
+						},
+						"description": "Lista todos os raffles com filtros avançados (admin apenas)"
+					}
+				},
+				{
+					"name": "Ver Raffle Específico (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/raffles/{{raffle_uuid}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "raffles", "{{raffle_uuid}}"]
+						},
+						"description": "Retorna dados de um raffle específico (admin apenas)"
+					}
+				},
+				{
+					"name": "Criar Raffle",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"iPhone 15 Pro Max 512GB\",\n    \"description\": \"Último modelo do iPhone com 512GB de armazenamento, cor Titânio Natural. Produto lacrado com garantia Apple.\",\n    \"prize_value\": 8999.99,\n    \"operation_cost\": 500.00,\n    \"unit_ticket_value\": 25.00,\n    \"tickets_required\": 400,\n    \"min_ticket_level\": 0,\n    \"max_tickets_per_user\": 10,\n    \"status\": \"draft\",\n    \"notes\": \"Primeira campanha de iPhone - teste de mercado\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/raffles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "raffles"]
+						},
+						"description": "Cria um novo raffle (admin apenas)"
+					}
+				},
+				{
+					"name": "Atualizar Raffle",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"iPhone 15 Pro Max 1TB - ATUALIZADO\",\n    \"description\": \"Modelo atualizado com 1TB de armazenamento\",\n    \"prize_value\": 9999.99,\n    \"operation_cost\": 600.00,\n    \"unit_ticket_value\": 30.00,\n    \"tickets_required\": 350,\n    \"max_tickets_per_user\": 15,\n    \"status\": \"active\",\n    \"notes\": \"Campanha atualizada com melhor configuração\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/raffles/{{raffle_uuid}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "raffles", "{{raffle_uuid}}"]
+						},
+						"description": "Atualiza um raffle existente (admin apenas)"
+					}
+				},
+				{
+					"name": "Deletar Raffle",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/raffles/{{raffle_uuid}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "raffles", "{{raffle_uuid}}"]
+						},
+						"description": "Remove um raffle (soft delete) (admin apenas)"
+					}
+				},
+				{
+					"name": "Restaurar Raffle",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/raffles/{{raffle_uuid}}/restore",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "raffles", "{{raffle_uuid}}", "restore"]
+						},
+						"description": "Restaura um raffle deletado (admin apenas)"
+					}
+				},
+				{
+					"name": "Alternar Status do Raffle",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/raffles/{{raffle_uuid}}/toggle-status",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "raffles", "{{raffle_uuid}}", "toggle-status"]
+						},
+						"description": "Alterna status ativo/inativo do raffle (active ↔ inactive)"
+					}
+				},
+				{
+					"name": "Estatísticas dos Raffles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/raffles/statistics/overview",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "raffles", "statistics", "overview"]
+						},
+						"description": "Retorna estatísticas gerais dos raffles (totais por status, valores, raffles recentes)"
+					}
+				}
+			]
+		},
+		{
 			"name": "📦 Administrator - Planos",
 			"item": [
 				{
@@ -1346,6 +1580,11 @@
 		},
 		{
 			"key": "plan_uuid",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "raffle_uuid",
 			"value": "",
 			"type": "string"
 		}
