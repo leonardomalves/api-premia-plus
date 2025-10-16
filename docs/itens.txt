@@ -18,7 +18,8 @@ Conta comprador
  4 - Criar um plano onde o ativo possa informar a quantidade de tickts que ele quer comprar, para não assinantes o preço do ticket deve ser 30% mais caro que o mais caro 
  5 - Planos tem que ser publico
  8 - Quando clicar em pagar, ai gera ordem
- 
+ 9 - Tipo de tickets em tickets para definir se ele é um ticket de plano ou unitário;
+ 10 - 
  --------------------------------------------------------------
  
  Agora precisamos de uma seed que pegue cada usuário e faça o seguinte:
@@ -30,8 +31,21 @@ Conta comprador
  Pagou uma ordem
  Confirmou pagamento
   
+
+raffles
  
- 
-#Fluxo do usuário:
-1 - Acessa a lista de sorteios
-2 - 
+| Campo              | Tipo                            | Descrição                         |
+| ------------------ | ------------------------------- | --------------------------------- |
+| `id`               | BIGINT (PK, AI)                 | Identificador                     |
+| `title`            | VARCHAR(120)                    | Nome ou título do sorteio         |
+| `description`      | TEXT                            | Descrição do prêmio               |
+| `prize_value`      | DECIMAL(10,2)                   | Valor estimado do prêmio          |
+| `operation_cost`   | DECIMAL(10,2)                   | Valor estimado custo de operação  |
+| `liquid_liquid_value`   | DECIMAL(10,2)              | Definie o valor de liquidez conforme regra  |
+| `draw_date`        | DATETIME                        | Data do sorteio                   |
+| `min_ticket_level`        | DATETIME                        | Nivel minimo do tickect                   |
+| `status`           | ENUM('open','closed','drawn', 'scheduled')   | Estado atual                      |
+| `winner_ticket_id` | BIGINT NULL (FK → `tickets.id`) | Ticket vencedor                   |
+| `created_at`       | TIMESTAMP                       | Criação                           |
+| `updated_at`       | TIMESTAMP                       | Atualização                       |
+unit_ticket_value => valor unitário do ticket
