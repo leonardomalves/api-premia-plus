@@ -53,7 +53,7 @@ class ProcessCartStatusSeed extends Seeder
         }
 
         // Processar orders pendentes (aprovar algumas)
-        $this->processOrders();
+       // $this->processOrders();
 
         // Mostrar resumo
         $this->showProcessingSummary($activeCarts->count(), $completed, $abandoned, $ordersCreated);

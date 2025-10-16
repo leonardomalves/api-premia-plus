@@ -11,21 +11,14 @@ Conta comprador
  password: 3eMKe8asUZ
  login_access_token: APP_USR-7092-010409-8818f2c32c2e4fb72724a89a798c0824-1623346374
  
+  
+ --------------------------------------------------------------
 
- #---------------------- CRONS ----------------------#
-* * * * * cd /path/to/your/project && php artisan schedule:run >> /dev/null 2>&1
-
- #---------------------- FAZER ----------------------#
- 1 - Liberação mais rapida do saldo de acordo com o plano, mas tem que ter atenção quando a cancelamentos e chargsbacks
  2 - Fazer com que o plano de comissões do produto seja dinamico e configuravel diretamente por ele, percentuais, niveis e afins
  4 - Criar um plano onde o ativo possa informar a quantidade de tickts que ele quer comprar, para não assinantes o preço do ticket deve ser 30% mais caro que o mais caro 
  5 - Planos tem que ser publico
- 6 - Testar login de usuários com status variados [OK]
- 7 - Carrinho abandonado = 48h
  8 - Quando clicar em pagar, ai gera ordem
  
- #---------------------- FEITO ----------------------#
-
  --------------------------------------------------------------
  
  Agora precisamos de uma seed que pegue cada usuário e faça o seguinte:

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 class E2ESeeder extends Seeder
 {
@@ -12,6 +13,9 @@ class E2ESeeder extends Seeder
     public function run(): void
     {
         $this->command->info('🚀 Iniciando simulação E2E completa...');
+
+                Artisan::call('migrate:fresh'); // Limpa o banco antes de rodar a simulação
+
                 $this->call([
                     AdminDirectSeed::class,     // 1. Criar admins DIRETAMENTE no banco
                     PlanSeed::class,            // 2. Criar planos ANTES dos usuários
