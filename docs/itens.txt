@@ -49,3 +49,23 @@ raffles
 | `created_at`       | TIMESTAMP                       | Criação                           |
 | `updated_at`       | TIMESTAMP                       | Atualização                       |
 unit_ticket_value => valor unitário do ticket
+
+
+Campo	Descrição	Resultado da receita total - custo total (montar percentual)		
+id	Identificador único	system		
+uuid	uuid	system		
+title	Nome ou título do sorteio	public		
+description	Descrição do prêmio	public		
+prize_value	Valor estimado do prêmio	public	Valor venal/comercial do item (valor em NF)	
+operation_cost	Custo operacional estimado	contabil	Custo de operação, impostos, transporte a afins.	isso aqui pode ser transformada em uma tabela chamadas raffle_costs relacionada e sumarizada
+unit_ticket_value	Valor unitário de cada ticket	contabil	Total de tickets aplicados / soma do valor unitário de cada ticket aplicado	isso pode ser um job
+liquidity_ratio	Percentual de liquidez sobre receita	contabil	Resultado da receita total - custo total (montar percentual)	isso pode ser um job
+liquid_value	Valor líquido disponível após custos	contabil	Resultado da receita total - custo total (monetário)	isso pode ser um job
+tickets_required	Tickets necessários para participar	public	quantida minima de tickets que uma pessoa pode aplicar no evento	tem que consultar se o usuário tem tickets minimos para aplicar
+min_ticket_level	Nível mínimo de ticket aceito	system	ninvel minimo do ticket	
+max_tickets_per_user	Limite de tickets por usuário	system	quantida maxima de tickets que um usuário pode aplicar	
+draw_date	Data agendada do sorteio	system	após a liquidez, deve-se agendar	
+status	Estado atual do sorteio			
+winner_ticket_id	Ticket vencedor		após o o vencedor	
+created_at	Data de criação			
+updated_at	Data de atualização			
