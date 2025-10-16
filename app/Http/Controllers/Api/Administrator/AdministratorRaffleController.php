@@ -104,7 +104,7 @@ class AdministratorRaffleController extends Controller
                 'operation_cost' => 'required|numeric|min:0|max:999999.99',
                 'unit_ticket_value' => 'required|numeric|min:0.01|max:999.99',
                 'tickets_required' => 'required|integer|min:1|max:1000000',
-                'min_ticket_level' => 'required|integer|min:0|max:100',
+                'min_ticket_level' => 'required|integer|min:1|max:100',
                 'max_tickets_per_user' => 'required|integer|min:1|max:1000',
                 'status' => 'sometimes|in:pending,active,inactive,cancelled',
                 'notes' => 'nullable|string|max:2000',
@@ -112,8 +112,8 @@ class AdministratorRaffleController extends Controller
                 'liquid_value' => 'numeric|min:0|max:999999.99'
             ]);
 
-            $validated['created_by'] = auth()->id();
-            $validated['status'] = $validated['status'] ?? 'draft';
+            $validated['created_by'] = $request->user()->id;
+            $validated['status'] = $validated['status'] ?? 'pending';
 
             $raffle = Raffle::create($validated);
 
@@ -152,7 +152,7 @@ class AdministratorRaffleController extends Controller
                 'tickets_required' => 'sometimes|required|integer|min:1|max:1000000',
                 'min_ticket_level' => 'sometimes|required|integer|min:0|max:100',
                 'max_tickets_per_user' => 'sometimes|required|integer|min:1|max:1000',
-                'status' => 'sometimes|in:draft,active,inactive,cancelled',
+                'status' => 'sometimes|in:pending,active,inactive,cancelled',
                 'notes' => 'nullable|string|max:2000'
             ], [
                 'title.unique' => 'Já existe um raffle com este título',
@@ -163,7 +163,7 @@ class AdministratorRaffleController extends Controller
                 'tickets_required.min' => 'Deve haver pelo menos 1 ticket',
                 'min_ticket_level.min' => 'O nível mínimo não pode ser negativo',
                 'max_tickets_per_user.min' => 'Cada usuário deve poder comprar pelo menos 1 ticket',
-                'status.in' => 'Status deve ser: draft, active, inactive ou cancelled'
+                'status.in' => 'Status deve ser: pending, active, inactive ou cancelled'
             ]);
 
             $raffle->update($validated);
@@ -173,6 +173,10 @@ class AdministratorRaffleController extends Controller
                 'raffle' => $raffle->load('creator')
             ]);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Raffle não encontrado'
+            ], 404);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Dados inválidos',
@@ -200,6 +204,10 @@ class AdministratorRaffleController extends Controller
                 'message' => 'Raffle removido com sucesso'
             ]);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Raffle não encontrado'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao remover raffle',
@@ -223,6 +231,10 @@ class AdministratorRaffleController extends Controller
                 'raffle' => $raffle->load('creator')
             ]);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Raffle não encontrado'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao restaurar raffle',
@@ -247,6 +259,10 @@ class AdministratorRaffleController extends Controller
                 'raffle' => $raffle->load('creator')
             ]);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Raffle não encontrado'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao alterar status',
@@ -264,7 +280,7 @@ class AdministratorRaffleController extends Controller
             $stats = [
                 'total_raffles' => Raffle::count(),
                 'active_raffles' => Raffle::where('status', 'active')->count(),
-                'draft_raffles' => Raffle::where('status', 'draft')->count(),
+                'pending_raffles' => Raffle::where('status', 'pending')->count(),
                 'inactive_raffles' => Raffle::where('status', 'inactive')->count(),
                 'cancelled_raffles' => Raffle::where('status', 'cancelled')->count(),
                 'total_prize_value' => Raffle::where('status', 'active')->sum('prize_value'),
