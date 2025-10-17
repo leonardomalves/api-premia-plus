@@ -16,7 +16,6 @@ class Ticket extends Model
         'raffle_id',
         'ticket_level',
         'number',
-        'price',
         'status',
     ];
 

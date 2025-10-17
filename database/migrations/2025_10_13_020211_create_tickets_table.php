@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('ticket_level')->default(1);
             $table->string('number', 20)->nullable();
             $table->decimal('price', 10, 2);
-            $table->enum('status', ['active', 'used', 'expired', 'refunded'])->default('active');
+            $table->enum('status', ['active', 'used', 'expired', 'refunded', 'available'])->default('available');
             $table->softDeletes();
             $table->timestamps();
 

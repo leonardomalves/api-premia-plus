@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Jobs\CreateTicketsForRafflesJob;
 use App\Models\Raffle;
 use App\Models\User;
+use GuzzleHttp\Promise\Create;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -38,6 +40,8 @@ class RaffleSeeder extends Seeder
                 'liquid_value' => 0,
                 'liquidity_ratio' => 0
             ],
+
+            /*
             [
                 'title' => 'MacBook Pro M3 16" 1TB',
                 'description' => 'MacBook Pro com chip M3, tela de 16 polegadas, 1TB SSD, 32GB RAM. Ideal para profissionais.',
@@ -108,17 +112,13 @@ class RaffleSeeder extends Seeder
                 'liquid_value' => 0,
                 'liquidity_ratio' => 0
             ]
+
+            */
         ];
 
         $this->command->info("🔢 Criando " . count($raffleTemplates) . " raffles base...");
 
-        foreach ($raffleTemplates as $index => $template) {
-            $template['created_by'] = $admin->id;
-            
-            Raffle::create($template);
-            
-            $this->command->info("✅ Raffle criado: {$template['title']}");
-        }
+
 
         // Criar raffles adicionais aleatórios
         $this->command->info("🎰 Criando raffles adicionais aleatórios...");
@@ -130,14 +130,14 @@ class RaffleSeeder extends Seeder
             'Fone Beats Studio', 'Tablet Samsung', 'Kindle Oasis'
         ];
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 1; $i++) {
             $prize = $prizes[array_rand($prizes)];
             $prizeValue = rand(500, 5000);
             $operationCost = $prizeValue * 0.1; // 10% do valor do prêmio
             $ticketValue = rand(5, 30);
             $ticketsNeeded = intval($prizeValue / $ticketValue);
             
-            Raffle::create([
+            $raffle = Raffle::create([
                 'title' => $prize . ' #' . ($i + 1),
                 'description' => "Sorteio de {$prize} em excelente estado. Produto original com garantia.",
                 'prize_value' => $prizeValue,
@@ -152,6 +152,8 @@ class RaffleSeeder extends Seeder
                 'liquid_value' => 0,
                 'liquidity_ratio' => 0
             ]);
+            
+            CreateTicketsForRafflesJob::dispatch($raffle->id);
         }
 
         $totalRaffles = count($raffleTemplates) + 10;
