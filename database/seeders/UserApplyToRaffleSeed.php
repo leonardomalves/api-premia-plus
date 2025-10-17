@@ -66,10 +66,11 @@ class UserApplyToRaffleSeed extends Seeder
                     $toDecrement = min($remainingToApply, $available);
                     $decremented = $walletTicket->decrementIn($toDecrement);
                     
-                    // Buscar tickets disponíveis para esta rifa e aplicar o usuário
+                    // Buscar tickets disponíveis para esta rifa e aplicar o usuário (ordem aleatória)
                     $availableTickets = Ticket::where('raffle_id', $raffle->id)
                         ->where('status', 'available')
                         ->whereNull('user_id')
+                        ->inRandomOrder()
                         ->limit($decremented)
                         ->get();
                     
