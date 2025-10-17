@@ -36,11 +36,11 @@ class Ticket extends Model
     }
 
     /**
-     * Relacionamento com Order (Raffle)
+     * Relacionamento com Raffle
      */
     public function raffle(): BelongsTo
     {
-        return $this->belongsTo(Order::class, 'raffle_id');
+        return $this->belongsTo(Raffle::class, 'raffle_id');
     }
 
 
