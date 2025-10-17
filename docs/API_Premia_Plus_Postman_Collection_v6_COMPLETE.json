@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "api-premia-plus-collection-v6-complete",
-		"name": "API Premia Plus v6 - COMPLETE + Raffles",
-		"description": "Complete collection with ALL API Premia Plus endpoints including Auth, Customer, Administrator, Raffles System and Shared with English standardization and monitoring features",
+		"_postman_id": "api-premia-plus-collection-v7-complete",
+		"name": "API Premia Plus v7 - COMPLETE + Raffles & Tickets System",
+		"description": "Complete collection with ALL API Premia Plus endpoints including Auth, Customer, Administrator, Raffles System, Tickets Management and Shared with English standardization and monitoring features",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "api-premia-plus-v6-complete"
 	},
@@ -521,6 +521,280 @@
 							]
 						},
 						"description": "Busca planos por nome/descrição e faixa de preço"
+					}
+				}
+			]
+		},
+		{
+			"name": "🎲 Customer - Raffles",
+			"item": [
+				{
+					"name": "Listar Raffles Ativos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/raffles?search=iPhone&min_prize=1000&max_prize=10000&sort_by=prize_value&sort_order=desc&per_page=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "raffles"],
+							"query": [
+								{
+									"key": "search",
+									"value": "iPhone",
+									"description": "Buscar em título/descrição"
+								},
+								{
+									"key": "min_prize",
+									"value": "1000",
+									"description": "Valor mínimo do prêmio"
+								},
+								{
+									"key": "max_prize",
+									"value": "10000",
+									"description": "Valor máximo do prêmio"
+								},
+								{
+									"key": "sort_by",
+									"value": "prize_value",
+									"description": "Ordenar por (created_at, title, prize_value)"
+								},
+								{
+									"key": "sort_order",
+									"value": "desc",
+									"description": "Ordem (asc, desc)"
+								},
+								{
+									"key": "per_page",
+									"value": "10",
+									"description": "Items por página"
+								}
+							]
+						},
+						"description": "Lista todos os raffles ativos disponíveis para participação"
+					}
+				},
+				{
+					"name": "Ver Raffle Específico",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/raffles/{{raffle_uuid}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}"]
+						},
+						"description": "Retorna dados detalhados de um raffle específico"
+					}
+				},
+				{
+					"name": "Aplicar Tickets em Raffle",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"raffle_uuid\": \"{{raffle_uuid}}\",\n    \"tickets_quantity\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/raffles/apply-tickets",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "raffles", "apply-tickets"]
+						},
+						"description": "Aplica tickets do usuário em uma rifa específica"
+					}
+				},
+				{
+					"name": "Meus Tickets em Raffles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/raffles/my-tickets?raffle_uuid={{raffle_uuid}}&status=active",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "raffles", "my-tickets"],
+							"query": [
+								{
+									"key": "raffle_uuid",
+									"value": "{{raffle_uuid}}",
+									"description": "Filtrar por raffle específico (opcional)"
+								},
+								{
+									"key": "status",
+									"value": "active",
+									"description": "Filtrar por status (active, cancelled, winner)"
+								}
+							]
+						},
+						"description": "Lista todos os tickets do usuário em raffles"
+					}
+				},
+				{
+					"name": "Histórico de Participações",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/raffles/my-participations?status=all&per_page=20",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "raffles", "my-participations"],
+							"query": [
+								{
+									"key": "status",
+									"value": "all",
+									"description": "Filtrar por status (all, active, finished, won, lost)"
+								},
+								{
+									"key": "per_page",
+									"value": "20",
+									"description": "Items por página"
+								}
+							]
+						},
+						"description": "Histórico completo de participações do usuário em raffles"
+					}
+				}
+			]
+		},
+		{
+			"name": "🎫 Customer - Tickets",
+			"item": [
+				{
+					"name": "Meus Tickets Disponíveis",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/tickets/available?min_level=1&status=active",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "tickets", "available"],
+							"query": [
+								{
+									"key": "min_level",
+									"value": "1",
+									"description": "Nível mínimo de tickets"
+								},
+								{
+									"key": "status",
+									"value": "active",
+									"description": "Status dos tickets"
+								}
+							]
+						},
+						"description": "Lista tickets disponíveis no wallet do usuário"
+					}
+				},
+				{
+					"name": "Histórico de Uso de Tickets",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/tickets/usage-history?per_page=50&sort_order=desc",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "tickets", "usage-history"],
+							"query": [
+								{
+									"key": "per_page",
+									"value": "50",
+									"description": "Items por página"
+								},
+								{
+									"key": "sort_order",
+									"value": "desc",
+									"description": "Ordem (asc, desc)"
+								}
+							]
+						},
+						"description": "Histórico de uso dos tickets do usuário"
+					}
+				},
+				{
+					"name": "Resumo de Tickets",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/tickets/summary",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customer", "tickets", "summary"]
+						},
+						"description": "Resumo consolidado dos tickets do usuário por nível"
 					}
 				}
 			]
@@ -1498,6 +1772,154 @@
 			]
 		},
 		{
+			"name": "🎫 Administrator - Tickets",
+			"item": [
+				{
+					"name": "Listar Todos os Tickets (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/tickets?raffle_uuid={{raffle_uuid}}&status=active&user_uuid={{user_uuid}}&per_page=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "tickets"],
+							"query": [
+								{
+									"key": "raffle_uuid",
+									"value": "{{raffle_uuid}}",
+									"description": "Filtrar por raffle específico"
+								},
+								{
+									"key": "status",
+									"value": "active",
+									"description": "Filtrar por status (available, active, cancelled, winner)"
+								},
+								{
+									"key": "user_uuid",
+									"value": "{{user_uuid}}",
+									"description": "Filtrar por usuário específico"
+								},
+								{
+									"key": "per_page",
+									"value": "50",
+									"description": "Items por página"
+								}
+							]
+						},
+						"description": "Lista todos os tickets do sistema com filtros (admin apenas)"
+					}
+				},
+				{
+					"name": "Ver Ticket Específico (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/tickets/{{ticket_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "tickets", "{{ticket_id}}"]
+						},
+						"description": "Retorna dados de um ticket específico (admin apenas)"
+					}
+				},
+				{
+					"name": "Estatísticas de Tickets (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/tickets/statistics?raffle_uuid={{raffle_uuid}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "tickets", "statistics"],
+							"query": [
+								{
+									"key": "raffle_uuid",
+									"value": "{{raffle_uuid}}",
+									"description": "Estatísticas para raffle específico (opcional)"
+								}
+							]
+						},
+						"description": "Retorna estatísticas consolidadas dos tickets"
+					}
+				},
+				{
+					"name": "Regenerar Tickets de Raffle",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/raffles/{{raffle_uuid}}/regenerate-tickets",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "raffles", "{{raffle_uuid}}", "regenerate-tickets"]
+						},
+						"description": "Regenera todos os tickets de uma rifa (remove existentes e cria novos)"
+					}
+				},
+				{
+					"name": "Cancelar Ticket (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"reason\": \"Cancelamento administrativo\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/administrator/tickets/{{ticket_id}}/cancel",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "administrator", "tickets", "{{ticket_id}}", "cancel"]
+						},
+						"description": "Cancela um ticket específico (admin apenas)"
+					}
+				}
+			]
+		},
+		{
 			"name": "🔧 System - Health & Monitoring",
 			"item": [
 				{
@@ -1585,6 +2007,11 @@
 		},
 		{
 			"key": "raffle_uuid",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ticket_id",
 			"value": "",
 			"type": "string"
 		}
