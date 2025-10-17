@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('price', 10, 2);
             $table->integer('grant_tickets');
             $table->enum('status', ['active', 'inactive', 'archived'])->default('active');
+            $table->enum('plan_type', ['public', 'private'])->default('public');
             $table->integer('ticket_level')->default(1);
             $table->decimal('commission_level_1', 5, 2)->default(10.00);
             $table->decimal('commission_level_2', 5, 2)->default(5.00);

@@ -13,6 +13,8 @@ class Cart extends Model
         'plan_id',
         'order_id',
         'status',
+        'total_tickets',
+        'total_amount',
     ];
 
     protected $casts = [

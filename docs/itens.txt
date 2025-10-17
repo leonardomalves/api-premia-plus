@@ -19,9 +19,9 @@ Conta comprador
  5 - Planos tem que ser publico
  8 - Quando clicar em pagar, ai gera ordem
  9 - Tipo de tickets em tickets para definir se ele é um ticket de plano ou unitário;
- 10 - Adicionadar raffle id em tickest para evitar concorrencia de numeros no mesmo usuário
- 11 - Resolver processamento carrinho -> ordem -> comissões -> wallet_ticket [tem que rodar o job]
- 12 -  Quando criar a Rifa, já criar os numeros em tickets, vincular a rifa , e quanto for aplicar, popular o user_id, e remover o price, que acha?Modo “drain” seguro para manutenção sem perda.
+ 
+
+ 
  --------------------------------------------------------------
  
  Agora precisamos de uma seed que pegue cada usuário e faça o seguinte:
