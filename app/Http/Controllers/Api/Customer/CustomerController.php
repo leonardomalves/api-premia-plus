@@ -3,18 +3,16 @@
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Services\Customer\CustomerService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class CustomerController extends Controller
 {
-
-
-    protected $customerService;
+    protected CustomerService $customerService;
 
     public function __construct(CustomerService $customerService)
     {
@@ -24,15 +22,19 @@ class CustomerController extends Controller
     /**
      * Display the authenticated user's profile
      */
-    public function show(Request $request)
+    public function show(Request $request): JsonResponse
     {
-        return $this->customerService->show($request);
+        $user = $this->customerService->show($request->user());
+        
+        return response()->json([
+            'user' => $user,
+        ]);
     }
 
     /**
      * Update authenticated user's profile
      */
-    public function updateProfile(Request $request)
+    public function updateProfile(Request $request): JsonResponse
     {
         $user = $request->user();
 
@@ -43,37 +45,60 @@ class CustomerController extends Controller
             'username' => ['sometimes', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
         ]);
 
-        return $this->customerService->updateProfile($user, $validated);
+        try {
+            $updatedUser = $this->customerService->updateProfile($user, $validated);
+            
+            return response()->json([
+                'message' => 'Perfil atualizado com sucesso',
+                'user' => $updatedUser,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     /**
      * Get user's own network (sponsored users)
      */
-    public function network(Request $request)
+    public function network(Request $request): JsonResponse
     {
-        return $this->customerService->network($request);
+        $result = $this->customerService->network($request->user());
+        
+        return response()->json($result);
     }
 
     /**
      * Get user's sponsor information
      */
-    public function sponsor(Request $request)
+    public function sponsor(Request $request): JsonResponse
     {
-        return $this->customerService->sponsor($request);
+        try {
+            $result = $this->customerService->sponsor($request->user());
+            
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 404);
+        }
     }
 
     /**
      * Get user's own statistics
      */
-    public function statistics(Request $request)
+    public function statistics(Request $request): JsonResponse
     {
-        return $this->customerService->statistics($request);
+        $result = $this->customerService->statistics($request->user());
+        
+        return response()->json($result);
     }
 
     /**
      * Change authenticated user's password
      */
-    public function changePassword(Request $request)
+    public function changePassword(Request $request): JsonResponse
     {
         $request->validate([
             'current_password' => 'required',
@@ -82,30 +107,84 @@ class CustomerController extends Controller
 
         $user = $request->user();
 
-        return $this->customerService->changePassword($request, $user);
+        try {
+            $this->customerService->changePassword($user, $request->current_password, $request->password);
+            
+            return response()->json([
+                'message' => 'Password changed successfully',
+            ]);
+        } catch (ValidationException $e) {
+            throw $e; // Laravel handles this as 422 automatically
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 400);
+        }
     }
 
     /**
      * Get specific user's network (if user has permission)
      */
-    public function userNetwork(Request $request, $uuid)
+    public function userNetwork(Request $request, string $uuid): JsonResponse
     {
-        return $this->customerService->userNetwork($request, $uuid);
+        try {
+            $result = $this->customerService->userNetwork($request->user(), $uuid);
+            
+            return response()->json($result);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Usuário não encontrado',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], $e->getMessage() === 'Acesso negado.' ? 403 : 500);
+        }
     }
 
     /**
      * Get specific user's sponsor (if user has permission)
      */
-    public function userSponsor(Request $request, $uuid)
+    public function userSponsor(Request $request, string $uuid): JsonResponse
     {
-        return $this->customerService->userSponsor($request, $uuid);
+        try {
+            $result = $this->customerService->userSponsor($request->user(), $uuid);
+            
+            return response()->json($result);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Usuário não encontrado',
+            ], 404);
+        } catch (\Exception $e) {
+            $statusCode = match($e->getMessage()) {
+                'Acesso negado.' => 403,
+                'Usuário não possui patrocinador' => 404,
+                default => 500
+            };
+            
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], $statusCode);
+        }
     }
 
     /**
      * Get specific user's statistics (if user has permission)
      */
-    public function userStatistics(Request $request, $uuid)
+    public function userStatistics(Request $request, string $uuid): JsonResponse
     {
-        return $this->customerService->userStatistics($request, $uuid);
+        try {
+            $result = $this->customerService->userStatistics($request->user(), $uuid);
+            
+            return response()->json($result);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Usuário não encontrado',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], $e->getMessage() === 'Acesso negado.' ? 403 : 500);
+        }
     }
 }

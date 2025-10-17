@@ -2,187 +2,128 @@
 
 namespace App\Services\Customer;
 
-
 use App\Models\Plan;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Collection;
 
 class CustomerPlanService
 {
     /**
      * Listar todos os planos ativos
      */
-    public function index(Request $request): JsonResponse
+    public function index(array $filters = []): array
     {
-        try {
-            $query = Plan::where('status', 'active');
+        $query = Plan::where('status', 'active');
 
-            // Filtro por tipo (promocional ou não)
-            if ($request->has('promotional')) {
-                $query->where('is_promotional', $request->boolean('promotional'));
-            }
-
-            // Filtro por preço mínimo
-            if ($request->has('min_price')) {
-                $query->where('price', '>=', $request->float('min_price'));
-            }
-
-            // Filtro por preço máximo
-            if ($request->has('max_price')) {
-                $query->where('price', '<=', $request->float('max_price'));
-            }
-
-            // Ordenação
-            $sortBy = $request->get('sort_by', 'price');
-            $sortOrder = $request->get('sort_order', 'asc');
-            
-            $allowedSorts = ['price', 'name', 'created_at'];
-            if (in_array($sortBy, $allowedSorts)) {
-                $query->orderBy($sortBy, $sortOrder);
-            }
-
-            $plans = $query->get();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Planos listados com sucesso',
-                'data' => [
-                    'plans' => $plans,
-                    'total' => $plans->count(),
-                    'filters' => [
-                        'promotional' => $request->get('promotional'),
-                        'min_price' => $request->get('min_price'),
-                        'max_price' => $request->get('max_price'),
-                        'sort_by' => $sortBy,
-                        'sort_order' => $sortOrder,
-                    ]
-                ]
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao listar planos',
-                'error' => $e->getMessage()
-            ], 500);
+        // Filtro por tipo (promocional ou não)
+        if (isset($filters['promotional'])) {
+            $query->where('is_promotional', $filters['promotional']);
         }
+
+        // Filtro por preço mínimo
+        if (isset($filters['min_price'])) {
+            $query->where('price', '>=', $filters['min_price']);
+        }
+
+        // Filtro por preço máximo
+        if (isset($filters['max_price'])) {
+            $query->where('price', '<=', $filters['max_price']);
+        }
+
+        // Ordenação
+        $sortBy = $filters['sort_by'] ?? 'price';
+        $sortOrder = $filters['sort_order'] ?? 'asc';
+        
+        $allowedSorts = ['price', 'name', 'created_at'];
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+
+        $plans = $query->get();
+
+        return [
+            'plans' => $plans,
+            'total' => $plans->count(),
+            'filters' => [
+                'promotional' => $filters['promotional'] ?? null,
+                'min_price' => $filters['min_price'] ?? null,
+                'max_price' => $filters['max_price'] ?? null,
+                'sort_by' => $sortBy,
+                'sort_order' => $sortOrder,
+            ]
+        ];
     }
 
     /**
      * Mostrar detalhes de um plano específico
      */
-    public function show(string $uuid): JsonResponse
+    public function show(string $uuid): Plan
     {
-        try {
-            $plan = Plan::where('uuid', $uuid)
-                ->where('status', 'active')
-                ->first();
+        $plan = Plan::where('uuid', $uuid)
+            ->where('status', 'active')
+            ->first();
 
-            if (!$plan) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Plano não encontrado ou inativo'
-                ], 404);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Plano encontrado com sucesso',
-                'data' => [
-                    'plan' => $plan
-                ]
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao buscar plano',
-                'error' => $e->getMessage()
-            ], 500);
+        if (!$plan) {
+            throw new \Exception('Plano não encontrado ou inativo');
         }
+
+        return $plan;
     }
 
     /**
      * Listar apenas planos promocionais
      */
-    public function promotional(): JsonResponse
+    public function promotional(): array
     {
-        try {
-            $plans = Plan::where('status', 'active')
-                ->where('is_promotional', true)
-                ->orderBy('price', 'asc')
-                ->get();
+        $plans = Plan::where('status', 'active')
+            ->where('is_promotional', true)
+            ->orderBy('price', 'asc')
+            ->get();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Planos promocionais listados com sucesso',
-                'data' => [
-                    'plans' => $plans,
-                    'total' => $plans->count()
-                ]
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao listar planos promocionais',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return [
+            'plans' => $plans,
+            'total' => $plans->count()
+        ];
     }
 
     /**
      * Buscar planos por faixa de preço
      */
-    public function search(Request $request): JsonResponse
+    public function search(array $searchParams = []): array
     {
-        try {
-            $query = Plan::where('status', 'active');
+        $query = Plan::where('status', 'active');
 
-            // Busca por nome ou descrição
-            if ($request->has('search')) {
-                $searchTerm = $request->get('search');
-                $query->where(function($q) use ($searchTerm) {
-                    $q->where('name', 'like', "%{$searchTerm}%")
-                      ->orWhere('description', 'like', "%{$searchTerm}%");
-                });
-            }
-
-            // Filtro por faixa de preço
-            if ($request->has('price_range')) {
-                $priceRange = $request->get('price_range');
-                switch ($priceRange) {
-                    case 'low':
-                        $query->where('price', '<=', 150);
-                        break;
-                    case 'medium':
-                        $query->whereBetween('price', [150, 300]);
-                        break;
-                    case 'high':
-                        $query->where('price', '>', 300);
-                        break;
-                }
-            }
-
-            $plans = $query->orderBy('price', 'asc')->get();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Busca realizada com sucesso',
-                'data' => [
-                    'plans' => $plans,
-                    'total' => $plans->count(),
-                    'search_term' => $request->get('search'),
-                    'price_range' => $request->get('price_range')
-                ]
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao buscar planos',
-                'error' => $e->getMessage()
-            ], 500);
+        // Busca por nome ou descrição
+        if (isset($searchParams['search'])) {
+            $searchTerm = $searchParams['search'];
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%")
+                  ->orWhere('description', 'like', "%{$searchTerm}%");
+            });
         }
+
+        // Filtro por faixa de preço
+        if (isset($searchParams['price_range'])) {
+            $priceRange = $searchParams['price_range'];
+            switch ($priceRange) {
+                case 'low':
+                    $query->where('price', '<=', 150);
+                    break;
+                case 'medium':
+                    $query->whereBetween('price', [150, 300]);
+                    break;
+                case 'high':
+                    $query->where('price', '>', 300);
+                    break;
+            }
+        }
+
+        $plans = $query->orderBy('price', 'asc')->get();
+
+        return [
+            'plans' => $plans,
+            'total' => $plans->count(),
+            'search_term' => $searchParams['search'] ?? null,
+            'price_range' => $searchParams['price_range'] ?? null
+        ];
     }
 }

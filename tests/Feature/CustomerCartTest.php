@@ -708,14 +708,16 @@ class CustomerCartTest extends TestCase
         
         Sanctum::actingAs($user);
 
-        // Teste sem plan_uuid
+        // Teste sem plan_uuid - deve retornar erro de validação
         $response = $this->postJson('/api/v1/customer/cart/add', []);
-        $response->assertStatus(404); // Plan não encontrado
+        $response->assertStatus(422)
+                ->assertJsonValidationErrors(['plan_uuid']);
 
-        // Teste com plan_uuid inválido
+        // Teste com plan_uuid inválido - deve retornar erro de validação
         $response = $this->postJson('/api/v1/customer/cart/add', [
             'plan_uuid' => 'invalid-uuid'
         ]);
-        $response->assertStatus(404);
+        $response->assertStatus(422)
+                ->assertJsonValidationErrors(['plan_uuid']);
     }
 }
