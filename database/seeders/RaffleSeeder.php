@@ -34,7 +34,9 @@ class RaffleSeeder extends Seeder
                 'min_ticket_level' => 0,
                 'max_tickets_per_user' => 10,
                 'status' => 'active',
-                'notes' => 'Campanha de lançamento - produto premium'
+                'notes' => 'Campanha de lançamento - produto premium',
+                'liquid_value' => 0,
+                'liquidity_ratio' => 0
             ],
             [
                 'title' => 'MacBook Pro M3 16" 1TB',
@@ -46,7 +48,9 @@ class RaffleSeeder extends Seeder
                 'min_ticket_level' => 0,
                 'max_tickets_per_user' => 5,
                 'status' => 'active',
-                'notes' => 'Produto para profissionais de tecnologia'
+                'notes' => 'Produto para profissionais de tecnologia',
+                'liquid_value' => 0,
+                'liquidity_ratio' => 0
             ],
             [
                 'title' => 'PlayStation 5 + 2 Controles',
@@ -58,7 +62,9 @@ class RaffleSeeder extends Seeder
                 'min_ticket_level' => 0,
                 'max_tickets_per_user' => 20,
                 'status' => 'active',
-                'notes' => 'Campanha focada em gamers'
+                'notes' => 'Campanha focada em gamers',
+                'liquid_value' => 0,
+                'liquidity_ratio' => 0
             ],
             [
                 'title' => 'R$ 10.000 em Dinheiro',
@@ -70,7 +76,9 @@ class RaffleSeeder extends Seeder
                 'min_ticket_level' => 0,
                 'max_tickets_per_user' => 25,
                 'status' => 'active',
-                'notes' => 'Prêmio em dinheiro sempre atrai'
+                'notes' => 'Prêmio em dinheiro sempre atrai',
+                'liquid_value' => 0,
+                'liquidity_ratio' => 0
             ],
             [
                 'title' => 'Apple Watch Ultra 2',
@@ -81,8 +89,10 @@ class RaffleSeeder extends Seeder
                 'tickets_required' => 450,
                 'min_ticket_level' => 0,
                 'max_tickets_per_user' => 15,
-                'status' => 'draft',
-                'notes' => 'Produto em preparação'
+                'status' => 'active',
+                'notes' => 'Produto em preparação',
+                'liquid_value' => 0,
+                'liquidity_ratio' => 0
             ],
             [
                 'title' => 'Samsung Galaxy S24 Ultra 512GB',
@@ -93,8 +103,10 @@ class RaffleSeeder extends Seeder
                 'tickets_required' => 380,
                 'min_ticket_level' => 0,
                 'max_tickets_per_user' => 12,
-                'status' => 'inactive',
-                'notes' => 'Campanha pausada temporariamente'
+                'status' => 'active',
+                'notes' => 'Campanha pausada temporariamente',
+                'liquid_value' => 0,
+                'liquidity_ratio' => 0
             ]
         ];
 
@@ -134,9 +146,11 @@ class RaffleSeeder extends Seeder
                 'tickets_required' => $ticketsNeeded,
                 'min_ticket_level' => 0,
                 'max_tickets_per_user' => rand(5, 20),
-                'status' => ['draft', 'active', 'inactive'][rand(0, 2)],
+                'status' => ['active', 'active', 'inactive'][rand(0, 2)],
                 'created_by' => $admin->id,
-                'notes' => "Raffle gerado automaticamente - {$prize}"
+                'notes' => "Raffle gerado automaticamente - {$prize}",
+                'liquid_value' => 0,
+                'liquidity_ratio' => 0
             ]);
         }
 

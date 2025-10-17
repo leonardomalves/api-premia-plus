@@ -13,6 +13,7 @@ class Ticket extends Model
 
     protected $fillable = [
         'user_id',
+        'raffle_id',
         'ticket_level',
         'number',
         'price',
@@ -34,6 +35,13 @@ class Ticket extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Relacionamento com Order (Raffle)
+     */
+    public function raffle(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'raffle_id');
+    }
 
 
     /**

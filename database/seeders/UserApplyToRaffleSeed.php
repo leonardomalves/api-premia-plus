@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Raffle;
+use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -23,6 +24,7 @@ class UserApplyToRaffleSeed extends Seeder
             
             // Buscar tickets do usuário que atendem o nível mínimo da rifa
             $userTickets = $user->walletTickets()
+                ->with('plan') // Carregar o plano para obter o preço
                 ->where('ticket_level', '>=', $minTicketLevel)
                 ->where('status', 'active')
                 ->orderBy('ticket_level', 'asc') // Usar tickets de menor nível primeiro
@@ -48,6 +50,7 @@ class UserApplyToRaffleSeed extends Seeder
             // Aplicar os tickets na rifa
             $remainingToApply = $ticketsRequired;
             $totalApplied = 0;
+            $ticketsCreated = [];
             
             foreach ($userTickets as $walletTicket) {
                 if ($remainingToApply <= 0) {
@@ -63,6 +66,22 @@ class UserApplyToRaffleSeed extends Seeder
                     $toDecrement = min($remainingToApply, $available);
                     $decremented = $walletTicket->decrementIn($toDecrement);
                     
+                    // Criar registros individuais de tickets na tabela tickets
+                    for ($i = 0; $i < $decremented; $i++) {
+                        $ticketNumber = $this->generateUniqueTicketNumber($raffle->id);
+                        
+                        $ticket = Ticket::create([
+                            'user_id' => $user->id,
+                            'raffle_id' => $raffle->id,
+                            'ticket_level' => $walletTicket->ticket_level,
+                            'number' => $ticketNumber,
+                            'price' => $walletTicket->plan->price ?? 0,
+                            'status' => 'active',
+                        ]);
+                        
+                        $ticketsCreated[] = $ticketNumber;
+                    }
+                    
                     $totalApplied += $decremented;
                     $remainingToApply -= $decremented;
                     
@@ -72,6 +91,7 @@ class UserApplyToRaffleSeed extends Seeder
             
             if ($totalApplied === $ticketsRequired) {
                 echo "✅ SUCESSO - {$totalApplied} tickets aplicados na rifa!\n";
+                echo "   Números gerados: " . implode(', ', $ticketsCreated) . "\n";
             } else {
                 echo "⚠️ PARCIAL - Apenas {$totalApplied} de {$ticketsRequired} tickets foram aplicados\n";
             }
@@ -79,5 +99,25 @@ class UserApplyToRaffleSeed extends Seeder
         
         echo "\n========================================\n";
         echo "Processo concluído!\n";
+    }
+
+    /**
+     * Gera um número único de ticket para a rifa
+     * Cada raffle_id não pode ter números duplicados
+     */
+    private function generateUniqueTicketNumber(int $raffleId): string
+    {
+        do {
+            // Gerar um número aleatório de 6 dígitos
+            $number = str_pad(rand(1, 999999), 6, '0', STR_PAD_LEFT);
+            
+            // Verificar se já existe para esta rifa
+            $exists = Ticket::where('raffle_id', $raffleId)
+                ->where('number', $number)
+                ->exists();
+                
+        } while ($exists);
+        
+        return $number;
     }
 }

@@ -23,6 +23,8 @@ class E2ESeeder extends Seeder
                     AddToCartSeed::class,       // 4. Simular adição ao carrinho
                     ProcessCartStatusSeed::class,   // 5. Processar carrinhos → orders
                     ProcessOrderStatusSeed::class,  // 6. Aprovar/rejeitar orders
+                    RaffleSeeder::class,         // 7. Criar rifas
+                    UserApplyToRaffleSeed::class // 8. Usuários aplicam tickets nas
                 ]);
 
         $this->command->info('✅ Simulação E2E completa finalizada!');
