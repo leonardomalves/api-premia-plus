@@ -108,4 +108,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Ticket::class);
     }
+
+    /**
+     * Relacionamento com WalletTicket (carteira de tickets do usuário)
+     */
+    public function walletTickets()
+    {
+        return $this->hasMany(WalletTicket::class);
+    }
 }
