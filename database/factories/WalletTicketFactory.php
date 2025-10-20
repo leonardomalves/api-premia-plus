@@ -2,9 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\Order;
+use App\Models\Plan;
 use App\Models\WalletTicket;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class WalletTicketFactory extends Factory
 {
@@ -13,33 +16,38 @@ class WalletTicketFactory extends Factory
     public function definition(): array
     {
         return [
+            'uuid' => Str::uuid(),
             'user_id' => User::factory(),
-            'transaction_type' => $this->faker->randomElement(['deposit', 'withdrawal', 'transfer']),
-            'amount' => $this->faker->randomFloat(2, 1, 100),
-            'balance_before' => $this->faker->randomFloat(2, 0, 1000),
-            'balance_after' => function (array $attributes) {
-                $before = $attributes['balance_before'];
-                $amount = $attributes['amount'];
-                
-                return match ($attributes['transaction_type']) {
-                    'deposit' => $before + $amount,
-                    'withdrawal' => max(0, $before - $amount),
-                    'transfer' => $before, // Neutral for this user
-                    default => $before,
-                };
-            },
-            'metadata' => [
-                'description' => $this->faker->sentence(),
-                'processed_at' => now()->toISOString(),
-            ],
+            'order_id' => Order::factory(),
+            'plan_id' => Plan::factory(),
+            'ticket_level' => $this->faker->numberBetween(1, 5),
+            'total_tickets' => $this->faker->numberBetween(1, 100),
+            'status' => $this->faker->randomElement(['active', 'expired', 'used']),
+            'expiration_date' => $this->faker->optional()->dateTimeBetween('now', '+1 year'),
         ];
     }
 
-    public function deposit(): Factory
+    /**
+     * Indicate that the wallet ticket is active.
+     */
+    public function active(): Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'transaction_type' => 'deposit',
+                'status' => 'active',
+            ];
+        });
+    }
+
+    /**
+     * Indicate that the wallet ticket is expired.
+     */
+    public function expired(): Factory
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'status' => 'expired',
+                'expiration_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
             ];
         });
     }

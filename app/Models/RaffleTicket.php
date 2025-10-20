@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class RaffleTicket extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     // Status constants
     const STATUS_REJECTED = 'rejected';
@@ -19,6 +21,7 @@ class RaffleTicket extends Model
     const STATUS_LOSER = 'loser';
 
     protected $fillable = [
+        'uuid',
         'user_id',
         'raffle_id',
         'ticket_id',
@@ -30,6 +33,20 @@ class RaffleTicket extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
+
+    /**
+     * Boot method to generate UUID
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($model) {
+            if (!$model->uuid) {
+                $model->uuid = Str::uuid();
+            }
+        });
+    }
 
     /**
      * Relacionamento com User

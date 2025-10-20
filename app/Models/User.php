@@ -102,14 +102,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Relacionamento com Ticket (tickets do usuário)
-     */
-    public function tickets()
-    {
-        return $this->hasMany(Ticket::class);
-    }
-
-    /**
      * Relacionamento com WalletTicket (carteira de tickets do usuário)
      */
     public function walletTickets()

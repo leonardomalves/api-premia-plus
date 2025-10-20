@@ -50,8 +50,8 @@ class WalletTicketSeed extends Seeder
                     'user_id' => $order->user_id,
                     'order_id' => $order->id,
                     'plan_id' => $order->plan_id,
-                    'ticket_level' => $order->plan_metadata['ticket_level'] ?? 1,
-                    'total_tickets' => $order->plan_metadata['grant_tickets'],
+                    'ticket_level' => $order->plan->ticket_level ?? 1,
+                    'total_tickets' => $order->plan->grant_tickets,
                     'expiration_date' => $expirationDate,
                     'status' => 'active',
                 ]);

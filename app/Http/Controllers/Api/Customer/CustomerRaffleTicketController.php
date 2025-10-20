@@ -19,18 +19,16 @@ class CustomerRaffleTicketController extends Controller
 
     /**
      * Aplicar tickets em uma rifa
-     * POST /customer/raffles/{uuid}/apply-tickets
+     * POST /customer/raffles/{uuid}/tickets
      */
     public function applyTickets(Request $request, string $uuid): JsonResponse
     {
         $request->validate([
-            'quantity' => 'sometimes|integer|min:1',
+            'quantity' => 'required|integer|min:1',
         ]);
 
         try {
-            $raffle = Raffle::where('uuid', $uuid)
-                ->where('status', Raffle::STATUS_ACTIVE)
-                ->firstOrFail();
+            $raffle = Raffle::where('uuid', $uuid)->firstOrFail();
 
             $result = $this->raffleTicketService->applyTicketsToRaffle(
                 $request->user(),
@@ -38,19 +36,21 @@ class CustomerRaffleTicketController extends Controller
                 $request->input('quantity')
             );
 
-            return response()->json($result, 201);
+            return response()->json([
+                'message' => 'Tickets aplicados com sucesso',
+                'applied_tickets' => $result['applied_tickets'],
+                'remaining_tickets' => $result['remaining_tickets'],
+            ], 201);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Rifa não encontrada ou inativa',
+                'message' => 'Rifa não encontrada',
             ], 404);
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
                 'message' => $e->getMessage(),
-            ], 422);
+            ], 400);
         }
     }
 
@@ -69,14 +69,13 @@ class CustomerRaffleTicketController extends Controller
             );
 
             return response()->json([
-                'success' => true,
-                'message' => 'Tickets listados com sucesso',
-                'data' => $result,
+                'tickets' => $result['tickets'],
+                'total' => $result['total'],
+                'by_status' => $result['by_status'],
             ], 200);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Rifa não encontrada',
             ], 404);
         }
@@ -84,13 +83,13 @@ class CustomerRaffleTicketController extends Controller
 
     /**
      * Cancelar tickets aplicados em uma rifa
-     * DELETE /customer/raffles/{uuid}/cancel-tickets
+     * DELETE /customer/raffles/{uuid}/tickets
      */
     public function cancelTickets(Request $request, string $uuid): JsonResponse
     {
         $request->validate([
-            'ticket_ids' => 'sometimes|array',
-            'ticket_ids.*' => 'integer|exists:raffle_tickets,id',
+            'raffle_ticket_uuids' => 'required|array',
+            'raffle_ticket_uuids.*' => 'string',
         ]);
 
         try {
@@ -99,22 +98,30 @@ class CustomerRaffleTicketController extends Controller
             $result = $this->raffleTicketService->cancelTicketsFromRaffle(
                 $request->user(),
                 $raffle,
-                $request->input('ticket_ids')
+                $request->input('raffle_ticket_uuids')
             );
 
-            return response()->json($result, 200);
+            if ($result['canceled_count'] === 0) {
+                return response()->json([
+                    'message' => 'Alguns tickets não puderam ser cancelados (já estão confirmados ou não pertencem a você).',
+                ], 400);
+            }
+
+            return response()->json([
+                'message' => 'Tickets cancelados com sucesso',
+                'canceled_count' => $result['canceled_count'],
+                'returned_tickets' => $result['returned_tickets'],
+            ], 200);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Rifa não encontrada',
             ], 404);
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
                 'message' => $e->getMessage(),
-            ], 422);
+            ], 400);
         }
     }
 
@@ -130,24 +137,18 @@ class CustomerRaffleTicketController extends Controller
                 ->paginate(15);
 
             return response()->json([
-                'success' => true,
-                'message' => 'Rifas listadas com sucesso',
-                'data' => [
-                    'raffles' => $raffles->items(),
-                    'pagination' => [
-                        'current_page' => $raffles->currentPage(),
-                        'per_page' => $raffles->perPage(),
-                        'total' => $raffles->total(),
-                        'last_page' => $raffles->lastPage(),
-                    ],
+                'raffles' => [
+                    'data' => $raffles->items(),
+                    'current_page' => $raffles->currentPage(),
+                    'per_page' => $raffles->perPage(),
+                    'total' => $raffles->total(),
+                    'last_page' => $raffles->lastPage(),
                 ],
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Erro ao listar rifas',
-                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -164,16 +165,11 @@ class CustomerRaffleTicketController extends Controller
                 ->firstOrFail();
 
             return response()->json([
-                'success' => true,
-                'message' => 'Rifa encontrada com sucesso',
-                'data' => [
-                    'raffle' => $raffle,
-                ],
+                'raffle' => $raffle,
             ], 200);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
-                'success' => false,
                 'message' => 'Rifa não encontrada ou inativa',
             ], 404);
         }

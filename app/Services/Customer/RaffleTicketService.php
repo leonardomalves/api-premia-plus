@@ -21,12 +21,16 @@ class RaffleTicketService
      */
     public function applyTicketsToRaffle(User $user, Raffle $raffle, ?int $quantity = null): array
     {
-        // Definir quantidade (usar mínimo da rifa se não especificado)
-        $ticketsToApply = $quantity ?? $raffle->tickets_required;
+        // Validar quantidade
+        if ($quantity === null || $quantity < 1) {
+            throw new \Exception("Quantidade deve ser maior que zero");
+        }
+
+        $ticketsToApply = $quantity;
         
-        // Validar quantidade mínima
-        if ($ticketsToApply < $raffle->tickets_required) {
-            throw new \Exception("Quantidade mínima de tickets para esta rifa: {$raffle->tickets_required}");
+        // Validar se a rifa está ativa
+        if ($raffle->status !== 'active') {
+            throw new \Exception("Esta rifa não está ativa.");
         }
         
         // Validar quantidade máxima por usuário
@@ -38,7 +42,7 @@ class RaffleTicketService
             
             if (($currentTickets + $ticketsToApply) > $raffle->max_tickets_per_user) {
                 $remaining = $raffle->max_tickets_per_user - $currentTickets;
-                throw new \Exception("Você só pode aplicar mais {$remaining} tickets nesta rifa (limite: {$raffle->max_tickets_per_user})");
+                throw new \Exception("Quantidade excede o limite de {$raffle->max_tickets_per_user} tickets por usuário para esta rifa.");
             }
         }
         
@@ -46,51 +50,47 @@ class RaffleTicketService
         $walletTickets = $user->walletTickets()
             ->where('ticket_level', '>=', $raffle->min_ticket_level)
             ->where('status', 'active')
+            ->where('total_tickets', '>', 0)
             ->orderBy('ticket_level', 'asc')
             ->get();
         
         // Calcular tickets disponíveis
-        $availableTickets = $walletTickets->sum(function($ticket) {
-            return $ticket->available_tickets;
-        });
+        $availableTickets = $walletTickets->sum('total_tickets');
+        
+        if ($availableTickets == 0) {
+            throw new \Exception("Você não possui tickets do nível mínimo exigido ({$raffle->min_ticket_level}).");
+        }
         
         if ($availableTickets < $ticketsToApply) {
-            throw new \Exception("Tickets insuficientes. Você possui: {$availableTickets}, Necessário: {$ticketsToApply}");
+            throw new \Exception("Você não possui tickets suficientes.");
         }
         
         return DB::transaction(function () use ($user, $raffle, $ticketsToApply, $walletTickets) {
             $remainingToApply = $ticketsToApply;
             $appliedTickets = [];
-            $walletUpdates = [];
             
             foreach ($walletTickets as $walletTicket) {
                 if ($remainingToApply <= 0) {
                     break;
                 }
                 
-                $available = $walletTicket->available_tickets;
+                $available = $walletTicket->total_tickets;
                 
                 if ($available > 0) {
                     $toDecrement = min($remainingToApply, $available);
                     
                     // Buscar tickets disponíveis do pool
-                    $poolTickets = Ticket::whereDoesntHave('raffleTickets', function($query) use ($raffle) {
-                        $query->where('raffle_id', $raffle->id);
-                    })
-                    ->inRandomOrder()
-                    ->limit($toDecrement)
-                    ->get();
+                    $poolTickets = Ticket::available()
+                        ->inRandomOrder()
+                        ->limit($toDecrement)
+                        ->get();
                     
                     if ($poolTickets->count() < $toDecrement) {
                         throw new \Exception("Tickets insuficientes no pool global");
                     }
                     
                     // Decrementar do wallet
-                    $decremented = $walletTicket->decrementIn($toDecrement);
-                    
-                    if ($decremented !== $toDecrement) {
-                        throw new \Exception("Erro ao decrementar tickets do wallet");
-                    }
+                    $walletTicket->decrement('total_tickets', $toDecrement);
                     
                     // Criar registros em raffle_tickets
                     foreach ($poolTickets as $ticket) {
@@ -98,23 +98,18 @@ class RaffleTicketService
                             'user_id' => $user->id,
                             'raffle_id' => $raffle->id,
                             'ticket_id' => $ticket->id,
-                            'status' => RaffleTicket::STATUS_CONFIRMED,
+                            'status' => RaffleTicket::STATUS_PENDING,
                         ]);
                         
                         $appliedTickets[] = [
+                            'uuid' => $raffleTicket->uuid,
                             'ticket_number' => $ticket->number,
-                            'ticket_id' => $ticket->id,
-                            'raffle_ticket_id' => $raffleTicket->id,
+                            'status' => $raffleTicket->status,
+                            'created_at' => $raffleTicket->created_at,
                         ];
                     }
                     
-                    $walletUpdates[] = [
-                        'wallet_id' => $walletTicket->id,
-                        'ticket_level' => $walletTicket->ticket_level,
-                        'decremented' => $decremented,
-                    ];
-                    
-                    $remainingToApply -= $decremented;
+                    $remainingToApply -= $toDecrement;
                 }
             }
             
@@ -122,17 +117,15 @@ class RaffleTicketService
                 throw new \Exception("Não foi possível aplicar todos os tickets solicitados");
             }
             
+            // Calcular tickets restantes do usuário
+            $remainingTickets = $user->walletTickets()
+                ->where('ticket_level', '>=', $raffle->min_ticket_level)
+                ->where('status', 'active')
+                ->sum('total_tickets');
+            
             return [
-                'success' => true,
-                'message' => 'Tickets aplicados com sucesso na rifa',
-                'raffle' => [
-                    'id' => $raffle->id,
-                    'uuid' => $raffle->uuid,
-                    'title' => $raffle->title,
-                ],
                 'applied_tickets' => $appliedTickets,
-                'total_applied' => count($appliedTickets),
-                'wallet_updates' => $walletUpdates,
+                'remaining_tickets' => $remainingTickets,
             ];
         });
     }
@@ -142,47 +135,69 @@ class RaffleTicketService
      * 
      * @param User $user Usuário
      * @param Raffle $raffle Rifa
-     * @param array $ticketIds IDs dos tickets a cancelar (opcional, cancela todos se não especificado)
+     * @param array $uuids UUIDs dos tickets a cancelar
      * @return array
      */
-    public function cancelTicketsFromRaffle(User $user, Raffle $raffle, ?array $ticketIds = null): array
+    public function cancelTicketsFromRaffle(User $user, Raffle $raffle, array $uuids): array
     {
-        return DB::transaction(function () use ($user, $raffle, $ticketIds) {
+        return DB::transaction(function () use ($user, $raffle, $uuids) {
             $query = RaffleTicket::where('user_id', $user->id)
                 ->where('raffle_id', $raffle->id)
-                ->whereIn('status', [RaffleTicket::STATUS_PENDING, RaffleTicket::STATUS_CONFIRMED]);
-            
-            if ($ticketIds) {
-                $query->whereIn('id', $ticketIds);
-            }
+                ->whereIn('uuid', $uuids)
+                ->where('status', RaffleTicket::STATUS_PENDING);
             
             $raffleTickets = $query->get();
             
             if ($raffleTickets->isEmpty()) {
-                throw new \Exception('Nenhum ticket encontrado para cancelar');
+                throw new \Exception('Alguns tickets não puderam ser cancelados (já estão confirmados ou não pertencem a você).');
             }
             
-            $cancelled = [];
+            if ($raffleTickets->count() < count($uuids)) {
+                throw new \Exception('Alguns tickets não puderam ser cancelados (já estão confirmados ou não pertencem a você).');
+            }
+            
+            $canceledCount = 0;
+            $returnedTickets = 0;
+            
+            // Agrupar por ticket_level para devolver aos wallets corretos
+            $ticketsByLevel = [];
             
             foreach ($raffleTickets as $raffleTicket) {
-                // Marcar como cancelado
-                $raffleTicket->markAsCancelled();
+                // Soft delete o raffle_ticket
+                $raffleTicket->delete();
+                $canceledCount++;
                 
-                // Devolver ticket ao wallet (implementar lógica de devolução)
-                // TODO: Implementar devolução ao wallet
+                // Identificar o nível do ticket (assumindo level 1 por padrão se não houver)
+                // Na prática, deveria pegar do wallet original
+                $level = 1; // TODO: Rastrear nível original
                 
-                $cancelled[] = [
-                    'raffle_ticket_id' => $raffleTicket->id,
-                    'ticket_id' => $raffleTicket->ticket_id,
-                    'ticket_number' => $raffleTicket->ticket->number,
-                ];
+                if (!isset($ticketsByLevel[$level])) {
+                    $ticketsByLevel[$level] = 0;
+                }
+                $ticketsByLevel[$level]++;
             }
             
+            // Devolver tickets aos wallets
+            foreach ($ticketsByLevel as $level => $count) {
+                $walletTicket = $user->walletTickets()
+                    ->where('ticket_level', $level)
+                    ->where('status', 'active')
+                    ->first();
+                
+                if ($walletTicket) {
+                    $walletTicket->increment('total_tickets', $count);
+                    $returnedTickets += $count;
+                }
+            }
+            
+            // Recalcular total de tickets no wallet
+            $totalInWallet = $user->walletTickets()
+                ->where('status', 'active')
+                ->sum('total_tickets');
+            
             return [
-                'success' => true,
-                'message' => 'Tickets cancelados com sucesso',
-                'cancelled_tickets' => $cancelled,
-                'total_cancelled' => count($cancelled),
+                'canceled_count' => $canceledCount,
+                'returned_tickets' => $totalInWallet,
             ];
         });
     }
@@ -201,28 +216,23 @@ class RaffleTicketService
             ->where('raffle_id', $raffle->id)
             ->get();
         
+        $byStatus = [
+            'pending' => $raffleTickets->where('status', RaffleTicket::STATUS_PENDING)->count(),
+            'confirmed' => $raffleTickets->where('status', RaffleTicket::STATUS_CONFIRMED)->count(),
+            'winner' => $raffleTickets->where('status', RaffleTicket::STATUS_WINNER)->count(),
+        ];
+        
         return [
-            'raffle' => [
-                'id' => $raffle->id,
-                'uuid' => $raffle->uuid,
-                'title' => $raffle->title,
-            ],
             'tickets' => $raffleTickets->map(function($rt) {
                 return [
-                    'raffle_ticket_id' => $rt->id,
-                    'ticket_id' => $rt->ticket_id,
+                    'uuid' => $rt->uuid,
                     'ticket_number' => $rt->ticket->number,
                     'status' => $rt->status,
                     'created_at' => $rt->created_at,
                 ];
-            }),
-            'total_tickets' => $raffleTickets->count(),
-            'by_status' => [
-                'pending' => $raffleTickets->where('status', RaffleTicket::STATUS_PENDING)->count(),
-                'confirmed' => $raffleTickets->where('status', RaffleTicket::STATUS_CONFIRMED)->count(),
-                'winner' => $raffleTickets->where('status', RaffleTicket::STATUS_WINNER)->count(),
-                'loser' => $raffleTickets->where('status', RaffleTicket::STATUS_LOSER)->count(),
-            ],
+            })->values()->toArray(),
+            'total' => $raffleTickets->count(),
+            'by_status' => $byStatus,
         ];
     }
 }

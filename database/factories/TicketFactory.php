@@ -3,33 +3,25 @@
 namespace Database\Factories;
 
 use App\Models\Ticket;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class TicketFactory extends Factory
 {
     protected $model = Ticket::class;
 
+    /**
+     * Tickets são apenas números no pool global
+     * Não têm relacionamento direto com users ou raffles
+     */
     public function definition(): array
     {
         return [
-            'uuid' => $this->faker->uuid(),
-            'user_id' => User::factory(),
-            'ticket_level' => $this->faker->numberBetween(1, 3),
-            'granted_by_order_id' => null, // Will be set if needed
-            'metadata' => [
-                'source' => $this->faker->randomElement(['order', 'bonus']),
-                'generated_at' => now()->toISOString(),
-            ],
+            'number' => str_pad(
+                $this->faker->unique()->numberBetween(1, 9999999),
+                7,
+                '0',
+                STR_PAD_LEFT
+            ),
         ];
-    }
-
-    public function levelOne(): Factory
-    {
-        return $this->state(function (array $attributes) {
-            return [
-                'ticket_level' => 1,
-            ];
-        });
     }
 }
