@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "api-premia-plus-collection-v7-complete",
-		"name": "API Premia Plus v7 - COMPLETE + Raffles & Tickets System",
-		"description": "Complete collection with ALL API Premia Plus endpoints including Auth, Customer, Administrator, Raffles System, Tickets Management and Shared with English standardization and monitoring features",
+		"_postman_id": "api-premia-plus-collection-v8-complete",
+		"name": "API Premia Plus v8 - COMPLETE + Raffles & Tickets System (Updated 2025-10-20)",
+		"description": "Complete collection with ALL API Premia Plus endpoints including Auth, Customer, Administrator, Raffles System, Tickets Management and Shared with English standardization and monitoring features. Updated with corrected raffle ticket endpoints.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "api-premia-plus-v6-complete"
+		"_exporter_id": "api-premia-plus-v8-complete"
 	},
 	"item": [
 		{
@@ -526,10 +526,10 @@
 			]
 		},
 		{
-			"name": "🎲 Customer - Raffles",
+			"name": "🎲 Customer - Raffles & Tickets",
 			"item": [
 				{
-					"name": "Listar Raffles Ativos",
+					"name": "Listar Raffles Disponíveis",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -543,47 +543,35 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/v1/customer/raffles?search=iPhone&min_prize=1000&max_prize=10000&sort_by=prize_value&sort_order=desc&per_page=10",
+							"raw": "{{base_url}}/api/v1/customer/raffles",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "customer", "raffles"],
-							"query": [
-								{
-									"key": "search",
-									"value": "iPhone",
-									"description": "Buscar em título/descrição"
-								},
-								{
-									"key": "min_prize",
-									"value": "1000",
-									"description": "Valor mínimo do prêmio"
-								},
-								{
-									"key": "max_prize",
-									"value": "10000",
-									"description": "Valor máximo do prêmio"
-								},
-								{
-									"key": "sort_by",
-									"value": "prize_value",
-									"description": "Ordenar por (created_at, title, prize_value)"
-								},
-								{
-									"key": "sort_order",
-									"value": "desc",
-									"description": "Ordem (asc, desc)"
-								},
-								{
-									"key": "per_page",
-									"value": "10",
-									"description": "Items por página"
-								}
-							]
+							"path": ["api", "v1", "customer", "raffles"]
 						},
-						"description": "Lista todos os raffles ativos disponíveis para participação"
-					}
+						"description": "Lista todos os raffles ativos disponíveis para participação. Retorna dados paginados com 15 itens por página."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/customer/raffles",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "customer", "raffles"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"raffles\": {\n        \"data\": [\n            {\n                \"uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n                \"title\": \"iPhone 15 Pro Max\",\n                \"description\": \"Sorteio de iPhone\",\n                \"prize_value\": 8999.99,\n                \"total_tickets\": 500,\n                \"tickets_required\": 400,\n                \"max_tickets_per_user\": 10,\n                \"min_ticket_level\": 1,\n                \"status\": \"active\",\n                \"draw_date\": \"2025-12-31\"\n            }\n        ],\n        \"current_page\": 1,\n        \"per_page\": 15,\n        \"total\": 50,\n        \"last_page\": 4\n    }\n}"
+						}
+					]
 				},
 				{
-					"name": "Ver Raffle Específico",
+					"name": "Ver Detalhes de Raffle",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -601,8 +589,28 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}"]
 						},
-						"description": "Retorna dados detalhados de um raffle específico"
-					}
+						"description": "Retorna dados detalhados de um raffle específico. Apenas raffles com status 'active' são retornados."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/customer/raffles/{{raffle_uuid}}",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"raffle\": {\n        \"uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n        \"title\": \"iPhone 15 Pro Max\",\n        \"description\": \"Sorteio de iPhone 15 Pro Max 512GB\",\n        \"prize_value\": 8999.99,\n        \"operation_cost\": 500.00,\n        \"unit_ticket_value\": 25.00,\n        \"total_tickets\": 500,\n        \"tickets_required\": 400,\n        \"max_tickets_per_user\": 10,\n        \"min_ticket_level\": 1,\n        \"status\": \"active\",\n        \"draw_date\": \"2025-12-31\",\n        \"created_at\": \"2025-10-20T10:00:00.000000Z\",\n        \"updated_at\": \"2025-10-20T10:00:00.000000Z\"\n    }\n}"
+						}
+					]
 				},
 				{
 					"name": "Aplicar Tickets em Raffle",
@@ -624,18 +632,108 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"raffle_uuid\": \"{{raffle_uuid}}\",\n    \"tickets_quantity\": 5\n}"
+							"raw": "{\n    \"quantity\": 5\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/customer/raffles/apply-tickets",
+							"raw": "{{base_url}}/api/v1/customer/raffles/{{raffle_uuid}}/tickets",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "customer", "raffles", "apply-tickets"]
+							"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}", "tickets"]
 						},
-						"description": "Aplica tickets do usuário em uma rifa específica"
-					}
+						"description": "Aplica tickets do wallet do usuário em um raffle específico. Valida: quantidade disponível, nível mínimo de ticket, limite por usuário e status do raffle."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"quantity\": 5\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/customer/raffles/{{raffle_uuid}}/tickets",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}", "tickets"]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Tickets aplicados com sucesso\",\n    \"applied_tickets\": [\n        {\n            \"uuid\": \"abc123\",\n            \"ticket_number\": 42,\n            \"level\": 2,\n            \"status\": \"pending\"\n        },\n        {\n            \"uuid\": \"def456\",\n            \"ticket_number\": 157,\n            \"level\": 2,\n            \"status\": \"pending\"\n        }\n    ],\n    \"remaining_tickets\": 25\n}"
+						},
+						{
+							"name": "Error - Insufficient Tickets",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"quantity\": 100\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/customer/raffles/{{raffle_uuid}}/tickets",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}", "tickets"]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Você não possui tickets suficientes.\"\n}"
+						},
+						{
+							"name": "Error - Exceeds Max Per User",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"quantity\": 15\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/customer/raffles/{{raffle_uuid}}/tickets",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}", "tickets"]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Quantidade excede o limite de 10 tickets por usuário para esta rifa.\"\n}"
+						},
+						{
+							"name": "Error - Inactive Raffle",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"quantity\": 5\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/customer/raffles/{{raffle_uuid}}/tickets",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}", "tickets"]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Esta rifa não está ativa.\"\n}"
+						}
+					]
 				},
 				{
-					"name": "Meus Tickets em Raffles",
+					"name": "Meus Tickets em um Raffle",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -649,153 +747,108 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/v1/customer/raffles/my-tickets?raffle_uuid={{raffle_uuid}}&status=active",
+							"raw": "{{base_url}}/api/v1/customer/raffles/{{raffle_uuid}}/my-tickets",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "customer", "raffles", "my-tickets"],
-							"query": [
-								{
-									"key": "raffle_uuid",
-									"value": "{{raffle_uuid}}",
-									"description": "Filtrar por raffle específico (opcional)"
-								},
-								{
-									"key": "status",
-									"value": "active",
-									"description": "Filtrar por status (active, cancelled, winner)"
-								}
-							]
+							"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}", "my-tickets"]
 						},
-						"description": "Lista todos os tickets do usuário em raffles"
-					}
+						"description": "Lista todos os tickets do usuário em um raffle específico, incluindo total e breakdown por status (pending, confirmed, winner)."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/customer/raffles/{{raffle_uuid}}/my-tickets",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}", "my-tickets"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"tickets\": [\n        {\n            \"uuid\": \"abc123\",\n            \"ticket_number\": 42,\n            \"ticket_level\": 2,\n            \"status\": \"pending\",\n            \"created_at\": \"2025-10-20T10:30:00.000000Z\"\n        },\n        {\n            \"uuid\": \"def456\",\n            \"ticket_number\": 157,\n            \"ticket_level\": 2,\n            \"status\": \"confirmed\",\n            \"created_at\": \"2025-10-20T11:00:00.000000Z\"\n        }\n    ],\n    \"total\": 8,\n    \"by_status\": {\n        \"pending\": 3,\n        \"confirmed\": 5,\n        \"winner\": 0\n    }\n}"
+						}
+					]
 				},
 				{
-					"name": "Histórico de Participações",
+					"name": "Cancelar Tickets de um Raffle",
 					"request": {
-						"method": "GET",
+						"method": "DELETE",
 						"header": [
 							{
 								"key": "Authorization",
 								"value": "Bearer {{access_token}}"
 							},
 							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
 								"key": "Accept",
 								"value": "application/json"
 							}
 						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"raffle_ticket_uuids\": [\"abc123\", \"def456\", \"ghi789\"]\n}"
+						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/customer/raffles/my-participations?status=all&per_page=20",
+							"raw": "{{base_url}}/api/v1/customer/raffles/{{raffle_uuid}}/tickets",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "customer", "raffles", "my-participations"],
-							"query": [
-								{
-									"key": "status",
-									"value": "all",
-									"description": "Filtrar por status (all, active, finished, won, lost)"
+							"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}", "tickets"]
+						},
+						"description": "Cancela tickets específicos de um raffle usando seus UUIDs. Apenas tickets com status 'pending' podem ser cancelados. Os tickets são devolvidos ao wallet do usuário."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"raffle_ticket_uuids\": [\"abc123\", \"def456\"]\n}"
 								},
-								{
-									"key": "per_page",
-									"value": "20",
-									"description": "Items por página"
+								"url": {
+									"raw": "{{base_url}}/api/v1/customer/raffles/{{raffle_uuid}}/tickets",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}", "tickets"]
 								}
-							]
-						},
-						"description": "Histórico completo de participações do usuário em raffles"
-					}
-				}
-			]
-		},
-		{
-			"name": "🎫 Customer - Tickets",
-			"item": [
-				{
-					"name": "Meus Tickets Disponíveis",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{access_token}}"
 							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/customer/tickets/available?min_level=1&status=active",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "customer", "tickets", "available"],
-							"query": [
-								{
-									"key": "min_level",
-									"value": "1",
-									"description": "Nível mínimo de tickets"
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Tickets cancelados com sucesso\",\n    \"canceled_count\": 2,\n    \"returned_tickets\": 28\n}"
+						},
+						{
+							"name": "Error - Cannot Cancel Confirmed",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"raffle_ticket_uuids\": [\"confirmed_ticket_uuid\"]\n}"
 								},
-								{
-									"key": "status",
-									"value": "active",
-									"description": "Status dos tickets"
+								"url": {
+									"raw": "{{base_url}}/api/v1/customer/raffles/{{raffle_uuid}}/tickets",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "customer", "raffles", "{{raffle_uuid}}", "tickets"]
 								}
-							]
-						},
-						"description": "Lista tickets disponíveis no wallet do usuário"
-					}
-				},
-				{
-					"name": "Histórico de Uso de Tickets",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{access_token}}"
 							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/customer/tickets/usage-history?per_page=50&sort_order=desc",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "customer", "tickets", "usage-history"],
-							"query": [
-								{
-									"key": "per_page",
-									"value": "50",
-									"description": "Items por página"
-								},
-								{
-									"key": "sort_order",
-									"value": "desc",
-									"description": "Ordem (asc, desc)"
-								}
-							]
-						},
-						"description": "Histórico de uso dos tickets do usuário"
-					}
-				},
-				{
-					"name": "Resumo de Tickets",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{access_token}}"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/customer/tickets/summary",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "customer", "tickets", "summary"]
-						},
-						"description": "Resumo consolidado dos tickets do usuário por nível"
-					}
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Alguns tickets não puderam ser cancelados (já estão confirmados ou não pertencem a você).\"\n}"
+						}
+					]
 				}
 			]
 		},
