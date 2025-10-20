@@ -930,6 +930,354 @@ Authorization: Bearer {token}
 
 ---
 
+## Rifas e Tickets (Customer)
+
+> **Prefixo:** `/customer`  
+> **Middleware:** `auth:sanctum`  
+> **Acesso:** Cliente autenticado
+
+### 1. Listar Rifas Disponíveis
+**GET** `/customer/raffles`
+
+**Acesso:** Cliente autenticado
+
+**Headers:**
+```
+Authorization: Bearer {token}
+```
+
+**Query Parameters (Opcionais):**
+- `page` (int): Página atual (padrão: 1)
+- `per_page` (int): Itens por página (padrão: 15)
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "raffles": {
+    "data": [
+      {
+        "id": 1,
+        "uuid": "550e8400-e29b-41d4-a716-446655440010",
+        "title": "Rifa iPhone 15 Pro Max",
+        "description": "iPhone 15 Pro Max 256GB Azul Titânio",
+        "total_tickets": 1000,
+        "tickets_required": 10,
+        "max_tickets_per_user": 50,
+        "min_ticket_level": 1,
+        "prize_description": "iPhone 15 Pro Max 256GB",
+        "prize_value": 8999.00,
+        "draw_date": "2025-12-31T20:00:00.000000Z",
+        "status": "active",
+        "created_at": "2025-01-01T00:00:00.000000Z"
+      }
+    ],
+    "current_page": 1,
+    "per_page": 15,
+    "total": 5,
+    "last_page": 1
+  }
+}
+```
+
+**Descrição:**
+Lista todas as rifas com status "active" disponíveis para participação.
+
+---
+
+### 2. Detalhes de uma Rifa
+**GET** `/customer/raffles/{uuid}`
+
+**Acesso:** Cliente autenticado
+
+**Parâmetros:**
+- `uuid` (string): UUID da rifa
+
+**Headers:**
+```
+Authorization: Bearer {token}
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "raffle": {
+    "id": 1,
+    "uuid": "550e8400-e29b-41d4-a716-446655440010",
+    "title": "Rifa iPhone 15 Pro Max",
+    "description": "iPhone 15 Pro Max 256GB Azul Titânio",
+    "total_tickets": 1000,
+    "tickets_required": 10,
+    "max_tickets_per_user": 50,
+    "min_ticket_level": 1,
+    "prize_description": "iPhone 15 Pro Max 256GB",
+    "prize_value": 8999.00,
+    "draw_date": "2025-12-31T20:00:00.000000Z",
+    "status": "active",
+    "created_at": "2025-01-01T00:00:00.000000Z",
+    "updated_at": "2025-01-01T00:00:00.000000Z"
+  }
+}
+```
+
+**Resposta de Erro (404):**
+```json
+{
+  "message": "Rifa não encontrada ou inativa"
+}
+```
+
+**Descrição:**
+Retorna detalhes completos de uma rifa específica. Apenas rifas com status "active" são retornadas.
+
+---
+
+### 3. Aplicar Tickets em uma Rifa
+**POST** `/customer/raffles/{uuid}/tickets`
+
+**Acesso:** Cliente autenticado
+
+**Parâmetros:**
+- `uuid` (string): UUID da rifa
+
+**Headers:**
+```
+Authorization: Bearer {token}
+```
+
+**Payload:**
+```json
+{
+  "quantity": 5
+}
+```
+
+**Campos Obrigatórios:**
+- `quantity` (integer, min:1): Quantidade de tickets a aplicar
+
+**Validações:**
+- Usuário deve ter tickets suficientes no wallet
+- Rifa deve estar com status "active"
+- Não pode exceder `max_tickets_per_user` da rifa
+- Tickets do usuário devem ter nível >= `min_ticket_level` da rifa
+- Quantidade deve ser >= 1
+
+**Resposta de Sucesso (201):**
+```json
+{
+  "message": "Tickets aplicados com sucesso",
+  "applied_tickets": [
+    {
+      "uuid": "abc123-def456-789",
+      "ticket_number": "00001",
+      "status": "pending",
+      "level": 2,
+      "created_at": "2025-01-20T10:00:00.000000Z"
+    },
+    {
+      "uuid": "abc123-def456-790",
+      "ticket_number": "00002",
+      "status": "pending",
+      "level": 2,
+      "created_at": "2025-01-20T10:00:00.000000Z"
+    }
+  ],
+  "remaining_tickets": 45
+}
+```
+
+**Respostas de Erro:**
+
+**400 - Tickets Insuficientes:**
+```json
+{
+  "message": "Você não possui tickets suficientes."
+}
+```
+
+**400 - Nível Insuficiente:**
+```json
+{
+  "message": "Você não possui tickets do nível mínimo exigido (3)."
+}
+```
+
+**400 - Limite Excedido:**
+```json
+{
+  "message": "Quantidade excede o limite de 50 tickets por usuário para esta rifa."
+}
+```
+
+**400 - Rifa Inativa:**
+```json
+{
+  "message": "Esta rifa não está ativa."
+}
+```
+
+**404 - Rifa Não Encontrada:**
+```json
+{
+  "message": "Rifa não encontrada"
+}
+```
+
+**422 - Validação:**
+```json
+{
+  "message": "The quantity field is required.",
+  "errors": {
+    "quantity": ["The quantity field is required."]
+  }
+}
+```
+
+**Descrição:**
+Aplica tickets do wallet do usuário em uma rifa específica. Os tickets são consumidos do wallet e criados na tabela `raffle_tickets` com status "pending". A operação é transacional, garantindo atomicidade.
+
+**Regras de Negócio:**
+1. Tickets são consumidos do wallet em ordem de criação (FIFO)
+2. Apenas tickets com nível adequado são utilizados
+3. Status inicial dos tickets na rifa é "pending"
+4. Transação é revertida em caso de erro
+5. Retorna total de tickets restantes no wallet
+
+---
+
+### 4. Listar Meus Tickets em uma Rifa
+**GET** `/customer/raffles/{uuid}/my-tickets`
+
+**Acesso:** Cliente autenticado
+
+**Parâmetros:**
+- `uuid` (string): UUID da rifa
+
+**Headers:**
+```
+Authorization: Bearer {token}
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "tickets": [
+    {
+      "uuid": "abc123-def456-789",
+      "ticket_number": "00001",
+      "status": "pending",
+      "level": 2,
+      "created_at": "2025-01-20T10:00:00.000000Z",
+      "updated_at": "2025-01-20T10:00:00.000000Z"
+    },
+    {
+      "uuid": "abc123-def456-790",
+      "ticket_number": "00002",
+      "status": "confirmed",
+      "level": 2,
+      "created_at": "2025-01-20T10:00:00.000000Z",
+      "updated_at": "2025-01-20T11:00:00.000000Z"
+    },
+    {
+      "uuid": "abc123-def456-791",
+      "ticket_number": "00003",
+      "status": "winner",
+      "level": 2,
+      "created_at": "2025-01-20T10:00:00.000000Z",
+      "updated_at": "2025-01-20T20:00:00.000000Z"
+    }
+  ],
+  "total": 3,
+  "by_status": {
+    "pending": 1,
+    "confirmed": 1,
+    "winner": 1
+  }
+}
+```
+
+**Resposta de Erro (404):**
+```json
+{
+  "message": "Rifa não encontrada"
+}
+```
+
+**Descrição:**
+Lista todos os tickets do usuário autenticado em uma rifa específica, incluindo breakdown por status.
+
+**Status Possíveis:**
+- `pending`: Ticket aplicado, aguardando confirmação
+- `confirmed`: Ticket confirmado para o sorteio
+- `winner`: Ticket vencedor do sorteio
+
+---
+
+### 5. Cancelar Tickets Pendentes
+**DELETE** `/customer/raffles/{uuid}/tickets`
+
+**Acesso:** Cliente autenticado
+
+**Parâmetros:**
+- `uuid` (string): UUID da rifa
+
+**Headers:**
+```
+Authorization: Bearer {token}
+```
+
+**Payload:**
+```json
+{
+  "raffle_ticket_uuids": [
+    "abc123-def456-789",
+    "abc123-def456-790"
+  ]
+}
+```
+
+**Campos Obrigatórios:**
+- `raffle_ticket_uuids` (array de strings): UUIDs dos tickets a cancelar
+
+**Validações:**
+- Apenas tickets com status "pending" podem ser cancelados
+- Tickets devem pertencer ao usuário autenticado
+- Tickets devem pertencer à rifa especificada
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "message": "Tickets cancelados com sucesso",
+  "canceled_count": 2,
+  "returned_tickets": 52
+}
+```
+
+**Resposta de Erro (400):**
+```json
+{
+  "message": "Alguns tickets não puderam ser cancelados (já estão confirmados ou não pertencem a você)."
+}
+```
+
+**Resposta de Erro (404):**
+```json
+{
+  "message": "Rifa não encontrada"
+}
+```
+
+**Descrição:**
+Cancela tickets pendentes do usuário em uma rifa. Os tickets cancelados são devolvidos ao wallet do usuário. Apenas tickets com status "pending" podem ser cancelados. A operação é transacional.
+
+**Regras de Negócio:**
+1. Apenas tickets "pending" podem ser cancelados
+2. Tickets confirmados ou vencedores não podem ser cancelados
+3. Tickets são devolvidos ao wallet com os mesmos atributos
+4. `returned_tickets` indica o total de tickets no wallet após o cancelamento
+5. Se nenhum ticket for cancelado (todos confirmados), retorna erro 400
+
+---
+
 ## Endpoints para Administradores
 
 > **Prefixo:** `/administrator`  
@@ -1803,6 +2151,79 @@ Authorization: Bearer {token}
 }
 ```
 
+### Raffle
+```json
+{
+  "id": 1,
+  "uuid": "550e8400-e29b-41d4-a716-446655440010",
+  "title": "Rifa iPhone 15 Pro Max",
+  "description": "iPhone 15 Pro Max 256GB Azul Titânio",
+  "total_tickets": 1000,
+  "tickets_required": 10,
+  "max_tickets_per_user": 50,
+  "min_ticket_level": 1,
+  "prize_description": "iPhone 15 Pro Max 256GB",
+  "prize_value": 8999.00,
+  "operation_cost": 899.00,
+  "unit_ticket_value": 10.00,
+  "liquidity_ratio": 85.0,
+  "draw_date": "2025-12-31T20:00:00.000000Z",
+  "status": "active",
+  "created_at": "2025-01-01T00:00:00.000000Z",
+  "updated_at": "2025-01-01T00:00:00.000000Z",
+  "deleted_at": null
+}
+```
+
+### Ticket
+```json
+{
+  "id": 1,
+  "number": "00001",
+  "level": 2,
+  "status": "available",
+  "created_at": "2025-01-01T00:00:00.000000Z",
+  "updated_at": "2025-01-01T00:00:00.000000Z",
+  "deleted_at": null
+}
+```
+
+### WalletTicket
+```json
+{
+  "id": 1,
+  "uuid": "550e8400-e29b-41d4-a716-446655440011",
+  "user_id": 1,
+  "order_id": 5,
+  "plan_id": 2,
+  "total_tickets": 50,
+  "level": 2,
+  "status": "active",
+  "created_at": "2025-01-01T00:00:00.000000Z",
+  "updated_at": "2025-01-01T00:00:00.000000Z"
+}
+```
+
+### RaffleTicket
+```json
+{
+  "id": 1,
+  "uuid": "abc123-def456-789",
+  "raffle_id": 1,
+  "user_id": 1,
+  "ticket_id": 123,
+  "status": "pending",
+  "created_at": "2025-01-20T10:00:00.000000Z",
+  "updated_at": "2025-01-20T10:00:00.000000Z",
+  "deleted_at": null,
+  "ticket": {
+    "id": 123,
+    "number": "00001",
+    "level": 2
+  }
+}
+```
+
 ---
 
 ## Regras de Negócio
@@ -1823,6 +2244,21 @@ Authorization: Bearer {token}
 - Usuário pode ter apenas 1 item não pago no carrinho
 - Status pode ser 'pending', 'abandoned' ou 'completed'
 - Ao fazer checkout, carrinho vira ordem
+
+### Rifas e Tickets
+- Apenas rifas com status 'active' são visíveis para customers
+- Status de rifas: open|closed|drawn|scheduled
+- Tickets têm níveis (1, 2, 3...) que definem sua qualidade
+- Usuários precisam de tickets no wallet para participar de rifas
+- `max_tickets_per_user` limita participação individual por rifa
+- `min_ticket_level` garante qualidade mínima dos tickets aplicados
+- Tickets na rifa têm status: pending|confirmed|winner
+- Apenas tickets "pending" podem ser cancelados
+- Cancelamento retorna tickets ao wallet do usuário
+- Operações de aplicação/cancelamento são transacionais (rollback em erro)
+- Tickets são consumidos do wallet em ordem FIFO (First In, First Out)
+- `tickets_required` define número mínimo de tickets para participação
+- Sistema de wallet gerencia tickets virtuais por usuário/order/plan
 
 ### Autenticação
 - Tokens são gerenciados pelo Laravel Sanctum
@@ -1904,9 +2340,30 @@ Todos os recursos principais usam UUID como identificador público. Use sempre U
 ---
 
 ## Changelog
-- **v1.0.0** - Versão inicial da API
-- Autenticação com Sanctum
-- CRUD completo para usuários, planos e rifas
-- Sistema de carrinho e checkout
-- Painel administrativo
-- Sistema de comissões multinível
+
+### v2.0.0 - 2025-10-20
+**Sistema de Raffle Tickets Completo** ✅
+- ✨ Novos endpoints Customer - Raffles & Tickets (5 endpoints)
+  - GET `/customer/raffles` - Listar rifas disponíveis
+  - GET `/customer/raffles/{uuid}` - Detalhes da rifa
+  - POST `/customer/raffles/{uuid}/tickets` - Aplicar tickets
+  - GET `/customer/raffles/{uuid}/my-tickets` - Listar meus tickets
+  - DELETE `/customer/raffles/{uuid}/tickets` - Cancelar tickets pendentes
+- 🔧 Sistema de Wallet de Tickets implementado
+- 🎫 Modelos: Raffle, Ticket, WalletTicket, RaffleTicket
+- ✅ 59 testes (100% cobertura): 47 Unit + 12 Feature
+- 📊 Sistema de níveis de tickets (1, 2, 3...)
+- 🔄 Operações transacionais com rollback automático
+- 🛡️ Validações completas de regras de negócio
+- 📝 Collection Postman v7 completa
+
+### v1.0.0 - 2025-01-01
+**Versão Inicial**
+- 🔐 Autenticação com Sanctum
+- 👤 CRUD completo para usuários
+- 📦 CRUD completo para planos
+- 🎰 CRUD completo para rifas (admin)
+- 🛒 Sistema de carrinho e checkout
+- 👨‍💼 Painel administrativo
+- 💰 Sistema de comissões multinível
+- 👥 Sistema de patrocínio/referência
