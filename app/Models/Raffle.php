@@ -62,6 +62,18 @@ class Raffle extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function raffleTickets()
+    {
+        return $this->hasMany(RaffleTicket::class);
+    }
+
+    public function participants()
+    {
+        return $this->belongsToMany(User::class, 'raffle_tickets')
+            ->withPivot('ticket_id', 'status')
+            ->withTimestamps();
+    }
+
     // Scopes
     public function scopeActive($query)
     {

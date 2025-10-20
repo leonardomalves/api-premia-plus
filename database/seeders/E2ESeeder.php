@@ -14,7 +14,7 @@ class E2ESeeder extends Seeder
     {
         $this->command->info('🚀 Iniciando simulação E2E completa...');
 
-                Artisan::call('migrate:fresh'); // Limpa o banco antes de rodar a simulação
+                //Artisan::call('migrate:fresh'); // Limpa o banco antes de rodar a simulação
 
                 $this->call([
                     AdminDirectSeed::class,     // 1. Criar admins DIRETAMENTE no banco

@@ -35,12 +35,26 @@ class Ticket extends Model
     }
 
     /**
-     * Relacionamento com Raffle
+     * Relacionamento com RaffleTickets (tickets aplicados em rifas)
      */
-    public function raffle(): BelongsTo
+    public function raffleTickets()
     {
-        return $this->belongsTo(Raffle::class, 'raffle_id');
+        return $this->hasMany(RaffleTicket::class);
     }
+
+    /**
+     * Rifas em que este ticket foi aplicado
+     */
+    public function raffles()
+    {
+        return $this->belongsToMany(Raffle::class, 'raffle_tickets')
+            ->withPivot('user_id', 'status')
+            ->withTimestamps();
+    }
+
+    /**
+     * Scope para tickets ativos
+     */
 
 }
 

@@ -116,4 +116,22 @@ class User extends Authenticatable
     {
         return $this->hasMany(WalletTicket::class);
     }
+
+    /**
+     * Relacionamento com RaffleTicket (tickets aplicados em rifas)
+     */
+    public function raffleTickets()
+    {
+        return $this->hasMany(RaffleTicket::class);
+    }
+
+    /**
+     * Rifas em que o usuário participou
+     */
+    public function participatedRaffles()
+    {
+        return $this->belongsToMany(Raffle::class, 'raffle_tickets')
+            ->withPivot('ticket_id', 'status')
+            ->withTimestamps();
+    }
 }

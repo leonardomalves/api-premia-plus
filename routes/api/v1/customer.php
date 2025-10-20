@@ -45,4 +45,11 @@ Route::prefix('customer')->middleware('auth:sanctum')->group(function () {
     Route::delete('/cart/remove', [CustomerCartController::class, 'removeFromCart']);
     Route::delete('/cart/clear', [CustomerCartController::class, 'clearCart']);
     Route::post('/cart/checkout', [CustomerCartController::class, 'checkout']);
+    
+    // Rifas e aplicação de tickets
+    Route::get('/raffles', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'index']);
+    Route::get('/raffles/{uuid}', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'show']);
+    Route::post('/raffles/{uuid}/apply-tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'applyTickets']);
+    Route::get('/raffles/{uuid}/my-tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'myTickets']);
+    Route::delete('/raffles/{uuid}/cancel-tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'cancelTickets']);
 });

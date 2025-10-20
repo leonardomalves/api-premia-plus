@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Raffle;
+use App\Models\RaffleTicket;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class UserApplyToRaffleSeed extends Seeder
 {
@@ -16,7 +18,18 @@ class UserApplyToRaffleSeed extends Seeder
     public function run(): void
     {
         $user = User::find(9);
+        
+        if (!$user) {
+            $this->command->error('Usuário com ID 9 não encontrado!');
+            return;
+        }
+        
         $raffles = Raffle::all();
+        
+        if ($raffles->isEmpty()) {
+            $this->command->error('Nenhuma rifa encontrada!');
+            return;
+        }
         
         foreach ($raffles as $raffle) {
             $minTicketLevel = $raffle->min_ticket_level;
@@ -47,54 +60,78 @@ class UserApplyToRaffleSeed extends Seeder
                 continue;
             }
             
-            // Aplicar os tickets na rifa
+            // Aplicar os tickets na rifa com transação
             $remainingToApply = $ticketsRequired;
             $totalApplied = 0;
             $allTicketsApplied = [];
             
-            foreach ($userTickets as $walletTicket) {
-                if ($remainingToApply <= 0) {
-                    break;
-                }
-                
-                // Verificar quantos tickets disponíveis neste wallet
-                $available = ($walletTicket->total_tickets - $walletTicket->total_tickets_used) 
-                           + $walletTicket->bonus_tickets;
-                
-                if ($available > 0) {
-                    // Decrementar a quantidade necessária (ou o disponível, o que for menor)
-                    $toDecrement = min($remainingToApply, $available);
-                    $decremented = $walletTicket->decrementIn($toDecrement);
-                    
-                    // Buscar tickets disponíveis para esta rifa e aplicar o usuário (ordem aleatória)
-                    $availableTickets = Ticket::where('raffle_id', $raffle->id)
-                        ->where('status', 'available')
-                        ->whereNull('user_id')
-                        ->inRandomOrder()
-                        ->limit($decremented)
-                        ->get();
-                    
-                    if ($availableTickets->count() < $decremented) {
-                        echo "  ⚠️ ATENÇÃO: Apenas {$availableTickets->count()} tickets disponíveis, mas {$decremented} foram decrementados do wallet\n";
+            DB::beginTransaction();
+            
+            try {
+                foreach ($userTickets as $walletTicket) {
+                    if ($remainingToApply <= 0) {
+                        break;
                     }
                     
-                    $ticketsUpdated = [];
-                    foreach ($availableTickets as $ticket) {
-                        $ticket->update([
-                            'user_id' => $user->id,
-                            'ticket_level' => $walletTicket->ticket_level,
-                            'status' => 'active',
-                        ]);
+                    // Verificar quantos tickets disponíveis neste wallet
+                    $available = ($walletTicket->total_tickets - $walletTicket->total_tickets_used) 
+                               + $walletTicket->bonus_tickets;
+                    
+                    if ($available > 0) {
+                        // Decrementar a quantidade necessária (ou o disponível, o que for menor)
+                        $toDecrement = min($remainingToApply, $available);
                         
-                        $ticketsUpdated[] = $ticket->number;
-                        $allTicketsApplied[] = $ticket->number;
+                        // Buscar tickets disponíveis do pool (não vinculados a esta rifa ainda)
+                        $availableTickets = Ticket::whereDoesntHave('raffleTickets', function($query) use ($raffle) {
+                            $query->where('raffle_id', $raffle->id);
+                        })
+                        ->inRandomOrder()
+                        ->limit($toDecrement)
+                        ->get();
+                        
+                        if ($availableTickets->count() < $toDecrement) {
+                            throw new \Exception("Tickets insuficientes no pool. Necessário: {$toDecrement}, Disponível: {$availableTickets->count()}");
+                        }
+                        
+                        // Decrementar do wallet
+                        $decremented = $walletTicket->decrementIn($toDecrement);
+                        
+                        if ($decremented !== $toDecrement) {
+                            throw new \Exception("Erro ao decrementar wallet. Esperado: {$toDecrement}, Decrementado: {$decremented}");
+                        }
+                        
+                        // Criar registros em raffle_tickets
+                        $ticketsCreated = [];
+                        foreach ($availableTickets as $ticket) {
+                            RaffleTicket::create([
+                                'user_id' => $user->id,
+                                'raffle_id' => $raffle->id,
+                                'ticket_id' => $ticket->id,
+                                'status' => RaffleTicket::STATUS_CONFIRMED,
+                            ]);
+                            
+                            $ticketsCreated[] = $ticket->number;
+                            $allTicketsApplied[] = $ticket->number;
+                        }
+                        
+                        $totalApplied += count($ticketsCreated);
+                        $remainingToApply -= count($ticketsCreated);
+                        
+                        echo "  -> Aplicado {$decremented} tickets do wallet #{$walletTicket->id} (Nível: {$walletTicket->ticket_level}) - Tickets: " . implode(', ', array_slice($ticketsCreated, 0, 10)) . (count($ticketsCreated) > 10 ? '...' : '') . "\n";
                     }
-                    
-                    $totalApplied += count($ticketsUpdated);
-                    $remainingToApply -= count($ticketsUpdated);
-                    
-                    echo "  -> Aplicado {$decremented} tickets do wallet #{$walletTicket->id} (Nível: {$walletTicket->ticket_level}) - Tickets: " . implode(', ', array_slice($ticketsUpdated, 0, 10)) . (count($ticketsUpdated) > 10 ? '...' : '') . "\n";
                 }
+                
+                // Se não conseguiu aplicar todos os tickets necessários, fazer rollback
+                if ($totalApplied < $ticketsRequired) {
+                    throw new \Exception("Não foi possível aplicar todos os tickets necessários. Aplicado: {$totalApplied}, Necessário: {$ticketsRequired}");
+                }
+                
+                DB::commit();
+                
+            } catch (\Exception $e) {
+                DB::rollBack();
+                echo "  ❌ ERRO: {$e->getMessage()}\n";
+                continue;
             }
             
             if ($totalApplied === $ticketsRequired) {
