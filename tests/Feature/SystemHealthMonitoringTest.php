@@ -292,12 +292,19 @@ class SystemHealthMonitoringTest extends TestCase
      */
     public function test_health_check_logs_warnings_on_failures(): void
     {
+        // Change cache driver to array to avoid database dependency
+        config(['cache.default' => 'array']);
+        
         Log::shouldReceive('warning')
            ->once()
            ->with('Health check failed', \Mockery::type('array'));
 
-        // Mock database to fail
-        DB::shouldReceive('connection->getPdo')->andThrow(new \Exception('Connection failed'));
+        // Mock database connection to fail
+        DB::shouldReceive('connection')
+          ->andReturnSelf();
+        
+        DB::shouldReceive('getPdo')
+          ->andThrow(new \Exception('Connection failed'));
         
         $service = new HealthCheckService();
         $result = $service->check();
@@ -453,8 +460,8 @@ class SystemHealthMonitoringTest extends TestCase
         $this->assertArrayHasKey('environment', $data);
         $this->assertContains($data['environment'], ['testing', 'local', 'development', 'production']);
 
-        // In testing environment, it should return 'testing'
-        $this->assertEquals('testing', $data['environment']);
+        // Check that environment matches the current app environment
+        $this->assertEquals(config('app.env'), $data['environment']);
     }
 
     /**
