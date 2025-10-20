@@ -13,17 +13,9 @@ return new class extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->integer('ticket_level')->default(1);
-            $table->string('number', 20)->nullable();
-            $table->decimal('price', 10, 2);
-            $table->enum('status', ['active', 'used', 'expired', 'refunded', 'available'])->default('available');
+            $table->string('number', 10);
             $table->softDeletes();
             $table->timestamps();
-
-            // Índices para performance
-            $table->index(['user_id', 'status']);
-            $table->index(['ticket_level', 'status']);
             $table->unique('number');
         });
     }
