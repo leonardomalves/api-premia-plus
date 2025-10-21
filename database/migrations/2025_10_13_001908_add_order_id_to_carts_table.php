@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::table('carts', function (Blueprint $table) {
             $table->foreignId('order_id')
-            ->nullable()
-            ->after('user_id')
-            ->constrained('orders')
-            ->onDelete('set null');
+                ->nullable()
+                ->after('user_id')
+                ->constrained('orders')
+                ->onDelete('set null');
         });
     }
 

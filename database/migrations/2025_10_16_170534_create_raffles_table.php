@@ -22,8 +22,8 @@ return new class extends Migration
             $table->decimal('liquidity_ratio', 5, 2)->default(0);
             $table->decimal('liquid_value', 10, 2);
             $table->integer('min_tickets_required')->default(5);
-            $table->date('draw_date')->nullable();            
-            $table->enum('status', ['pending', 'active', 'completed', 'cancelled', 'inactive']);            
+            $table->date('draw_date')->nullable();
+            $table->enum('status', ['pending', 'active', 'completed', 'cancelled', 'inactive']);
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('winner_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('winner_ticket')->nullable();

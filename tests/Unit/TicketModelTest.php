@@ -19,11 +19,11 @@ class TicketModelTest extends TestCase
     public function test_ticket_can_be_created_with_only_number(): void
     {
         $ticket = Ticket::create([
-            'number' => '0000001'
+            'number' => '0000001',
         ]);
 
         $this->assertDatabaseHas('tickets', [
-            'number' => '0000001'
+            'number' => '0000001',
         ]);
 
         $this->assertEquals('0000001', $ticket->number);
@@ -54,7 +54,7 @@ class TicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $ticket->raffleTickets);
@@ -75,14 +75,14 @@ class TicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle1->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         RaffleTicket::create([
             'user_id' => $user->id,
             'raffle_id' => $raffle2->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $ticket->raffles);
@@ -112,7 +112,7 @@ class TicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $this->assertFalse($ticket->isAvailable());
@@ -132,7 +132,7 @@ class TicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle1->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $this->assertTrue($ticket->isAppliedInRaffle($raffle1->id));
@@ -156,7 +156,7 @@ class TicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket2->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $availableTickets = Ticket::available()->get();
@@ -184,14 +184,14 @@ class TicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket1->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         RaffleTicket::create([
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket3->id,
-            'status' => 'confirmed'
+            'status' => 'confirmed',
         ]);
 
         $appliedTickets = Ticket::applied()->get();
@@ -208,11 +208,11 @@ class TicketModelTest extends TestCase
     public function test_ticket_can_be_soft_deleted(): void
     {
         $ticket = Ticket::create(['number' => '0000001']);
-        
+
         $ticket->delete();
 
         $this->assertSoftDeleted('tickets', [
-            'number' => '0000001'
+            'number' => '0000001',
         ]);
 
         // Verificar que ainda pode ser recuperado com withTrashed
@@ -227,13 +227,13 @@ class TicketModelTest extends TestCase
     public function test_ticket_can_be_restored_after_soft_delete(): void
     {
         $ticket = Ticket::create(['number' => '0000001']);
-        
+
         $ticket->delete();
         $ticket->restore();
 
         $this->assertDatabaseHas('tickets', [
             'number' => '0000001',
-            'deleted_at' => null
+            'deleted_at' => null,
         ]);
     }
 
@@ -274,7 +274,7 @@ class TicketModelTest extends TestCase
     {
         $ticket1 = Ticket::create(['number' => '0000001']);
         $ticket2 = Ticket::create(['number' => '0000002']);
-        
+
         $user = User::factory()->create();
         $raffle = Raffle::factory()->create();
 
@@ -282,14 +282,14 @@ class TicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket1->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         RaffleTicket::create([
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket2->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $raffleTicketsCount = RaffleTicket::where('raffle_id', $raffle->id)->count();
@@ -310,14 +310,14 @@ class TicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle1->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         RaffleTicket::create([
             'user_id' => $user->id,
             'raffle_id' => $raffle2->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $this->assertCount(2, $ticket->raffleTickets);

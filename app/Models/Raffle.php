@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
 
 class Raffle extends Model
@@ -36,15 +36,15 @@ class Raffle extends Model
     protected $casts = [
         'prize_value' => 'decimal:2',
         'operation_cost' => 'decimal:2',
-        'unit_ticket_value' => 'decimal:2'
+        'unit_ticket_value' => 'decimal:2',
     ];
 
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($raffle) {
-            if (!$raffle->uuid) {
+            if (! $raffle->uuid) {
                 $raffle->uuid = Str::uuid();
             }
         });
@@ -52,8 +52,11 @@ class Raffle extends Model
 
     // Status constants
     const STATUS_DRAFT = 'draft';
+
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_CANCELLED = 'cancelled';
 
     // Relationships

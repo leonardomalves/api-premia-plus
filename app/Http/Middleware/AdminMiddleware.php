@@ -16,11 +16,10 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next): Response
     {
 
-
-        if (!$request->user() || $request->user()->role !== 'admin') {
+        if (! $request->user() || $request->user()->role !== 'admin') {
             return response()->json([
                 'message' => 'Acesso negado. Apenas administradores podem acessar esta funcionalidade.',
-                'error' => 'Forbidden'
+                'error' => 'Forbidden',
             ], 403);
         }
 

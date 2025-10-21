@@ -21,8 +21,8 @@ class RaffleTicketServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new RaffleTicketService();
-        
+        $this->service = new RaffleTicketService;
+
         // Criar pool de tickets para testes
         for ($i = 1; $i <= 100; $i++) {
             Ticket::create(['number' => str_pad($i, 7, '0', STR_PAD_LEFT)]);
@@ -36,22 +36,22 @@ class RaffleTicketServiceTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create([
-            'price' => 100
+            'price' => 100,
         ]);
-        
+
         $walletTicket = WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 2,
             'total_tickets' => 10,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create([
             'status' => 'active',
             'min_ticket_level' => 1,
             'max_tickets_per_user' => 10,
-            'tickets_required' => 100
+            'tickets_required' => 100,
         ]);
 
         $result = $this->service->applyTicketsToRaffle($user, $raffle, 5);
@@ -79,7 +79,7 @@ class RaffleTicketServiceTest extends TestCase
         $raffle = Raffle::factory()->create([
             'status' => 'active',
             'min_ticket_level' => 1,
-            'max_tickets_per_user' => 10
+            'max_tickets_per_user' => 10,
         ]);
 
         $this->expectException(\Exception::class);
@@ -95,19 +95,19 @@ class RaffleTicketServiceTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create();
-        
+
         WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 1,
             'total_tickets' => 3,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create([
             'status' => 'active',
             'min_ticket_level' => 1,
-            'max_tickets_per_user' => 10
+            'max_tickets_per_user' => 10,
         ]);
 
         $this->expectException(\Exception::class);
@@ -123,19 +123,19 @@ class RaffleTicketServiceTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create();
-        
+
         WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 1,
             'total_tickets' => 10,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create([
             'status' => 'inactive',
             'min_ticket_level' => 1,
-            'max_tickets_per_user' => 10
+            'max_tickets_per_user' => 10,
         ]);
 
         $this->expectException(\Exception::class);
@@ -151,19 +151,19 @@ class RaffleTicketServiceTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create();
-        
+
         WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 1,
             'total_tickets' => 20,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create([
             'status' => 'active',
             'min_ticket_level' => 1,
-            'max_tickets_per_user' => 5
+            'max_tickets_per_user' => 5,
         ]);
 
         $this->expectException(\Exception::class);
@@ -179,26 +179,26 @@ class RaffleTicketServiceTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create();
-        
+
         WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 1,
             'total_tickets' => 20,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create([
             'status' => 'active',
             'min_ticket_level' => 1,
-            'max_tickets_per_user' => 10
+            'max_tickets_per_user' => 10,
         ]);
 
         // Aplicar 7 tickets primeiro
         RaffleTicket::factory()->count(7)->create([
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $this->expectException(\Exception::class);
@@ -215,21 +215,21 @@ class RaffleTicketServiceTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create();
-        
+
         $walletTicket = WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 1,
             'total_tickets' => 5,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create(['status' => 'active']);
-        
+
         $raffleTickets = RaffleTicket::factory()->count(3)->create([
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $uuids = $raffleTickets->pluck('uuid')->toArray();
@@ -246,7 +246,7 @@ class RaffleTicketServiceTest extends TestCase
 
         // Verificar soft delete
         $this->assertSoftDeleted('raffle_tickets', [
-            'uuid' => $uuids[0]
+            'uuid' => $uuids[0],
         ]);
     }
 
@@ -257,11 +257,11 @@ class RaffleTicketServiceTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $raffle = Raffle::factory()->create(['status' => 'active']);
-        
+
         $raffleTicket = RaffleTicket::factory()->create([
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
-            'status' => 'confirmed'
+            'status' => 'confirmed',
         ]);
 
         $this->expectException(\Exception::class);
@@ -277,17 +277,17 @@ class RaffleTicketServiceTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $raffle = Raffle::factory()->create(['status' => 'active']);
-        
+
         RaffleTicket::factory()->count(5)->create([
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         RaffleTicket::factory()->count(3)->create([
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
-            'status' => 'confirmed'
+            'status' => 'confirmed',
         ]);
 
         $result = $this->service->getUserTicketsInRaffle($user, $raffle);
@@ -309,28 +309,28 @@ class RaffleTicketServiceTest extends TestCase
         $user = User::factory()->create(['role' => 'customer']);
         $plan1 = Plan::factory()->create();
         $plan2 = Plan::factory()->create();
-        
+
         // Usuário tem tickets de nível 1 e 2
         WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan1->id,
             'ticket_level' => 1,
             'total_tickets' => 5,
-            'status' => 'active'
+            'status' => 'active',
         ]);
-        
+
         WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan2->id,
             'ticket_level' => 2,
             'total_tickets' => 5,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create([
             'status' => 'active',
             'min_ticket_level' => 2,
-            'max_tickets_per_user' => 10
+            'max_tickets_per_user' => 10,
         ]);
 
         $result = $this->service->applyTicketsToRaffle($user, $raffle, 3);
@@ -341,7 +341,7 @@ class RaffleTicketServiceTest extends TestCase
         $walletTicket = WalletTicket::where('user_id', $user->id)
             ->where('ticket_level', 2)
             ->first();
-        
+
         $this->assertEquals(2, $walletTicket->total_tickets);
     }
 
@@ -352,19 +352,19 @@ class RaffleTicketServiceTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create();
-        
+
         $walletTicket = WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 1,
             'total_tickets' => 10,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create([
             'status' => 'active',
             'min_ticket_level' => 1,
-            'max_tickets_per_user' => 10
+            'max_tickets_per_user' => 10,
         ]);
 
         // Limpar o pool de tickets para forçar erro
@@ -377,7 +377,7 @@ class RaffleTicketServiceTest extends TestCase
             // Verificar que wallet não foi alterado (rollback)
             $walletTicket->refresh();
             $this->assertEquals(10, $walletTicket->total_tickets);
-            
+
             // Verificar que nenhum raffle_ticket foi criado
             $this->assertDatabaseCount('raffle_tickets', 0);
         }

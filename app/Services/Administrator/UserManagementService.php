@@ -3,10 +3,8 @@
 namespace App\Services\Administrator;
 
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Hash;
 
 class UserManagementService
 {
@@ -18,24 +16,24 @@ class UserManagementService
         $query = User::with('sponsor');
 
         // Aplicar filtros
-        if (isset($filters['search']) && !empty($filters['search'])) {
+        if (isset($filters['search']) && ! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('username', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('username', 'like', "%{$search}%");
             });
         }
 
-        if (isset($filters['role']) && !empty($filters['role'])) {
+        if (isset($filters['role']) && ! empty($filters['role'])) {
             $query->where('role', $filters['role']);
         }
 
-        if (isset($filters['status']) && !empty($filters['status'])) {
+        if (isset($filters['status']) && ! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (isset($filters['sponsor_uuid']) && !empty($filters['sponsor_uuid'])) {
+        if (isset($filters['sponsor_uuid']) && ! empty($filters['sponsor_uuid'])) {
             $sponsor = User::where('uuid', $filters['sponsor_uuid'])->first();
             if ($sponsor) {
                 $query->where('sponsor_id', $sponsor->id);
@@ -59,7 +57,7 @@ class UserManagementService
     public function createUser(array $data): User
     {
         $sponsorId = null;
-        if (!empty($data['sponsor_uuid'])) {
+        if (! empty($data['sponsor_uuid'])) {
             $sponsor = User::where('uuid', $data['sponsor_uuid'])->first();
             $sponsorId = $sponsor?->id;
         }
@@ -76,6 +74,7 @@ class UserManagementService
         ];
 
         $user = User::create($userData);
+
         return $user->load('sponsor');
     }
 
@@ -101,6 +100,7 @@ class UserManagementService
         }
 
         $user->update($updateData);
+
         return $user->fresh()->load('sponsor');
     }
 
@@ -110,7 +110,7 @@ class UserManagementService
     public function deleteUser(string $uuid, int $currentUserId): bool
     {
         $user = User::where('uuid', $uuid)->firstOrFail();
-        
+
         // Não permitir que o admin se exclua
         if ($user->id === $currentUserId) {
             throw new \Exception('Você não pode excluir sua própria conta.');
@@ -125,7 +125,7 @@ class UserManagementService
     public function getUserNetwork(string $uuid, int $perPage = 15): array
     {
         $targetUser = User::where('uuid', $uuid)->firstOrFail();
-        
+
         $network = User::where('sponsor_id', $targetUser->id)
             ->with('sponsor')
             ->paginate($perPage);
@@ -149,8 +149,8 @@ class UserManagementService
     public function getUserSponsor(string $uuid): array
     {
         $targetUser = User::where('uuid', $uuid)->firstOrFail();
-        
-        if (!$targetUser->sponsor_id) {
+
+        if (! $targetUser->sponsor_id) {
             throw new \Exception('Usuário não possui patrocinador');
         }
 
@@ -178,7 +178,7 @@ class UserManagementService
     public function getUserStatistics(string $uuid): array
     {
         $targetUser = User::where('uuid', $uuid)->firstOrFail();
-        
+
         return [
             'total_network' => User::where('sponsor_id', $targetUser->id)->count(),
             'active_network' => User::where('sponsor_id', $targetUser->id)->where('status', 'active')->count(),
@@ -233,7 +233,7 @@ class UserManagementService
                     $updatedCount++;
                 }
             } catch (\Exception $e) {
-                $errors[] = "Erro ao atualizar usuário {$uuid}: " . $e->getMessage();
+                $errors[] = "Erro ao atualizar usuário {$uuid}: ".$e->getMessage();
             }
         }
 
@@ -256,6 +256,7 @@ class UserManagementService
         foreach ($users as $user) {
             if ($user->id === $currentUserId) {
                 $errors[] = 'Você não pode excluir sua própria conta.';
+
                 continue;
             }
 
@@ -263,7 +264,7 @@ class UserManagementService
                 $user->delete();
                 $deleted++;
             } catch (\Exception $e) {
-                $errors[] = "Erro ao excluir usuário {$user->uuid}: " . $e->getMessage();
+                $errors[] = "Erro ao excluir usuário {$user->uuid}: ".$e->getMessage();
             }
         }
 
@@ -281,24 +282,24 @@ class UserManagementService
         $query = User::with('sponsor');
 
         // Aplicar os mesmos filtros da listagem
-        if (isset($filters['search']) && !empty($filters['search'])) {
+        if (isset($filters['search']) && ! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('username', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('username', 'like', "%{$search}%");
             });
         }
 
-        if (isset($filters['role']) && !empty($filters['role'])) {
+        if (isset($filters['role']) && ! empty($filters['role'])) {
             $query->where('role', $filters['role']);
         }
 
-        if (isset($filters['status']) && !empty($filters['status'])) {
+        if (isset($filters['status']) && ! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (isset($filters['sponsor_uuid']) && !empty($filters['sponsor_uuid'])) {
+        if (isset($filters['sponsor_uuid']) && ! empty($filters['sponsor_uuid'])) {
             $sponsor = User::where('uuid', $filters['sponsor_uuid'])->first();
             if ($sponsor) {
                 $query->where('sponsor_id', $sponsor->id);

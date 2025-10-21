@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 class Commission extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'uuid',
         'order_id',
@@ -29,7 +30,7 @@ class Commission extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
             if (empty($model->uuid)) {
                 $model->uuid = Str::uuid();

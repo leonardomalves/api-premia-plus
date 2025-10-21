@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Plan;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -69,7 +68,7 @@ class PlanSeed extends Seeder
         foreach ($plans as $planData) {
             $plan = Plan::create([
                 'uuid' => Str::uuid(),
-                ...$planData
+                ...$planData,
             ]);
 
             $this->command->info("✅ Plano criado: {$plan->name} - R$ {$plan->price}");

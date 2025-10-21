@@ -16,7 +16,6 @@ class ExecuteBusinessRule
     {
         $results = [];
 
-
         $createStatementResult = $this->createStatementService->processFinancialStatementOrder($order);
         $results['financial_statement'] = $createStatementResult;
 
@@ -28,13 +27,11 @@ class ExecuteBusinessRule
         // $walletTicketResult = $this->walletTicketService->createWalletTicket($order);
         // $results['wallet_ticket'] = $walletTicketResult;
 
-        
-
         return [
             'success' => true,
             'message' => 'Business rules executed successfully',
             'order_id' => $order->id,
-            'results' => $results
+            'results' => $results,
         ];
 
     }

@@ -3,7 +3,6 @@
 namespace App\Services\Administrator;
 
 use App\Models\Plan;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 
 class PlanManagementService
@@ -16,7 +15,7 @@ class PlanManagementService
         $query = Plan::query();
 
         // Aplicar filtros
-        if (isset($filters['status']) && !empty($filters['status'])) {
+        if (isset($filters['status']) && ! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
@@ -33,18 +32,18 @@ class PlanManagementService
         }
 
         // Busca por nome e descrição
-        if (isset($filters['search']) && !empty($filters['search'])) {
+        if (isset($filters['search']) && ! empty($filters['search'])) {
             $searchTerm = $filters['search'];
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%")
-                  ->orWhere('description', 'like', "%{$searchTerm}%");
+                    ->orWhere('description', 'like', "%{$searchTerm}%");
             });
         }
 
         // Ordenação
         $sortBy = $filters['sort_by'] ?? 'created_at';
         $sortOrder = $filters['sort_order'] ?? 'desc';
-        
+
         $allowedSorts = ['name', 'price', 'status', 'created_at', 'updated_at'];
         if (in_array($sortBy, $allowedSorts)) {
             $query->orderBy($sortBy, $sortOrder);
@@ -62,7 +61,7 @@ class PlanManagementService
                 'from' => $plans->firstItem(),
                 'to' => $plans->lastItem(),
             ],
-            'filters' => collect($filters)->only(['status', 'promotional', 'min_price', 'max_price', 'search', 'sort_by', 'sort_order'])->toArray()
+            'filters' => collect($filters)->only(['status', 'promotional', 'min_price', 'max_price', 'search', 'sort_by', 'sort_order'])->toArray(),
         ];
     }
 
@@ -72,11 +71,11 @@ class PlanManagementService
     public function findPlanByUuid(string $uuid): Plan
     {
         $plan = Plan::where('uuid', $uuid)->first();
-        
-        if (!$plan) {
+
+        if (! $plan) {
             throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Plano não encontrado');
         }
-        
+
         return $plan;
     }
 
@@ -87,7 +86,7 @@ class PlanManagementService
     {
         $planData = [
             'uuid' => Str::uuid(),
-            ...$data
+            ...$data,
         ];
 
         return Plan::create($planData);
@@ -100,6 +99,7 @@ class PlanManagementService
     {
         $plan = Plan::where('uuid', $uuid)->firstOrFail();
         $plan->update($data);
+
         return $plan->fresh();
     }
 
@@ -109,6 +109,7 @@ class PlanManagementService
     public function deletePlan(string $uuid): bool
     {
         $plan = Plan::where('uuid', $uuid)->firstOrFail();
+
         return $plan->delete();
     }
 
@@ -118,14 +119,14 @@ class PlanManagementService
     public function togglePlanStatus(string $uuid): array
     {
         $plan = Plan::where('uuid', $uuid)->firstOrFail();
-        
+
         $newStatus = $plan->status === 'active' ? 'inactive' : 'active';
         $plan->update(['status' => $newStatus]);
 
         return [
             'plan' => $plan->fresh(),
             'new_status' => $newStatus,
-            'status_text' => $newStatus === 'active' ? 'ativado' : 'desativado'
+            'status_text' => $newStatus === 'active' ? 'ativado' : 'desativado',
         ];
     }
 
@@ -151,8 +152,8 @@ class PlanManagementService
     public function toggleStatus(string $uuid): Plan
     {
         $plan = Plan::where('uuid', $uuid)->first();
-        
-        if (!$plan) {
+
+        if (! $plan) {
             throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Plano não encontrado');
         }
 

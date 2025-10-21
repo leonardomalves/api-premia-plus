@@ -16,7 +16,7 @@ class AuthenticationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create admin user for sponsor validation
         User::factory()->create([
             'username' => 'admin',
@@ -37,33 +37,33 @@ class AuthenticationTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'phone' => '11999999999',
-            'sponsor' => 'admin'
+            'sponsor' => 'admin',
         ];
 
         $response = $this->postJson('/api/v1/register', $userData);
 
         $response->assertStatus(201)
-                ->assertJsonStructure([
-                    'message',
-                    'user' => [
-                        'uuid',
-                        'name',
-                        'email',
-                        'username',
-                        'phone',
-                        'role',
-                        'status',
-                        'created_at',
-                        'updated_at'
-                    ],
-                    'access_token',
-                    'token_type'
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'user' => [
+                    'uuid',
+                    'name',
+                    'email',
+                    'username',
+                    'phone',
+                    'role',
+                    'status',
+                    'created_at',
+                    'updated_at',
+                ],
+                'access_token',
+                'token_type',
+            ]);
 
         $this->assertDatabaseHas('users', [
             'email' => 'john@example.com',
             'username' => 'johndoe',
-            'name' => 'John Doe'
+            'name' => 'John Doe',
         ]);
     }
 
@@ -83,12 +83,12 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/register', $userData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors([
-                    'name',
-                    'email',
-                    'username',
-                    'password'
-                ]);
+            ->assertJsonValidationErrors([
+                'name',
+                'email',
+                'username',
+                'password',
+            ]);
     }
 
     /**
@@ -105,13 +105,13 @@ class AuthenticationTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'phone' => '11999999999',
-            'sponsor' => 'admin'
+            'sponsor' => 'admin',
         ];
 
         $response = $this->postJson('/api/v1/register', $userData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['email']);
+            ->assertJsonValidationErrors(['email']);
     }
 
     /**
@@ -128,13 +128,13 @@ class AuthenticationTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'phone' => '11999999999',
-            'sponsor' => 'admin'
+            'sponsor' => 'admin',
         ];
 
         $response = $this->postJson('/api/v1/register', $userData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['username']);
+            ->assertJsonValidationErrors(['username']);
     }
 
     /**
@@ -149,13 +149,13 @@ class AuthenticationTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'phone' => '11999999999',
-            'sponsor' => 'nonexistent'
+            'sponsor' => 'nonexistent',
         ];
 
         $response = $this->postJson('/api/v1/register', $userData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['sponsor']);
+            ->assertJsonValidationErrors(['sponsor']);
     }
 
     /**
@@ -176,19 +176,19 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/login', $loginData);
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'message',
-                    'user' => [
-                        'uuid',
-                        'name',
-                        'email',
-                        'username',
-                        'role',
-                        'status'
-                    ],
-                    'access_token',
-                    'token_type'
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'user' => [
+                    'uuid',
+                    'name',
+                    'email',
+                    'username',
+                    'role',
+                    'status',
+                ],
+                'access_token',
+                'token_type',
+            ]);
 
         $this->assertNotEmpty($response->json('access_token'));
     }
@@ -211,7 +211,7 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/login', $loginData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['email']);
+            ->assertJsonValidationErrors(['email']);
     }
 
     /**
@@ -227,7 +227,7 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/login', $loginData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['email']);
+            ->assertJsonValidationErrors(['email']);
     }
 
     /**
@@ -238,7 +238,7 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/login', []);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['email', 'password']);
+            ->assertJsonValidationErrors(['email', 'password']);
     }
 
     /**
@@ -252,9 +252,9 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/logout');
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'Successfully logged out'
-                ]);
+            ->assertJson([
+                'message' => 'Successfully logged out',
+            ]);
     }
 
     /**
@@ -265,9 +265,9 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/logout');
 
         $response->assertStatus(401)
-                ->assertJson([
-                    'message' => 'Unauthenticated.'
-                ]);
+            ->assertJson([
+                'message' => 'Unauthenticated.',
+            ]);
     }
 
     /**
@@ -281,11 +281,11 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/refresh');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'message',
-                    'access_token',
-                    'token_type'
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'access_token',
+                'token_type',
+            ]);
 
         $this->assertNotEmpty($response->json('access_token'));
     }
@@ -298,9 +298,9 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/refresh');
 
         $response->assertStatus(401)
-                ->assertJson([
-                    'message' => 'Unauthenticated.'
-                ]);
+            ->assertJson([
+                'message' => 'Unauthenticated.',
+            ]);
     }
 
     /**
@@ -312,27 +312,27 @@ class AuthenticationTest extends TestCase
             'name' => 'John Doe',
             'email' => 'john@example.com',
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/v1/me');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'user' => [
-                        'id',
-                        'uuid',
-                        'name',
-                        'email',
-                        'username'
-                    ]
-                ])
-                ->assertJson([
-                    'user' => [
-                        'name' => 'John Doe',
-                        'email' => 'john@example.com'
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'user' => [
+                    'id',
+                    'uuid',
+                    'name',
+                    'email',
+                    'username',
+                ],
+            ])
+            ->assertJson([
+                'user' => [
+                    'name' => 'John Doe',
+                    'email' => 'john@example.com',
+                ],
+            ]);
     }
 
     /**
@@ -343,9 +343,9 @@ class AuthenticationTest extends TestCase
         $response = $this->getJson('/api/v1/me');
 
         $response->assertStatus(401)
-                ->assertJson([
-                    'message' => 'Unauthenticated.'
-                ]);
+            ->assertJson([
+                'message' => 'Unauthenticated.',
+            ]);
     }
 
     /**
@@ -357,25 +357,25 @@ class AuthenticationTest extends TestCase
             'name' => 'John Doe',
             'email' => 'john@example.com',
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/v1/profile');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'user' => [
-                        'id',
-                        'name',
-                        'email',
-                        'phone',
-                        'role',
-                        'status',
-                        'sponsor_id',
-                        'created_at',
-                        'updated_at'
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'user' => [
+                    'id',
+                    'name',
+                    'email',
+                    'phone',
+                    'role',
+                    'status',
+                    'sponsor_id',
+                    'created_at',
+                    'updated_at',
+                ],
+            ]);
     }
 
     /**
@@ -386,9 +386,9 @@ class AuthenticationTest extends TestCase
         $response = $this->getJson('/api/v1/profile');
 
         $response->assertStatus(401)
-                ->assertJson([
-                    'message' => 'Unauthenticated.'
-                ]);
+            ->assertJson([
+                'message' => 'Unauthenticated.',
+            ]);
     }
 
     /**
@@ -400,7 +400,7 @@ class AuthenticationTest extends TestCase
             'name' => 'Old Name',
             'phone' => '11999999999',
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $updateData = [
@@ -411,15 +411,15 @@ class AuthenticationTest extends TestCase
         $response = $this->putJson('/api/v1/profile', $updateData);
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'message',
-                    'user'
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'user',
+            ]);
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
             'name' => 'New Name',
-            'phone' => '11888888888'
+            'phone' => '11888888888',
         ]);
     }
 
@@ -438,7 +438,7 @@ class AuthenticationTest extends TestCase
         $response = $this->putJson('/api/v1/profile', $updateData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['name']);
+            ->assertJsonValidationErrors(['name']);
     }
 
     /**
@@ -454,9 +454,9 @@ class AuthenticationTest extends TestCase
         $response = $this->putJson('/api/v1/profile', $updateData);
 
         $response->assertStatus(401)
-                ->assertJson([
-                    'message' => 'Unauthenticated.'
-                ]);
+            ->assertJson([
+                'message' => 'Unauthenticated.',
+            ]);
     }
 
     /**
@@ -467,7 +467,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create([
             'password' => Hash::make('oldpassword123'),
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $passwordData = [
@@ -479,9 +479,9 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/change-password', $passwordData);
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'Password changed successfully'
-                ]);
+            ->assertJson([
+                'message' => 'Password changed successfully',
+            ]);
 
         // Verify password was changed
         $user->refresh();
@@ -496,7 +496,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create([
             'password' => Hash::make('oldpassword123'),
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $passwordData = [
@@ -508,7 +508,7 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/change-password', $passwordData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['current_password']);
+            ->assertJsonValidationErrors(['current_password']);
     }
 
     /**
@@ -519,7 +519,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create([
             'password' => Hash::make('oldpassword123'),
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $passwordData = [
@@ -531,7 +531,7 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/change-password', $passwordData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['password']);
+            ->assertJsonValidationErrors(['password']);
     }
 
     /**
@@ -548,9 +548,9 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/change-password', $passwordData);
 
         $response->assertStatus(401)
-                ->assertJson([
-                    'message' => 'Unauthenticated.'
-                ]);
+            ->assertJson([
+                'message' => 'Unauthenticated.',
+            ]);
     }
 
     /**
@@ -561,7 +561,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create([
             'password' => Hash::make('oldpassword123'),
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $passwordData = [
@@ -573,6 +573,6 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/change-password', $passwordData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['password']);
+            ->assertJsonValidationErrors(['password']);
     }
 }

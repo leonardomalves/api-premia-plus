@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            
+
             $table->foreignId('user_id')->constrained('users');
             $table->json('user_metadata');
 

@@ -20,39 +20,39 @@ class AdministratorRafflesTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         Raffle::factory(5)->create(['created_by' => $admin->id]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/raffles');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'raffles' => [
-                        'data' => [
-                            '*' => [
-                                'uuid',
-                                'title',
-                                'description',
-                                'prize_value',
-                                'operation_cost',
-                                'unit_ticket_value',
-                                'tickets_required',
-                                'min_ticket_level',
-                                'max_tickets_per_user',
-                                'status',
-                                'notes',
-                                'created_at',
-                                'updated_at',
-                                'creator'
-                            ]
+            ->assertJsonStructure([
+                'raffles' => [
+                    'data' => [
+                        '*' => [
+                            'uuid',
+                            'title',
+                            'description',
+                            'prize_value',
+                            'operation_cost',
+                            'unit_ticket_value',
+                            'tickets_required',
+                            'min_ticket_level',
+                            'max_tickets_per_user',
+                            'status',
+                            'notes',
+                            'created_at',
+                            'updated_at',
+                            'creator',
                         ],
-                        'current_page',
-                        'per_page',
-                        'total',
-                        'last_page'
                     ],
-                    'filters'
-                ]);
+                    'current_page',
+                    'per_page',
+                    'total',
+                    'last_page',
+                ],
+                'filters',
+            ]);
 
         $this->assertCount(5, $response->json('raffles.data'));
     }
@@ -65,14 +65,14 @@ class AdministratorRafflesTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         Raffle::factory(3)->create(['status' => 'active', 'created_by' => $admin->id]);
         Raffle::factory(2)->create(['status' => 'pending', 'created_by' => $admin->id]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/raffles?status=active');
 
         $response->assertStatus(200);
         $this->assertCount(3, $response->json('raffles.data'));
-        
+
         foreach ($response->json('raffles.data') as $raffle) {
             $this->assertEquals('active', $raffle['status']);
         }
@@ -88,14 +88,14 @@ class AdministratorRafflesTest extends TestCase
         Raffle::factory()->create(['prize_value' => 1000, 'created_by' => $admin->id]);
         Raffle::factory()->create(['prize_value' => 2000, 'created_by' => $admin->id]);
         Raffle::factory()->create(['prize_value' => 3000, 'created_by' => $admin->id]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/raffles?min_prize=750&max_prize=2500');
 
         $response->assertStatus(200);
         $raffles = $response->json('raffles.data');
-        
+
         foreach ($raffles as $raffle) {
             $this->assertGreaterThanOrEqual(750, $raffle['prize_value']);
             $this->assertLessThanOrEqual(2500, $raffle['prize_value']);
@@ -109,28 +109,28 @@ class AdministratorRafflesTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         Raffle::factory()->create([
-            'title' => 'iPhone 15 Pro Max', 
+            'title' => 'iPhone 15 Pro Max',
             'description' => 'Latest smartphone from Apple',
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
         Raffle::factory()->create([
-            'title' => 'PlayStation 5', 
+            'title' => 'PlayStation 5',
             'description' => 'Gaming console with iPhone controller support',
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
         Raffle::factory()->create([
-            'title' => 'MacBook Pro', 
+            'title' => 'MacBook Pro',
             'description' => 'Professional laptop for developers',
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/raffles?search=iPhone');
 
         $response->assertStatus(200);
         $raffles = $response->json('raffles.data');
-        
+
         // Should find 2 raffles: one with "iPhone" in title, one with "iPhone" in description
         $this->assertCount(2, $raffles);
     }
@@ -144,7 +144,7 @@ class AdministratorRafflesTest extends TestCase
         Raffle::factory()->create(['title' => 'C Raffle', 'prize_value' => 3000, 'created_by' => $admin->id]);
         Raffle::factory()->create(['title' => 'A Raffle', 'prize_value' => 1000, 'created_by' => $admin->id]);
         Raffle::factory()->create(['title' => 'B Raffle', 'prize_value' => 2000, 'created_by' => $admin->id]);
-        
+
         Sanctum::actingAs($admin);
 
         // Test sort by title ascending
@@ -171,36 +171,36 @@ class AdministratorRafflesTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $raffle = Raffle::factory()->create(['created_by' => $admin->id]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson("/api/v1/administrator/raffles/{$raffle->uuid}");
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'raffle' => [
-                        'uuid',
-                        'title',
-                        'description',
-                        'prize_value',
-                        'operation_cost',
-                        'unit_ticket_value',
-                        'tickets_required',
-                        'min_ticket_level',
-                        'max_tickets_per_user',
-                        'status',
-                        'notes',
-                        'created_at',
-                        'updated_at',
-                        'creator'
-                    ]
-                ])
-                ->assertJson([
-                    'raffle' => [
-                        'uuid' => $raffle->uuid,
-                        'title' => $raffle->title
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'raffle' => [
+                    'uuid',
+                    'title',
+                    'description',
+                    'prize_value',
+                    'operation_cost',
+                    'unit_ticket_value',
+                    'tickets_required',
+                    'min_ticket_level',
+                    'max_tickets_per_user',
+                    'status',
+                    'notes',
+                    'created_at',
+                    'updated_at',
+                    'creator',
+                ],
+            ])
+            ->assertJson([
+                'raffle' => [
+                    'uuid' => $raffle->uuid,
+                    'title' => $raffle->title,
+                ],
+            ]);
     }
 
     /**
@@ -209,7 +209,7 @@ class AdministratorRafflesTest extends TestCase
     public function test_admin_can_create_new_raffle(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $raffleData = [
@@ -224,37 +224,37 @@ class AdministratorRafflesTest extends TestCase
             'min_ticket_level' => 1,
             'max_tickets_per_user' => 10,
             'status' => 'pending',
-            'notes' => 'Test raffle created by automated test'
+            'notes' => 'Test raffle created by automated test',
         ];
 
         $response = $this->postJson('/api/v1/administrator/raffles', $raffleData);
 
         $response->assertStatus(201)
-                ->assertJsonStructure([
-                    'message',
-                    'raffle' => [
-                        'uuid',
-                        'title',
-                        'description',
-                        'prize_value',
-                        'operation_cost',
-                        'unit_ticket_value',
-                        'tickets_required',
-                        'min_ticket_level',
-                        'max_tickets_per_user',
-                        'status',
-                        'notes'
-                    ]
-                ])
-                ->assertJson([
-                    'message' => 'Raffle criado com sucesso'
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'raffle' => [
+                    'uuid',
+                    'title',
+                    'description',
+                    'prize_value',
+                    'operation_cost',
+                    'unit_ticket_value',
+                    'tickets_required',
+                    'min_ticket_level',
+                    'max_tickets_per_user',
+                    'status',
+                    'notes',
+                ],
+            ])
+            ->assertJson([
+                'message' => 'Raffle criado com sucesso',
+            ]);
 
         $this->assertDatabaseHas('raffles', [
             'title' => 'iPhone 15 Pro Max Test',
             'description' => 'This is a test raffle for iPhone 15 Pro Max with 512GB storage',
             'prize_value' => 8999.99,
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
     }
 
@@ -264,7 +264,7 @@ class AdministratorRafflesTest extends TestCase
     public function test_admin_cannot_create_raffle_with_invalid_data(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $invalidData = [
@@ -275,19 +275,19 @@ class AdministratorRafflesTest extends TestCase
             'tickets_required' => 0, // Zero tickets
             'min_ticket_level' => -1, // Negative level
             'max_tickets_per_user' => 0, // Zero max tickets
-            'status' => 'invalid_status' // Invalid status
+            'status' => 'invalid_status', // Invalid status
         ];
 
         $response = $this->postJson('/api/v1/administrator/raffles', $invalidData);
 
         $response->assertStatus(422)
-                ->assertJsonStructure([
-                    'message',
-                    'errors'
-                ])
-                ->assertJson([
-                    'message' => 'Dados inválidos'
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'errors',
+            ])
+            ->assertJson([
+                'message' => 'Dados inválidos',
+            ]);
     }
 
     /**
@@ -298,9 +298,9 @@ class AdministratorRafflesTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $existingRaffle = Raffle::factory()->create([
             'title' => 'Unique Raffle Title',
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
-        
+
         Sanctum::actingAs($admin);
 
         $raffleData = [
@@ -314,13 +314,13 @@ class AdministratorRafflesTest extends TestCase
             'tickets_required' => 100,
             'min_ticket_level' => 1,
             'max_tickets_per_user' => 5,
-            'status' => 'pending'
+            'status' => 'pending',
         ];
 
         $response = $this->postJson('/api/v1/administrator/raffles', $raffleData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['title']);
+            ->assertJsonValidationErrors(['title']);
     }
 
     /**
@@ -332,28 +332,28 @@ class AdministratorRafflesTest extends TestCase
         $raffle = Raffle::factory()->create([
             'title' => 'Original Raffle',
             'prize_value' => 1000,
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
-        
+
         Sanctum::actingAs($admin);
 
         $updateData = [
             'title' => 'Updated Raffle',
             'prize_value' => 1500,
-            'description' => 'Updated description'
+            'description' => 'Updated description',
         ];
 
         $response = $this->putJson("/api/v1/administrator/raffles/{$raffle->uuid}", $updateData);
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'Raffle atualizado com sucesso'
-                ]);
+            ->assertJson([
+                'message' => 'Raffle atualizado com sucesso',
+            ]);
 
         $this->assertDatabaseHas('raffles', [
             'uuid' => $raffle->uuid,
             'title' => 'Updated Raffle',
-            'prize_value' => 1500
+            'prize_value' => 1500,
         ]);
     }
 
@@ -364,18 +364,18 @@ class AdministratorRafflesTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $raffle = Raffle::factory()->create(['created_by' => $admin->id]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->deleteJson("/api/v1/administrator/raffles/{$raffle->uuid}");
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'Raffle removido com sucesso'
-                ]);
+            ->assertJson([
+                'message' => 'Raffle removido com sucesso',
+            ]);
 
         $this->assertSoftDeleted('raffles', [
-            'uuid' => $raffle->uuid
+            'uuid' => $raffle->uuid,
         ]);
     }
 
@@ -387,19 +387,19 @@ class AdministratorRafflesTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $raffle = Raffle::factory()->create(['created_by' => $admin->id]);
         $raffle->delete(); // Soft delete first
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->postJson("/api/v1/administrator/raffles/{$raffle->uuid}/restore");
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'Raffle restaurado com sucesso'
-                ]);
+            ->assertJson([
+                'message' => 'Raffle restaurado com sucesso',
+            ]);
 
         $this->assertDatabaseHas('raffles', [
             'uuid' => $raffle->uuid,
-            'deleted_at' => null
+            'deleted_at' => null,
         ]);
     }
 
@@ -409,32 +409,32 @@ class AdministratorRafflesTest extends TestCase
     public function test_admin_can_toggle_raffle_status(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         // Test activating inactive raffle
         $inactiveRaffle = Raffle::factory()->create([
             'status' => 'inactive',
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
         $response = $this->postJson("/api/v1/administrator/raffles/{$inactiveRaffle->uuid}/toggle-status");
-        
+
         $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'Status alterado para active'
-                ]);
+            ->assertJson([
+                'message' => 'Status alterado para active',
+            ]);
 
         // Test deactivating active raffle
         $activeRaffle = Raffle::factory()->create([
             'status' => 'active',
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
         $response = $this->postJson("/api/v1/administrator/raffles/{$activeRaffle->uuid}/toggle-status");
-        
+
         $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'Status alterado para inactive'
-                ]);
+            ->assertJson([
+                'message' => 'Status alterado para inactive',
+            ]);
     }
 
     /**
@@ -443,43 +443,43 @@ class AdministratorRafflesTest extends TestCase
     public function test_admin_can_get_raffle_statistics(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         // Clear existing raffles and create controlled test data
         Raffle::query()->delete();
-        
+
         Raffle::factory(3)->create([
             'status' => 'active',
             'prize_value' => 1000,
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
         Raffle::factory(2)->create([
             'status' => 'pending',
             'prize_value' => 500,
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
         Raffle::factory(1)->create([
             'status' => 'inactive',
             'prize_value' => 2000,
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/raffles/statistics/overview');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'statistics' => [
-                        'total_raffles',
-                        'active_raffles',
-                        'pending_raffles',
-                        'inactive_raffles',
-                        'cancelled_raffles',
-                        'total_prize_value',
-                        'avg_prize_value',
-                        'recent_raffles'
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'statistics' => [
+                    'total_raffles',
+                    'active_raffles',
+                    'pending_raffles',
+                    'inactive_raffles',
+                    'cancelled_raffles',
+                    'total_prize_value',
+                    'avg_prize_value',
+                    'recent_raffles',
+                ],
+            ]);
 
         $stats = $response->json('statistics');
         $this->assertEquals(6, $stats['total_raffles']);
@@ -496,22 +496,22 @@ class AdministratorRafflesTest extends TestCase
     public function test_raffle_validation_rules_for_required_fields(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->postJson('/api/v1/administrator/raffles', []);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors([
-                    'title',
-                    'description',
-                    'prize_value',
-                    'operation_cost',
-                    'unit_ticket_value',
-                    'tickets_required',
-                    'min_ticket_level',
-                    'max_tickets_per_user'
-                ]);
+            ->assertJsonValidationErrors([
+                'title',
+                'description',
+                'prize_value',
+                'operation_cost',
+                'unit_ticket_value',
+                'tickets_required',
+                'min_ticket_level',
+                'max_tickets_per_user',
+            ]);
     }
 
     /**
@@ -520,7 +520,7 @@ class AdministratorRafflesTest extends TestCase
     public function test_raffle_validation_for_numeric_constraints(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $invalidData = [
@@ -532,19 +532,19 @@ class AdministratorRafflesTest extends TestCase
             'tickets_required' => 0,         // Should be >= 1
             'min_ticket_level' => 0,         // Should be >= 1 (based on controller)
             'max_tickets_per_user' => 0,     // Should be >= 1
-            'status' => 'active'
+            'status' => 'active',
         ];
 
         $response = $this->postJson('/api/v1/administrator/raffles', $invalidData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors([
-                    'prize_value',
-                    'unit_ticket_value',
-                    'tickets_required',
-                    'min_ticket_level',
-                    'max_tickets_per_user'
-                ]);
+            ->assertJsonValidationErrors([
+                'prize_value',
+                'unit_ticket_value',
+                'tickets_required',
+                'min_ticket_level',
+                'max_tickets_per_user',
+            ]);
     }
 
     /**
@@ -553,7 +553,7 @@ class AdministratorRafflesTest extends TestCase
     public function test_raffle_validation_for_maximum_constraints(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $invalidData = [
@@ -566,23 +566,23 @@ class AdministratorRafflesTest extends TestCase
             'min_ticket_level' => 150,           // Should be max 100
             'max_tickets_per_user' => 10000,     // Should be max 1000
             'notes' => str_repeat('C', 2100),    // Should be max 2000
-            'status' => 'active'
+            'status' => 'active',
         ];
 
         $response = $this->postJson('/api/v1/administrator/raffles', $invalidData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors([
-            'title',
-            'description',
-            'prize_value',
-            'operation_cost',
-            'unit_ticket_value',
-            'tickets_required',
-            'min_ticket_level',
-            'max_tickets_per_user',
-            'notes'
-        ]);
+            ->assertJsonValidationErrors([
+                'title',
+                'description',
+                'prize_value',
+                'operation_cost',
+                'unit_ticket_value',
+                'tickets_required',
+                'min_ticket_level',
+                'max_tickets_per_user',
+                'notes',
+            ]);
     }
 
     /**
@@ -592,13 +592,13 @@ class AdministratorRafflesTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $fakeUuid = 'fake-uuid-that-does-not-exist';
-        
+
         Sanctum::actingAs($admin);
 
         // Test show
         $response = $this->getJson("/api/v1/administrator/raffles/{$fakeUuid}");
         $response->assertStatus(404)
-                ->assertJson(['message' => 'Raffle não encontrado']);
+            ->assertJson(['message' => 'Raffle não encontrado']);
 
         // Test update
         $response = $this->putJson("/api/v1/administrator/raffles/{$fakeUuid}", ['title' => 'Updated']);
@@ -625,7 +625,7 @@ class AdministratorRafflesTest extends TestCase
         $customer = User::factory()->create(['role' => 'customer']);
         $admin = User::factory()->create(['role' => 'admin']);
         $raffle = Raffle::factory()->create(['created_by' => $admin->id]);
-        
+
         Sanctum::actingAs($customer);
 
         // Test all endpoints
@@ -637,13 +637,13 @@ class AdministratorRafflesTest extends TestCase
             ['method' => 'delete', 'url' => "/api/v1/administrator/raffles/{$raffle->uuid}"],
             ['method' => 'post', 'url' => "/api/v1/administrator/raffles/{$raffle->uuid}/restore"],
             ['method' => 'post', 'url' => "/api/v1/administrator/raffles/{$raffle->uuid}/toggle-status"],
-            ['method' => 'get', 'url' => '/api/v1/administrator/raffles/statistics/overview']
+            ['method' => 'get', 'url' => '/api/v1/administrator/raffles/statistics/overview'],
         ];
 
         foreach ($endpoints as $endpoint) {
-            $method = $endpoint['method'] . 'Json';
+            $method = $endpoint['method'].'Json';
             $data = $endpoint['data'] ?? [];
-            
+
             $response = $this->$method($endpoint['url'], $data);
             $response->assertStatus(403);
         }
@@ -665,13 +665,13 @@ class AdministratorRafflesTest extends TestCase
             ['method' => 'delete', 'url' => "/api/v1/administrator/raffles/{$raffle->uuid}"],
             ['method' => 'post', 'url' => "/api/v1/administrator/raffles/{$raffle->uuid}/restore"],
             ['method' => 'post', 'url' => "/api/v1/administrator/raffles/{$raffle->uuid}/toggle-status"],
-            ['method' => 'get', 'url' => '/api/v1/administrator/raffles/statistics/overview']
+            ['method' => 'get', 'url' => '/api/v1/administrator/raffles/statistics/overview'],
         ];
 
         foreach ($endpoints as $endpoint) {
-            $method = $endpoint['method'] . 'Json';
+            $method = $endpoint['method'].'Json';
             $data = $endpoint['data'] ?? [];
-            
+
             $response = $this->$method($endpoint['url'], $data);
             $response->assertStatus(401);
         }
@@ -684,13 +684,13 @@ class AdministratorRafflesTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         Raffle::factory(25)->create(['created_by' => $admin->id]); // Create more than default per_page
-        
+
         Sanctum::actingAs($admin);
 
         // Test default pagination
         $response = $this->getJson('/api/v1/administrator/raffles');
         $response->assertStatus(200);
-        
+
         $pagination = $response->json('raffles');
         $this->assertEquals(1, $pagination['current_page']);
         $this->assertEquals(15, $pagination['per_page']); // Default per page
@@ -700,7 +700,7 @@ class AdministratorRafflesTest extends TestCase
         // Test custom per_page
         $response = $this->getJson('/api/v1/administrator/raffles?per_page=10');
         $response->assertStatus(200);
-        
+
         $pagination = $response->json('raffles');
         $this->assertEquals(10, $pagination['per_page']);
         $this->assertEquals(3, $pagination['last_page']);
@@ -708,7 +708,7 @@ class AdministratorRafflesTest extends TestCase
         // Test specific page
         $response = $this->getJson('/api/v1/administrator/raffles?page=2&per_page=10');
         $response->assertStatus(200);
-        
+
         $pagination = $response->json('raffles');
         $this->assertEquals(2, $pagination['current_page']);
     }
@@ -719,29 +719,29 @@ class AdministratorRafflesTest extends TestCase
     public function test_complex_filtering_combinations(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         // Create specific test data
         Raffle::factory()->create([
             'title' => 'Premium iPhone 15 Pro',
             'status' => 'active',
             'prize_value' => 8000,
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
-        
+
         Raffle::factory()->create([
-            'title' => 'Basic Samsung Galaxy', 
+            'title' => 'Basic Samsung Galaxy',
             'status' => 'active',
             'prize_value' => 800,
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
-        
+
         Raffle::factory()->create([
             'title' => 'Premium MacBook Pro',
             'status' => 'pending',
             'prize_value' => 12000,
-            'created_by' => $admin->id
+            'created_by' => $admin->id,
         ]);
-        
+
         Sanctum::actingAs($admin);
 
         // Test multiple filters combined
@@ -749,7 +749,7 @@ class AdministratorRafflesTest extends TestCase
 
         $response->assertStatus(200);
         $raffles = $response->json('raffles.data');
-        
+
         // Should only return the Premium iPhone 15 Pro
         $this->assertCount(1, $raffles);
         $this->assertEquals('Premium iPhone 15 Pro', $raffles[0]['title']);
@@ -763,11 +763,11 @@ class AdministratorRafflesTest extends TestCase
     public function test_raffle_status_validation(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $validStatuses = ['pending', 'active', 'inactive', 'cancelled'];
-        
+
         foreach ($validStatuses as $status) {
             $raffleData = [
                 'title' => "Test Raffle {$status}",
@@ -780,7 +780,7 @@ class AdministratorRafflesTest extends TestCase
                 'tickets_required' => 100,
                 'min_ticket_level' => 1,
                 'max_tickets_per_user' => 10,
-                'status' => $status
+                'status' => $status,
             ];
 
             $response = $this->postJson('/api/v1/administrator/raffles', $raffleData);
@@ -799,11 +799,11 @@ class AdministratorRafflesTest extends TestCase
             'tickets_required' => 100,
             'min_ticket_level' => 1,
             'max_tickets_per_user' => 10,
-            'status' => 'invalid_status'
+            'status' => 'invalid_status',
         ];
 
         $response = $this->postJson('/api/v1/administrator/raffles', $invalidData);
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['status']);
+            ->assertJsonValidationErrors(['status']);
     }
 }

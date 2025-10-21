@@ -3,7 +3,6 @@
 namespace App\Services\Customer;
 
 use App\Models\Plan;
-use Illuminate\Database\Eloquent\Collection;
 
 class CustomerPlanService
 {
@@ -32,7 +31,7 @@ class CustomerPlanService
         // Ordenação
         $sortBy = $filters['sort_by'] ?? 'price';
         $sortOrder = $filters['sort_order'] ?? 'asc';
-        
+
         $allowedSorts = ['price', 'name', 'created_at'];
         if (in_array($sortBy, $allowedSorts)) {
             $query->orderBy($sortBy, $sortOrder);
@@ -49,7 +48,7 @@ class CustomerPlanService
                 'max_price' => $filters['max_price'] ?? null,
                 'sort_by' => $sortBy,
                 'sort_order' => $sortOrder,
-            ]
+            ],
         ];
     }
 
@@ -62,7 +61,7 @@ class CustomerPlanService
             ->where('status', 'active')
             ->first();
 
-        if (!$plan) {
+        if (! $plan) {
             throw new \Exception('Plano não encontrado ou inativo');
         }
 
@@ -81,7 +80,7 @@ class CustomerPlanService
 
         return [
             'plans' => $plans,
-            'total' => $plans->count()
+            'total' => $plans->count(),
         ];
     }
 
@@ -95,9 +94,9 @@ class CustomerPlanService
         // Busca por nome ou descrição
         if (isset($searchParams['search'])) {
             $searchTerm = $searchParams['search'];
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%")
-                  ->orWhere('description', 'like', "%{$searchTerm}%");
+                    ->orWhere('description', 'like', "%{$searchTerm}%");
             });
         }
 
@@ -123,7 +122,7 @@ class CustomerPlanService
             'plans' => $plans,
             'total' => $plans->count(),
             'search_term' => $searchParams['search'] ?? null,
-            'price_range' => $searchParams['price_range'] ?? null
+            'price_range' => $searchParams['price_range'] ?? null,
         ];
     }
 }

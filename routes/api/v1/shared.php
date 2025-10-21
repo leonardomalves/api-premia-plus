@@ -19,13 +19,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group([], function () {
-    
 
-        // Rifas e aplicação de tickets
+    // Rifas e aplicação de tickets
     Route::get('/raffles', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'index']);
     Route::get('/raffles/{uuid}', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'show']);
 
-       // Planos (apenas leitura)
+    // Planos (apenas leitura)
     Route::get('/plans', [CustomerPlanController::class, 'index']);
     Route::get('/plans/search', [CustomerPlanController::class, 'search']);
     Route::get('/plans/promotional/list', [CustomerPlanController::class, 'promotional']);
@@ -37,15 +36,16 @@ Route::group([], function () {
         return response()->json($healthCheck->check());
     });
     Route::get('/test', [TestController::class, 'index']);
-    
+
     // Rotas com autenticação (qualquer usuário autenticado)
     Route::middleware('auth:sanctum')->group(function () {
         // Métricas e monitoramento (apenas usuários autenticados)
         Route::get('/metrics/user', function (Request $request) {
             $user = $request->user();
+
             return response()->json([
                 'user_id' => $user->id,
-                'requests_today' => cache()->get('user_requests_' . $user->id . '_' . today(), 0),
+                'requests_today' => cache()->get('user_requests_'.$user->id.'_'.today(), 0),
                 'last_activity' => $user->updated_at,
             ]);
         });

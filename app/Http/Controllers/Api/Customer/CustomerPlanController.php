@@ -23,19 +23,19 @@ class CustomerPlanController extends Controller
     {
         try {
             $filters = [];
-            
+
             if ($request->has('promotional')) {
                 $filters['promotional'] = $request->boolean('promotional');
             }
-            
+
             if ($request->has('min_price')) {
                 $filters['min_price'] = $request->float('min_price');
             }
-            
+
             if ($request->has('max_price')) {
                 $filters['max_price'] = $request->float('max_price');
             }
-            
+
             $filters['sort_by'] = $request->get('sort_by', 'price');
             $filters['sort_order'] = $request->get('sort_order', 'asc');
 
@@ -44,14 +44,14 @@ class CustomerPlanController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Planos listados com sucesso',
-                'data' => $result
+                'data' => $result,
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao listar planos',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -68,16 +68,16 @@ class CustomerPlanController extends Controller
                 'success' => true,
                 'message' => 'Plano encontrado com sucesso',
                 'data' => [
-                    'plan' => $plan
-                ]
+                    'plan' => $plan,
+                ],
             ], 200);
 
         } catch (\Exception $e) {
             $statusCode = $e->getMessage() === 'Plano não encontrado ou inativo' ? 404 : 500;
-            
+
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], $statusCode);
         }
     }
@@ -93,14 +93,14 @@ class CustomerPlanController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Planos promocionais listados com sucesso',
-                'data' => $result
+                'data' => $result,
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao listar planos promocionais',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -112,11 +112,11 @@ class CustomerPlanController extends Controller
     {
         try {
             $searchParams = [];
-            
+
             if ($request->has('search')) {
                 $searchParams['search'] = $request->get('search');
             }
-            
+
             if ($request->has('price_range')) {
                 $searchParams['price_range'] = $request->get('price_range');
             }
@@ -126,14 +126,14 @@ class CustomerPlanController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Busca realizada com sucesso',
-                'data' => $result
+                'data' => $result,
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao buscar planos',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Jobs\AbandonedCartJob;
+use Illuminate\Console\Command;
 
 class ProcessAbandonedCarts extends Command
 {
@@ -27,12 +27,12 @@ class ProcessAbandonedCarts extends Command
     public function handle()
     {
         $this->info('🛒 Processing abandoned carts...');
-        
+
         // Dispatch the job
         AbandonedCartJob::dispatch();
-        
+
         $this->info('✅ Abandoned cart job dispatched successfully!');
-        
+
         return Command::SUCCESS;
     }
 }

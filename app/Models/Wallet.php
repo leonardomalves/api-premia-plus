@@ -27,7 +27,6 @@ class WalletTicket extends Model
         'expiration_date' => 'date',
     ];
 
-
     protected $appends = ['available_tickets'];
 
     /**
@@ -62,17 +61,17 @@ class WalletTicket extends Model
     /**
      * Decrementa a quantidade especificada de tickets
      * Prioriza tickets normais, depois bônus
-     * 
-     * @param int $quantity Quantidade de tickets a decrementar
+     *
+     * @param  int  $quantity  Quantidade de tickets a decrementar
      * @return int Quantidade efetivamente decrementada
      */
     public function decrementIn(int $quantity): int
     {
         $decremented = 0;
-        
+
         for ($i = 0; $i < $quantity; $i++) {
             $normalTickets = $this->total_tickets - $this->total_tickets_used;
-            
+
             if ($normalTickets > 0) {
                 $this->total_tickets_used += 1;
                 $decremented++;
@@ -84,11 +83,11 @@ class WalletTicket extends Model
                 break;
             }
         }
-        
+
         if ($decremented > 0) {
             $this->save();
         }
-        
+
         return $decremented;
     }
 }

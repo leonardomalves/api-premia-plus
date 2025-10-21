@@ -5,8 +5,6 @@ namespace Database\Seeders;
 use App\Jobs\CreateTicketsForRafflesJob;
 use App\Models\Raffle;
 use App\Models\User;
-use GuzzleHttp\Promise\Create;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class RaffleSeeder extends Seeder
@@ -20,8 +18,9 @@ class RaffleSeeder extends Seeder
 
         // Busca um admin para ser o criador dos raffles
         $admin = User::where('role', 'admin')->first();
-        if (!$admin) {
+        if (! $admin) {
             $this->command->error('❌ Nenhum admin encontrado! Execute CreateAdminSeed primeiro.');
+
             return;
         }
 
@@ -38,7 +37,7 @@ class RaffleSeeder extends Seeder
                 'status' => 'active',
                 'notes' => 'Campanha de lançamento - produto premium',
                 'liquid_value' => 0,
-                'liquidity_ratio' => 0
+                'liquidity_ratio' => 0,
             ],
 
             /*
@@ -116,18 +115,16 @@ class RaffleSeeder extends Seeder
             */
         ];
 
-        $this->command->info("🔢 Criando " . count($raffleTemplates) . " raffles base...");
-
-
+        $this->command->info('🔢 Criando '.count($raffleTemplates).' raffles base...');
 
         // Criar raffles adicionais aleatórios
-        $this->command->info("🎰 Criando raffles adicionais aleatórios...");
-        
+        $this->command->info('🎰 Criando raffles adicionais aleatórios...');
+
         $prizes = [
             'Nintendo Switch OLED', 'Xbox Series X', 'iPad Pro M2', 'AirPods Pro 2',
             'Smart TV 65" 4K', 'Notebook Gamer', 'Câmera Canon EOS', 'Drone DJI Mini',
             'R$ 5.000 em Dinheiro', 'Perfume Importado Kit', 'Relógio Smartwatch',
-            'Fone Beats Studio', 'Tablet Samsung', 'Kindle Oasis'
+            'Fone Beats Studio', 'Tablet Samsung', 'Kindle Oasis',
         ];
 
         for ($i = 0; $i < 1; $i++) {
@@ -136,9 +133,9 @@ class RaffleSeeder extends Seeder
             $operationCost = $prizeValue * 0.1; // 10% do valor do prêmio
             $ticketValue = rand(5, 30);
             $ticketsNeeded = intval($prizeValue / $ticketValue);
-            
+
             $raffle = Raffle::create([
-                'title' => $prize . ' #' . ($i + 1),
+                'title' => $prize.' #'.($i + 1),
                 'description' => "Sorteio de {$prize} em excelente estado. Produto original com garantia.",
                 'prize_value' => $prizeValue,
                 'operation_cost' => $operationCost,
@@ -150,16 +147,16 @@ class RaffleSeeder extends Seeder
                 'created_by' => $admin->id,
                 'notes' => "Raffle gerado automaticamente - {$prize}",
                 'liquid_value' => 0,
-                'liquidity_ratio' => 0
+                'liquidity_ratio' => 0,
             ]);
-            
+
             CreateTicketsForRafflesJob::dispatch($raffle->id);
         }
 
         $totalRaffles = count($raffleTemplates) + 10;
         $this->command->info("✅ Seed de raffles concluído! Total: {$totalRaffles} raffles criados.");
-        $this->command->info("📊 Status: " . Raffle::where('status', 'active')->count() . " ativos, " . 
-                            Raffle::where('status', 'draft')->count() . " rascunhos, " . 
-                            Raffle::where('status', 'inactive')->count() . " inativos");
+        $this->command->info('📊 Status: '.Raffle::where('status', 'active')->count().' ativos, '.
+                            Raffle::where('status', 'draft')->count().' rascunhos, '.
+                            Raffle::where('status', 'inactive')->count().' inativos');
     }
 }

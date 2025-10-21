@@ -3,12 +3,12 @@
 namespace Database\Seeders;
 
 use App\Services\Core\HttpClient;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CreateUsersSeed extends Seeder
 {
     private $baseUrl = 'http://localhost:8000/api/v1';
+
     private $adminToken = null;
 
     /**
@@ -20,7 +20,7 @@ class CreateUsersSeed extends Seeder
 
         // Fazer login do admin para obter token
         $this->loginAdmin();
-        
+
         // Criar usuários de teste via API
         $this->createTestUsers();
 
@@ -39,14 +39,15 @@ class CreateUsersSeed extends Seeder
             'password' => 'password',
         ];
 
-        $response = (new HttpClient())->apiRequest("{$this->baseUrl}/login", $data, [], 'POST');
+        $response = (new HttpClient)->apiRequest("{$this->baseUrl}/login", $data, [], 'POST');
 
         if ($response->status == 200) {
             $this->adminToken = $response->content->access_token ?? null;
             $this->command->info('✅ Login do admin realizado!');
         } else {
-            $this->command->error('❌ Erro no login do admin: ' . ($response->content->message ?? 'Erro desconhecido'));
+            $this->command->error('❌ Erro no login do admin: '.($response->content->message ?? 'Erro desconhecido'));
             $this->command->warn('⚠️ Certifique-se de que o admin foi criado antes de executar esta seed');
+
             return;
         }
     }
@@ -56,8 +57,9 @@ class CreateUsersSeed extends Seeder
      */
     private function createTestUsers(): void
     {
-        if (!$this->adminToken) {
+        if (! $this->adminToken) {
             $this->command->error('❌ Token do admin não disponível. Não é possível criar usuários.');
+
             return;
         }
 
@@ -73,7 +75,7 @@ class CreateUsersSeed extends Seeder
             // Definir sponsor aleatório
             $sponsor = null;
             if ($i > 1) {
-                $sponsor = "user" . rand(1, min($i - 1, 10));
+                $sponsor = 'user'.rand(1, min($i - 1, 10));
             }
 
             $userData = [
@@ -82,7 +84,7 @@ class CreateUsersSeed extends Seeder
                 'username' => "user{$i}",
                 'password' => 'password',
                 'password_confirmation' => 'password',
-                'phone' => '119' . str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT),
+                'phone' => '119'.str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT),
             ];
 
             // Adicionar sponsor se existir
@@ -90,20 +92,20 @@ class CreateUsersSeed extends Seeder
                 $userData['sponsor'] = $sponsor;
             }
 
-            $response = (new HttpClient())->apiRequest("{$this->baseUrl}/register", $userData, [], 'POST');
+            $response = (new HttpClient)->apiRequest("{$this->baseUrl}/register", $userData, [], 'POST');
 
             if ($response->status == 200 || $response->status == 201) {
                 $this->command->info("✅ Usuário {$i} criado: user{$i}@premiaplus.com");
-                
+
                 // Atualizar role e status via API
                 $this->updateUserRoleAndStatus($response->content->user->uuid ?? null, $role, $status);
             } else {
-                $this->command->error("❌ Erro ao criar usuário {$i}: " . ($response->content->message ?? 'Erro desconhecido'));
+                $this->command->error("❌ Erro ao criar usuário {$i}: ".($response->content->message ?? 'Erro desconhecido'));
                 $this->command->error("Status: {$response->status}");
-                
+
                 // Log apenas em caso de erro para não poluir a saída
                 if ($response->status >= 400) {
-                    $this->command->error("Response: " . json_encode($response->content));
+                    $this->command->error('Response: '.json_encode($response->content));
                 }
             }
 
@@ -119,13 +121,14 @@ class CreateUsersSeed extends Seeder
      */
     private function updateUserRoleAndStatus(?string $userUuid, string $role, string $status): void
     {
-        if (!$userUuid) {
-            $this->command->warn("⚠️ UUID do usuário não disponível");
+        if (! $userUuid) {
+            $this->command->warn('⚠️ UUID do usuário não disponível');
+
             return;
         }
 
         $headers = [
-            'Authorization' => 'Bearer ' . $this->adminToken,
+            'Authorization' => 'Bearer '.$this->adminToken,
             'Accept' => 'application/json',
         ];
 
@@ -134,13 +137,13 @@ class CreateUsersSeed extends Seeder
             'status' => $status,
         ];
 
-        $response = (new HttpClient())->apiRequest("{$this->baseUrl}/administrator/users/{$userUuid}", $data, $headers, 'PUT');
+        $response = (new HttpClient)->apiRequest("{$this->baseUrl}/administrator/users/{$userUuid}", $data, $headers, 'PUT');
 
         if ($response->status == 200) {
             $this->command->line("   🔧 Role: {$role} | Status: {$status}");
         } else {
             $this->command->warn("⚠️ Não foi possível atualizar role/status do usuário {$userUuid}");
-            $this->command->warn("Status: {$response->status} - " . ($response->content->message ?? 'Erro desconhecido'));
+            $this->command->warn("Status: {$response->status} - ".($response->content->message ?? 'Erro desconhecido'));
         }
     }
 }

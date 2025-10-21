@@ -20,7 +20,7 @@ class CustomerRaffleTicketTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Criar pool de tickets para testes
         for ($i = 1; $i <= 100; $i++) {
             Ticket::create(['number' => str_pad($i, 7, '0', STR_PAD_LEFT)]);
@@ -34,29 +34,29 @@ class CustomerRaffleTicketTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create([
-            'price' => 100
+            'price' => 100,
         ]);
-        
+
         // Dar tickets ao usuário
         $walletTicket = WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 1,
             'total_tickets' => 10,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create([
             'status' => 'active',
             'min_ticket_level' => 1,
             'max_tickets_per_user' => 10,
-            'tickets_required' => 100
+            'tickets_required' => 100,
         ]);
 
         Sanctum::actingAs($user);
 
         $response = $this->postJson("/api/v1/customer/raffles/{$raffle->uuid}/tickets", [
-            'quantity' => 5
+            'quantity' => 5,
         ]);
 
         $response->assertStatus(201)
@@ -67,16 +67,16 @@ class CustomerRaffleTicketTest extends TestCase
                         'uuid',
                         'ticket_number',
                         'status',
-                        'created_at'
-                    ]
+                        'created_at',
+                    ],
                 ],
-                'remaining_tickets'
+                'remaining_tickets',
             ]);
 
         $this->assertDatabaseHas('raffle_tickets', [
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         // Verificar que wallet tickets foi decrementado
@@ -91,30 +91,30 @@ class CustomerRaffleTicketTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create();
-        
+
         WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 1,
             'total_tickets' => 3,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create([
             'status' => 'active',
             'min_ticket_level' => 1,
-            'max_tickets_per_user' => 10
+            'max_tickets_per_user' => 10,
         ]);
 
         Sanctum::actingAs($user);
 
         $response = $this->postJson("/api/v1/customer/raffles/{$raffle->uuid}/tickets", [
-            'quantity' => 5
+            'quantity' => 5,
         ]);
 
         $response->assertStatus(400)
             ->assertJson([
-                'message' => 'Você não possui tickets suficientes.'
+                'message' => 'Você não possui tickets suficientes.',
             ]);
     }
 
@@ -125,30 +125,30 @@ class CustomerRaffleTicketTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create();
-        
+
         WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 1,
             'total_tickets' => 20,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create([
             'status' => 'active',
             'min_ticket_level' => 1,
-            'max_tickets_per_user' => 5
+            'max_tickets_per_user' => 5,
         ]);
 
         Sanctum::actingAs($user);
 
         $response = $this->postJson("/api/v1/customer/raffles/{$raffle->uuid}/tickets", [
-            'quantity' => 10
+            'quantity' => 10,
         ]);
 
         $response->assertStatus(400)
             ->assertJson([
-                'message' => 'Quantidade excede o limite de 5 tickets por usuário para esta rifa.'
+                'message' => 'Quantidade excede o limite de 5 tickets por usuário para esta rifa.',
             ]);
     }
 
@@ -159,30 +159,30 @@ class CustomerRaffleTicketTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create();
-        
+
         WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 1,
             'total_tickets' => 10,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create([
             'status' => 'active',
             'min_ticket_level' => 3,
-            'max_tickets_per_user' => 10
+            'max_tickets_per_user' => 10,
         ]);
 
         Sanctum::actingAs($user);
 
         $response = $this->postJson("/api/v1/customer/raffles/{$raffle->uuid}/tickets", [
-            'quantity' => 5
+            'quantity' => 5,
         ]);
 
         $response->assertStatus(400)
             ->assertJson([
-                'message' => 'Você não possui tickets do nível mínimo exigido (3).'
+                'message' => 'Você não possui tickets do nível mínimo exigido (3).',
             ]);
     }
 
@@ -193,30 +193,30 @@ class CustomerRaffleTicketTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create();
-        
+
         WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 1,
             'total_tickets' => 10,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create([
             'status' => 'inactive',
             'min_ticket_level' => 1,
-            'max_tickets_per_user' => 10
+            'max_tickets_per_user' => 10,
         ]);
 
         Sanctum::actingAs($user);
 
         $response = $this->postJson("/api/v1/customer/raffles/{$raffle->uuid}/tickets", [
-            'quantity' => 5
+            'quantity' => 5,
         ]);
 
         $response->assertStatus(400)
             ->assertJson([
-                'message' => 'Esta rifa não está ativa.'
+                'message' => 'Esta rifa não está ativa.',
             ]);
     }
 
@@ -227,23 +227,23 @@ class CustomerRaffleTicketTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $raffle = Raffle::factory()->create(['status' => 'active']);
-        
+
         // Criar tickets aplicados
         $ticket1 = Ticket::first();
         $ticket2 = Ticket::skip(1)->first();
-        
+
         RaffleTicket::create([
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket1->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
-        
+
         RaffleTicket::create([
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket2->id,
-            'status' => 'confirmed'
+            'status' => 'confirmed',
         ]);
 
         Sanctum::actingAs($user);
@@ -257,11 +257,11 @@ class CustomerRaffleTicketTest extends TestCase
                         'uuid',
                         'ticket_number',
                         'status',
-                        'created_at'
-                    ]
+                        'created_at',
+                    ],
                 ],
                 'total',
-                'by_status'
+                'by_status',
             ]);
 
         $this->assertCount(2, $response->json('tickets'));
@@ -274,39 +274,39 @@ class CustomerRaffleTicketTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create();
-        
+
         $walletTicket = WalletTicket::factory()->create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'ticket_level' => 1,
             'total_tickets' => 5,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $raffle = Raffle::factory()->create(['status' => 'active']);
         $ticket = Ticket::first();
-        
+
         $raffleTicket = RaffleTicket::create([
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         Sanctum::actingAs($user);
 
         $response = $this->deleteJson("/api/v1/customer/raffles/{$raffle->uuid}/tickets", [
-            'raffle_ticket_uuids' => [$raffleTicket->uuid]
+            'raffle_ticket_uuids' => [$raffleTicket->uuid],
         ]);
 
         $response->assertStatus(200)
             ->assertJson([
-                'message' => 'Tickets cancelados com sucesso'
+                'message' => 'Tickets cancelados com sucesso',
             ]);
 
         $this->assertDatabaseMissing('raffle_tickets', [
             'uuid' => $raffleTicket->uuid,
-            'deleted_at' => null
+            'deleted_at' => null,
         ]);
 
         // Verificar que wallet tickets foi incrementado
@@ -322,23 +322,23 @@ class CustomerRaffleTicketTest extends TestCase
         $user = User::factory()->create(['role' => 'customer']);
         $raffle = Raffle::factory()->create(['status' => 'active']);
         $ticket = Ticket::first();
-        
+
         $raffleTicket = RaffleTicket::create([
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket->id,
-            'status' => 'confirmed'
+            'status' => 'confirmed',
         ]);
 
         Sanctum::actingAs($user);
 
         $response = $this->deleteJson("/api/v1/customer/raffles/{$raffle->uuid}/tickets", [
-            'raffle_ticket_uuids' => [$raffleTicket->uuid]
+            'raffle_ticket_uuids' => [$raffleTicket->uuid],
         ]);
 
         $response->assertStatus(400)
             ->assertJson([
-                'message' => 'Alguns tickets não puderam ser cancelados (já estão confirmados ou não pertencem a você).'
+                'message' => 'Alguns tickets não puderam ser cancelados (já estão confirmados ou não pertencem a você).',
             ]);
     }
 
@@ -348,7 +348,7 @@ class CustomerRaffleTicketTest extends TestCase
     public function test_customer_can_list_all_available_raffles(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        
+
         Raffle::factory()->create(['status' => 'active']);
         Raffle::factory()->create(['status' => 'active']);
         Raffle::factory()->create(['status' => 'inactive']);
@@ -366,10 +366,10 @@ class CustomerRaffleTicketTest extends TestCase
                             'title',
                             'description',
                             'prize_value',
-                            'status'
-                        ]
-                    ]
-                ]
+                            'status',
+                        ],
+                    ],
+                ],
             ]);
     }
 
@@ -396,8 +396,8 @@ class CustomerRaffleTicketTest extends TestCase
                     'tickets_required',
                     'min_ticket_level',
                     'max_tickets_per_user',
-                    'status'
-                ]
+                    'status',
+                ],
             ]);
     }
 
@@ -418,21 +418,21 @@ class CustomerRaffleTicketTest extends TestCase
 
         // Test invalid quantity (zero)
         $response = $this->postJson("/api/v1/customer/raffles/{$raffle->uuid}/tickets", [
-            'quantity' => 0
+            'quantity' => 0,
         ]);
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['quantity']);
 
         // Test invalid quantity (negative)
         $response = $this->postJson("/api/v1/customer/raffles/{$raffle->uuid}/tickets", [
-            'quantity' => -5
+            'quantity' => -5,
         ]);
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['quantity']);
 
         // Test invalid quantity (not integer)
         $response = $this->postJson("/api/v1/customer/raffles/{$raffle->uuid}/tickets", [
-            'quantity' => 'five'
+            'quantity' => 'five',
         ]);
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['quantity']);
@@ -446,7 +446,7 @@ class CustomerRaffleTicketTest extends TestCase
         $raffle = Raffle::factory()->create(['status' => 'active']);
 
         $response = $this->postJson("/api/v1/customer/raffles/{$raffle->uuid}/tickets", [
-            'quantity' => 5
+            'quantity' => 5,
         ]);
         $response->assertStatus(401);
 
@@ -454,7 +454,7 @@ class CustomerRaffleTicketTest extends TestCase
         $response->assertStatus(401);
 
         $response = $this->deleteJson("/api/v1/customer/raffles/{$raffle->uuid}/tickets", [
-            'raffle_ticket_uuids' => []
+            'raffle_ticket_uuids' => [],
         ]);
         $response->assertStatus(401);
     }

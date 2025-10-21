@@ -8,7 +8,7 @@ use App\Models\Plan;
 use App\Models\User;
 use Illuminate\Support\Str;
 
-class CustomerCartService 
+class CustomerCartService
 {
     /**
      * Adicionar item ao carrinho (criar ou atualizar)
@@ -21,7 +21,7 @@ class CustomerCartService
             ->where('status', 'active')
             ->first();
 
-        if (!$plan) {
+        if (! $plan) {
             throw new \Exception('Plano não encontrado ou inativo');
         }
 
@@ -33,12 +33,12 @@ class CustomerCartService
         if ($existingCart) {
             // Atualizar o plan_id do carrinho existente
             $existingCart->update([
-                'plan_id' => $plan->id
+                'plan_id' => $plan->id,
             ]);
 
             return [
                 'cart' => $existingCart->fresh()->load('plan'),
-                'action' => 'updated'
+                'action' => 'updated',
             ];
         } else {
             // Criar novo carrinho
@@ -46,12 +46,12 @@ class CustomerCartService
                 'uuid' => Str::uuid(),
                 'user_id' => $user->id,
                 'plan_id' => $plan->id,
-                'status' => 'active'
+                'status' => 'active',
             ]);
 
             return [
                 'cart' => $cart->load('plan'),
-                'action' => 'created'
+                'action' => 'created',
             ];
         }
     }
@@ -66,16 +66,16 @@ class CustomerCartService
             ->with('plan')
             ->first();
 
-        if (!$cart) {
+        if (! $cart) {
             return [
                 'cart' => null,
-                'total' => 0
+                'total' => 0,
             ];
         }
 
         return [
             'cart' => $cart,
-            'total' => 1
+            'total' => 1,
         ];
     }
 
@@ -88,7 +88,7 @@ class CustomerCartService
             ->where('status', 'active')
             ->first();
 
-        if (!$cart) {
+        if (! $cart) {
             throw new \Exception('Carrinho vazio');
         }
 
@@ -120,7 +120,7 @@ class CustomerCartService
             ->with('plan')
             ->first();
 
-        if (!$cart) {
+        if (! $cart) {
             throw new \Exception('Carrinho vazio');
         }
 
@@ -143,18 +143,18 @@ class CustomerCartService
                 'commission_level_3' => $cart->plan->commission_level_3,
                 'is_promotional' => $cart->plan->is_promotional,
             ],
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         // Atualizar Cart com order_id e status completed
         $cart->update([
             'order_id' => $order->id,
-            'status' => 'completed'
+            'status' => 'completed',
         ]);
 
         return [
             'order' => $order->load('plan'),
-            'cart' => $cart->fresh()
+            'cart' => $cart->fresh(),
         ];
     }
 }

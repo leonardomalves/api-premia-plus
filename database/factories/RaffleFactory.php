@@ -74,7 +74,7 @@ class RaffleFactory extends Factory
                 'operation_cost' => 150.00,
                 'unit_ticket_value' => 12.00,
                 'tickets_required' => 210,
-            ]
+            ],
         ];
 
         $product = $this->faker->randomElement($products);

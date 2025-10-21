@@ -25,7 +25,6 @@ return new class extends Migration
             $table->index(['raffle_id', 'user_id']);
             $table->index(['user_id', 'status']);
 
-
         });
     }
 

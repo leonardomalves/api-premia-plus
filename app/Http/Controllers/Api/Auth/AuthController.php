@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -64,14 +63,14 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (! Auth::attempt($request->only('email', 'password'))) {
             throw ValidationException::withMessages([
                 'email' => ['As credenciais fornecidas estão incorretas.'],
             ]);
         }
 
         $user = User::where('email', $request->email)->firstOrFail();
-        
+
         // Verificar se o usuário está ativo
         if ($user->status !== 'active') {
             return response()->json([
@@ -117,10 +116,10 @@ class AuthController extends Controller
     public function refresh(Request $request)
     {
         $user = $request->user();
-        
+
         // Revogar token atual
         $request->user()->currentAccessToken()->delete();
-        
+
         // Criar novo token
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -137,7 +136,7 @@ class AuthController extends Controller
     public function profile(Request $request)
     {
         $user = $request->user();
-        
+
         return response()->json([
             'user' => [
                 'id' => $user->id,
@@ -185,7 +184,7 @@ class AuthController extends Controller
 
         $user = $request->user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             throw ValidationException::withMessages([
                 'current_password' => ['A senha atual está incorreta.'],
             ]);

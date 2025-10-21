@@ -7,8 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FinancialStatement extends Model
 {
-
-use SoftDeletes;
+    use SoftDeletes;
 
     protected $fillable = [
         'uuid',

@@ -13,7 +13,9 @@ class ExecuteBusinessRuleJob implements ShouldQueue
     use Queueable;
 
     public int $orderId;
+
     public int $tries = 3;
+
     public int $timeout = 300;
 
     /**
@@ -33,17 +35,18 @@ class ExecuteBusinessRuleJob implements ShouldQueue
 
         // Find order at execution time
         $order = Order::find($this->orderId);
-        
-        if (!$order) {
+
+        if (! $order) {
             Log::error("Order not found: {$this->orderId}");
+
             return;
         }
 
         try {
             $result = app(ExecuteBusinessRule::class)->execute($order);
-            Log::info("Business rules executed successfully", $result);
+            Log::info('Business rules executed successfully', $result);
         } catch (\Exception $e) {
-            Log::error("Error executing business rules for Order {$this->orderId}: " . $e->getMessage());
+            Log::error("Error executing business rules for Order {$this->orderId}: ".$e->getMessage());
             throw $e;
         }
     }
@@ -53,6 +56,6 @@ class ExecuteBusinessRuleJob implements ShouldQueue
      */
     public function failed(\Throwable $exception): void
     {
-        Log::error("ExecuteBusinessRuleJob failed for Order {$this->orderId}: " . $exception->getMessage());
+        Log::error("ExecuteBusinessRuleJob failed for Order {$this->orderId}: ".$exception->getMessage());
     }
 }

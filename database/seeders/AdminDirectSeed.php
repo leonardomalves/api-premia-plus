@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -57,7 +56,7 @@ class AdminDirectSeed extends Seeder
                 'password' => 'password',
                 'phone' => '11995555555',
                 'role' => 'admin',
-            ]
+            ],
         ];
 
         $successCount = 0;
@@ -72,6 +71,7 @@ class AdminDirectSeed extends Seeder
 
                 if ($existingUser) {
                     $this->command->warn("⚠️ {$adminData['name']} já existe no banco");
+
                     continue;
                 }
 
@@ -93,7 +93,7 @@ class AdminDirectSeed extends Seeder
                 $this->command->line("   📧 Email: {$admin->email}");
                 $this->command->line("   👤 Username: {$admin->username}");
                 $this->command->line("   🆔 UUID: {$admin->uuid}");
-                
+
                 $successCount++;
 
             } catch (\Exception $e) {
@@ -104,14 +104,14 @@ class AdminDirectSeed extends Seeder
 
         // Resumo
         $total = count($admins);
-        $this->command->info("📊 RESUMO DA CRIAÇÃO DE ADMINS");
-        $this->command->line("═══════════════════════════════");
+        $this->command->info('📊 RESUMO DA CRIAÇÃO DE ADMINS');
+        $this->command->line('═══════════════════════════════');
         $this->command->info("✅ Admins criados: {$successCount}");
         if ($errorCount > 0) {
             $this->command->error("❌ Falhas: {$errorCount}");
         }
         $this->command->line("📊 Total processados: {$total}");
-        $this->command->line("═══════════════════════════════");
+        $this->command->line('═══════════════════════════════');
 
         // Verificar criação
         $this->verifyAdminsCreated();
@@ -127,14 +127,14 @@ class AdminDirectSeed extends Seeder
         $this->command->info('🔍 Verificando administradores criados...');
 
         $admins = User::where('role', 'admin')->get();
-        
+
         if ($admins->count() > 0) {
             $this->command->info("👥 {$admins->count()} administrador(es) encontrado(s) no banco:");
-            
+
             foreach ($admins as $admin) {
                 $this->command->line("   • {$admin->name} ({$admin->email})");
             }
-            
+
             $this->command->info('✅ Verificação concluída!');
         } else {
             $this->command->error('❌ Nenhum administrador encontrado no banco!');

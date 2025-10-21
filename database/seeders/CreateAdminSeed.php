@@ -3,12 +3,12 @@
 namespace Database\Seeders;
 
 use App\Services\Core\HttpClient;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CreateAdminSeed extends Seeder
 {
     private $baseUrl = 'http://localhost:8000/api/v1';
+
     private $adminToken = null;
 
     /**
@@ -17,26 +17,29 @@ class CreateAdminSeed extends Seeder
     private function checkServerRunning(): bool
     {
         $this->command->info('🔍 Verificando se o servidor Laravel está rodando...');
-        
+
         try {
             $context = stream_context_create([
                 'http' => [
                     'timeout' => 3,
                     'method' => 'GET',
-                ]
+                ],
             ]);
-            
+
             $response = @file_get_contents('http://localhost:8000', false, $context);
-            
+
             if ($response !== false) {
                 $this->command->info('✅ Servidor Laravel está rodando na porta 8000');
+
                 return true;
             } else {
                 $this->command->error('❌ Servidor Laravel não está respondendo na porta 8000');
+
                 return false;
             }
         } catch (\Exception $e) {
             $this->command->error("❌ Erro ao verificar servidor: {$e->getMessage()}");
+
             return false;
         }
     }
@@ -49,25 +52,27 @@ class CreateAdminSeed extends Seeder
         $this->command->info('🚀 Iniciando criação dos usuários administradores via API...');
 
         // Verificar se o servidor está rodando
-        if (!$this->checkServerRunning()) {
+        if (! $this->checkServerRunning()) {
             $this->command->error('❌ Servidor Laravel não está rodando.');
             $this->command->warn('💡 Execute em outro terminal: php artisan serve');
             $this->command->warn('💡 Ou verifique se o servidor está rodando na porta 8000');
+
             return;
         }
 
         // Verificar se a API está disponível
-        if (!$this->checkApiHealth()) {
+        if (! $this->checkApiHealth()) {
             $this->command->error('❌ API não está disponível. Verifique as rotas da API.');
+
             return;
         }
 
         // Criar múltiplos administradores
         $this->createAdminUsers();
-        
+
         // Fazer login do admin principal para obter token
         $this->loginMainAdmin();
-        
+
         // Verificar configuração dos admins
         $this->checkAdminsConfiguration();
 
@@ -80,19 +85,22 @@ class CreateAdminSeed extends Seeder
     private function checkApiHealth(): bool
     {
         $this->command->info('🔍 Verificando disponibilidade da API...');
-        
+
         try {
-            $response = (new HttpClient())->apiRequest("{$this->baseUrl}/health", [], [], 'GET');
-            
+            $response = (new HttpClient)->apiRequest("{$this->baseUrl}/health", [], [], 'GET');
+
             if ($response->status == 200) {
                 $this->command->info('✅ API está disponível e respondendo');
+
                 return true;
             } else {
                 $this->command->warn("⚠️ API respondeu com status: {$response->status}");
+
                 return false;
             }
         } catch (\Exception $e) {
             $this->command->error("❌ Erro ao conectar com a API: {$e->getMessage()}");
+
             return false;
         }
     }
@@ -110,12 +118,12 @@ class CreateAdminSeed extends Seeder
             $this->command->info("👤 Criando admin: {$admin['name']}...");
 
             try {
-                $response = (new HttpClient())->apiRequest("{$this->baseUrl}/register", $admin, [], 'POST');
+                $response = (new HttpClient)->apiRequest("{$this->baseUrl}/register", $admin, [], 'POST');
 
                 if ($response->status == 200 || $response->status == 201) {
                     $this->command->info("✅ {$admin['name']} criado com sucesso!");
                     $successCount++;
-                    
+
                     // Armazenar token do primeiro admin (principal) para usar nos testes
                     if ($index === 0) {
                         $this->adminToken = $response->content->access_token ?? null;
@@ -136,7 +144,7 @@ class CreateAdminSeed extends Seeder
         // Resumo da criação
         $total = count($admins);
         $this->command->info("📊 Resumo: {$successCount}/{$total} admins criados com sucesso");
-        
+
         if ($errorCount > 0) {
             $this->command->warn("⚠️ {$errorCount} admin(s) falharam na criação");
         }
@@ -148,7 +156,7 @@ class CreateAdminSeed extends Seeder
     private function handleAdminCreationError(array $admin, object $response): void
     {
         $this->command->error("❌ Erro ao criar {$admin['name']}:");
-        
+
         if ($response->status === 0) {
             $this->command->error('  • Problema de conectividade - verifique se a API está rodando');
             $this->command->warn('  • Execute: php artisan serve');
@@ -156,14 +164,14 @@ class CreateAdminSeed extends Seeder
             $this->command->error('  • Dados de validação inválidos');
             if (isset($response->content->errors)) {
                 foreach ($response->content->errors as $field => $errors) {
-                    $this->command->error("  • {$field}: " . implode(', ', $errors));
+                    $this->command->error("  • {$field}: ".implode(', ', $errors));
                 }
             }
         } elseif ($response->status === 409) {
             $this->command->warn('  • Admin já existe (email ou username duplicado)');
         } else {
             $this->command->error("  • Status: {$response->status}");
-            $this->command->error('  • Mensagem: ' . ($response->content->message ?? 'Erro desconhecido'));
+            $this->command->error('  • Mensagem: '.($response->content->message ?? 'Erro desconhecido'));
         }
     }
 
@@ -217,7 +225,7 @@ class CreateAdminSeed extends Seeder
                 'password_confirmation' => 'password',
                 'phone' => '11995555555',
                 'role' => 'admin',
-            ]
+            ],
         ];
     }
 
@@ -226,7 +234,7 @@ class CreateAdminSeed extends Seeder
      */
     private function loginMainAdmin(): void
     {
-        if (!$this->adminToken) {
+        if (! $this->adminToken) {
             $this->command->warn('⚠️ Admin principal pode não ter sido criado. Tentando login manual...');
         }
 
@@ -238,7 +246,7 @@ class CreateAdminSeed extends Seeder
         ];
 
         try {
-            $response = (new HttpClient())->apiRequest("{$this->baseUrl}/login", $data, [], 'POST');
+            $response = (new HttpClient)->apiRequest("{$this->baseUrl}/login", $data, [], 'POST');
 
             if ($response->status == 200) {
                 $this->adminToken = $response->content->access_token ?? null;
@@ -248,7 +256,7 @@ class CreateAdminSeed extends Seeder
             } elseif ($response->status === 401) {
                 $this->command->error('❌ Credenciais inválidas - admin pode não ter sido criado corretamente');
             } else {
-                $this->command->error("❌ Erro no login (Status: {$response->status}): " . ($response->content->message ?? 'Erro desconhecido'));
+                $this->command->error("❌ Erro no login (Status: {$response->status}): ".($response->content->message ?? 'Erro desconhecido'));
             }
         } catch (\Exception $e) {
             $this->command->error("❌ Exceção no login: {$e->getMessage()}");
@@ -260,8 +268,9 @@ class CreateAdminSeed extends Seeder
      */
     private function checkAdminsConfiguration(): void
     {
-        if (!$this->adminToken) {
+        if (! $this->adminToken) {
             $this->command->warn('⚠️ Token do admin principal não disponível');
+
             return;
         }
 
@@ -283,16 +292,16 @@ class CreateAdminSeed extends Seeder
     private function checkSingleAdminRole(): void
     {
         $headers = [
-            'Authorization' => 'Bearer ' . $this->adminToken,
+            'Authorization' => 'Bearer '.$this->adminToken,
         ];
 
-        $response = (new HttpClient())->apiRequest("{$this->baseUrl}/me", [], $headers, 'GET');
+        $response = (new HttpClient)->apiRequest("{$this->baseUrl}/me", [], $headers, 'GET');
 
         if ($response->status == 200) {
             $userRole = $response->content->user->role ?? 'unknown';
             $userName = $response->content->user->name ?? 'unknown';
             $this->command->info("👤 Admin principal: {$userName} | Role: {$userRole}");
-            
+
             if ($userRole !== 'admin') {
                 $this->command->warn('⚠️ Admin principal não tem role de administrador!');
             } else {
@@ -319,7 +328,7 @@ class CreateAdminSeed extends Seeder
                 'password' => $admin['password'],
             ];
 
-            $response = (new HttpClient())->apiRequest("{$this->baseUrl}/login", $loginData, [], 'POST');
+            $response = (new HttpClient)->apiRequest("{$this->baseUrl}/login", $loginData, [], 'POST');
 
             if ($response->status == 200) {
                 $successfulLogins++;
@@ -349,7 +358,7 @@ class CreateAdminSeed extends Seeder
         ];
 
         foreach ($endpoints as [$method, $endpoint, $description]) {
-            $response = (new HttpClient())->apiRequest("{$this->baseUrl}{$endpoint}", [], [], $method);
+            $response = (new HttpClient)->apiRequest("{$this->baseUrl}{$endpoint}", [], [], $method);
             if ($response->status == 200) {
                 $this->command->line("  ✅ {$description} OK");
             } else {
@@ -359,9 +368,9 @@ class CreateAdminSeed extends Seeder
 
         // Testar endpoint autenticado
         if ($this->adminToken) {
-            $headers = ['Authorization' => 'Bearer ' . $this->adminToken];
-            $response = (new HttpClient())->apiRequest("{$this->baseUrl}/me", [], $headers, 'GET');
-            
+            $headers = ['Authorization' => 'Bearer '.$this->adminToken];
+            $response = (new HttpClient)->apiRequest("{$this->baseUrl}/me", [], $headers, 'GET');
+
             if ($response->status == 200) {
                 $this->command->line('  ✅ Admin profile endpoint OK');
             } else {

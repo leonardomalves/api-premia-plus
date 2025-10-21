@@ -7,7 +7,6 @@ use App\Models\Plan;
 use App\Services\Administrator\PlanManagementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class AdministratorPlanController extends Controller
@@ -18,6 +17,7 @@ class AdministratorPlanController extends Controller
     {
         $this->planService = $planService;
     }
+
     /**
      * Listar todos os planos (admin)
      */
@@ -25,34 +25,34 @@ class AdministratorPlanController extends Controller
     {
         try {
             $filters = [];
-            
-            if ($request->has('status') && !empty($request->get('status'))) {
+
+            if ($request->has('status') && ! empty($request->get('status'))) {
                 $filters['status'] = $request->get('status');
             }
-            
+
             if ($request->has('promotional')) {
                 $filters['promotional'] = $request->boolean('promotional');
             }
-            
+
             if ($request->has('min_price') && $request->get('min_price') !== null && $request->get('min_price') !== '') {
                 $filters['min_price'] = $request->float('min_price');
             }
-            
+
             if ($request->has('max_price') && $request->get('max_price') !== null && $request->get('max_price') !== '') {
                 $filters['max_price'] = $request->float('max_price');
             }
-            
-            if ($request->has('search') && !empty($request->get('search'))) {
+
+            if ($request->has('search') && ! empty($request->get('search'))) {
                 $filters['search'] = $request->get('search');
             }
-            
-            if ($request->has('sort_by') && !empty($request->get('sort_by'))) {
+
+            if ($request->has('sort_by') && ! empty($request->get('sort_by'))) {
                 $filters['sort_by'] = $request->get('sort_by');
             } else {
                 $filters['sort_by'] = 'created_at';
             }
-            
-            if ($request->has('sort_order') && !empty($request->get('sort_order'))) {
+
+            if ($request->has('sort_order') && ! empty($request->get('sort_order'))) {
                 $filters['sort_order'] = $request->get('sort_order');
             } else {
                 $filters['sort_order'] = 'desc';
@@ -64,14 +64,14 @@ class AdministratorPlanController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Planos listados com sucesso',
-                'data' => $result
+                'data' => $result,
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao listar planos',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -88,20 +88,20 @@ class AdministratorPlanController extends Controller
                 'success' => true,
                 'message' => 'Plano encontrado com sucesso',
                 'data' => [
-                    'plan' => $plan
-                ]
+                    'plan' => $plan,
+                ],
             ], 200);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Plano não encontrado'
+                'message' => 'Plano não encontrado',
             ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao buscar plano',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -124,28 +124,28 @@ class AdministratorPlanController extends Controller
                 'start_date' => 'required|date',
                 'end_date' => 'nullable|date|after:start_date',
             ]);
-            
+
             $plan = $this->planService->createPlan($validated);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Plano criado com sucesso',
                 'data' => [
-                    'plan' => $plan
-                ]
+                    'plan' => $plan,
+                ],
             ], 201);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Dados inválidos',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao criar plano',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -170,33 +170,33 @@ class AdministratorPlanController extends Controller
                 'start_date' => 'sometimes|date',
                 'end_date' => 'nullable|date|after:start_date',
             ]);
-            
+
             $plan = $this->planService->updatePlan($uuid, $validated);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Plano atualizado com sucesso',
                 'data' => [
-                    'plan' => $plan
-                ]
+                    'plan' => $plan,
+                ],
             ], 200);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Dados inválidos',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Plano não encontrado'
+                'message' => 'Plano não encontrado',
             ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao atualizar plano',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -211,19 +211,19 @@ class AdministratorPlanController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Plano deletado com sucesso'
+                'message' => 'Plano deletado com sucesso',
             ], 200);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Plano não encontrado'
+                'message' => 'Plano não encontrado',
             ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao deletar plano',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -235,7 +235,7 @@ class AdministratorPlanController extends Controller
     {
         try {
             $plan = $this->planService->toggleStatus($uuid);
-            
+
             $message = $plan->status === 'active' ? 'Plano ativado com sucesso' : 'Plano desativado com sucesso';
 
             return response()->json([
@@ -243,20 +243,20 @@ class AdministratorPlanController extends Controller
                 'message' => $message,
                 'data' => [
                     'plan' => $plan,
-                    'new_status' => $plan->status
-                ]
+                    'new_status' => $plan->status,
+                ],
             ], 200);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Plano não encontrado'
+                'message' => 'Plano não encontrado',
             ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao alterar status do plano',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -273,15 +273,15 @@ class AdministratorPlanController extends Controller
                 'success' => true,
                 'message' => 'Estatísticas dos planos',
                 'data' => [
-                    'statistics' => $stats
-                ]
+                    'statistics' => $stats,
+                ],
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao buscar estatísticas',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

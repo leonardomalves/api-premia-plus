@@ -20,7 +20,7 @@ class CustomerService
      * Update authenticated user's profile
      */
     public function updateProfile(User $user, array $validated): User
-    {    
+    {
         if (empty($validated)) {
             throw new \Exception('Nenhuma alteração fornecida.');
         }
@@ -55,7 +55,7 @@ class CustomerService
      */
     public function sponsor(User $user): array
     {
-        if (!$user->sponsor_id) {
+        if (! $user->sponsor_id) {
             throw new \Exception('Você não possui patrocinador');
         }
 
@@ -107,7 +107,7 @@ class CustomerService
      */
     public function changePassword(User $user, string $currentPassword, string $newPassword): void
     {
-        if (!Hash::check($currentPassword, $user->password)) {
+        if (! Hash::check($currentPassword, $user->password)) {
             throw ValidationException::withMessages([
                 'current_password' => ['A senha atual está incorreta.'],
             ]);
@@ -124,12 +124,12 @@ class CustomerService
     public function userNetwork(User $currentUser, string $uuid): array
     {
         $targetUser = User::where('uuid', $uuid)->firstOrFail();
-        
+
         // Verificar se o usuário pode ver esta rede
         if ($currentUser->id !== $targetUser->id && $currentUser->role !== 'admin') {
             throw new \Exception('Acesso negado.');
         }
-        
+
         $network = User::where('sponsor_id', $targetUser->id)
             ->with('sponsor')
             ->paginate(15);
@@ -151,13 +151,13 @@ class CustomerService
     public function userSponsor(User $currentUser, string $uuid): array
     {
         $targetUser = User::where('uuid', $uuid)->firstOrFail();
-        
+
         // Verificar se o usuário pode ver este patrocinador
         if ($currentUser->id !== $targetUser->id && $currentUser->role !== 'admin') {
             throw new \Exception('Acesso negado.');
         }
-        
-        if (!$targetUser->sponsor_id) {
+
+        if (! $targetUser->sponsor_id) {
             throw new \Exception('Usuário não possui patrocinador');
         }
 
@@ -185,12 +185,12 @@ class CustomerService
     public function userStatistics(User $currentUser, string $uuid): array
     {
         $targetUser = User::where('uuid', $uuid)->firstOrFail();
-        
+
         // Verificar se o usuário pode ver estas estatísticas
         if ($currentUser->id !== $targetUser->id && $currentUser->role !== 'admin') {
             throw new \Exception('Acesso negado.');
         }
-        
+
         $stats = [
             'total_network' => User::where('sponsor_id', $targetUser->id)->count(),
             'active_network' => User::where('sponsor_id', $targetUser->id)->where('status', 'active')->count(),

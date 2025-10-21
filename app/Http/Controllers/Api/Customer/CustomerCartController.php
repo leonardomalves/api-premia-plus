@@ -23,7 +23,7 @@ class CustomerCartController extends Controller
     public function addToCart(Request $request): JsonResponse
     {
         $request->validate([
-            'plan_uuid' => 'required|string|uuid'
+            'plan_uuid' => 'required|string|uuid',
         ]);
 
         try {
@@ -32,8 +32,8 @@ class CustomerCartController extends Controller
                 $request->input('plan_uuid')
             );
 
-            $message = $result['action'] === 'updated' 
-                ? 'Carrinho atualizado com sucesso' 
+            $message = $result['action'] === 'updated'
+                ? 'Carrinho atualizado com sucesso'
                 : 'Item adicionado ao carrinho com sucesso';
 
             $statusCode = $result['action'] === 'created' ? 201 : 200;
@@ -41,15 +41,15 @@ class CustomerCartController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'data' => $result
+                'data' => $result,
             ], $statusCode);
 
         } catch (\Exception $e) {
             $statusCode = $e->getMessage() === 'Plano não encontrado ou inativo' ? 404 : 500;
-            
+
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], $statusCode);
         }
     }
@@ -62,21 +62,21 @@ class CustomerCartController extends Controller
         try {
             $result = $this->cartService->viewCart($request->user());
 
-            $message = $result['cart'] === null 
-                ? 'Carrinho vazio' 
+            $message = $result['cart'] === null
+                ? 'Carrinho vazio'
                 : 'Carrinho carregado com sucesso';
 
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'data' => $result
+                'data' => $result,
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao carregar carrinho',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -91,15 +91,15 @@ class CustomerCartController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Item removido do carrinho com sucesso'
+                'message' => 'Item removido do carrinho com sucesso',
             ], 200);
 
         } catch (\Exception $e) {
             $statusCode = $e->getMessage() === 'Carrinho vazio' ? 404 : 500;
-            
+
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], $statusCode);
         }
     }
@@ -116,15 +116,15 @@ class CustomerCartController extends Controller
                 'success' => true,
                 'message' => 'Carrinho limpo com sucesso',
                 'data' => [
-                    'cleared_items' => $clearedItems
-                ]
+                    'cleared_items' => $clearedItems,
+                ],
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao limpar carrinho',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -140,15 +140,15 @@ class CustomerCartController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Compra finalizada com sucesso',
-                'data' => $result
+                'data' => $result,
             ], 201);
 
         } catch (\Exception $e) {
             $statusCode = $e->getMessage() === 'Carrinho vazio' ? 404 : 500;
-            
+
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], $statusCode);
         }
     }

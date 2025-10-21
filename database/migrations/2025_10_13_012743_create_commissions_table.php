@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('paid')->default(false); // Se foi pago
             $table->timestamp('available_at')->nullable(); // Quando fica disponível para saque
             $table->timestamps();
-            
+
             // Índice único para evitar duplicação
             $table->unique(['order_id', 'user_id', 'origin_user_id'], 'unique_commission');
         });

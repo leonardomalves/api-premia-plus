@@ -3,14 +3,13 @@
 namespace Tests\Unit;
 
 use App\Models\Order;
-use App\Models\User;
 use App\Models\WalletTicket;
 use App\Services\BusinessRules\ExecuteBusinessRule;
 use App\Services\BusinessRules\PayCommissionService;
 use App\Services\BusinessRules\WalletTicketService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Mockery;
+use Tests\TestCase;
 
 class ExecuteBusinessRuleTest extends TestCase
 {

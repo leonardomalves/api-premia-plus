@@ -18,49 +18,49 @@ class AdministratorUsersTest extends TestCase
     public function test_admin_can_list_all_users(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         // Criar usuários variados
         User::factory(10)->create(['role' => 'user']);
         User::factory(3)->create(['role' => 'admin']);
         User::factory(2)->create(['role' => 'moderator']);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/users');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'users' => [
-                        'current_page',
-                        'data' => [
-                            '*' => [
-                                'id',
-                                'uuid',
-                                'name',
-                                'email',
-                                'username',
-                                'role',
-                                'status',
-                                'phone',
-                                'sponsor_id',
-                                'created_at',
-                                'updated_at',
-                                'sponsor'
-                            ]
+            ->assertJsonStructure([
+                'users' => [
+                    'current_page',
+                    'data' => [
+                        '*' => [
+                            'id',
+                            'uuid',
+                            'name',
+                            'email',
+                            'username',
+                            'role',
+                            'status',
+                            'phone',
+                            'sponsor_id',
+                            'created_at',
+                            'updated_at',
+                            'sponsor',
                         ],
-                        'first_page_url',
-                        'from',
-                        'last_page',
-                        'per_page',
-                        'total'
                     ],
-                    'filters' => [
-                        'search',
-                        'role',
-                        'status',
-                        'sponsor_uuid'
-                    ]
-                ]);
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'per_page',
+                    'total',
+                ],
+                'filters' => [
+                    'search',
+                    'role',
+                    'status',
+                    'sponsor_uuid',
+                ],
+            ]);
 
         // Total deve incluir todos os usuários criados + admin inicial
         $this->assertEquals(16, $response->json('users.total'));
@@ -72,15 +72,15 @@ class AdministratorUsersTest extends TestCase
     public function test_admin_can_search_users(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         $specificUser = User::factory()->create([
             'name' => 'John Doe',
             'email' => 'john.doe@example.com',
-            'username' => 'johndoe'
+            'username' => 'johndoe',
         ]);
-        
+
         User::factory(5)->create(); // Ruído
-        
+
         Sanctum::actingAs($admin);
 
         // Buscar por nome
@@ -111,11 +111,11 @@ class AdministratorUsersTest extends TestCase
     public function test_admin_can_filter_users_by_role(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         User::factory(3)->create(['role' => 'user']);
         User::factory(2)->create(['role' => 'moderator']);
         User::factory(1)->create(['role' => 'support']);
-        
+
         Sanctum::actingAs($admin);
 
         // Filtrar por role user
@@ -143,11 +143,11 @@ class AdministratorUsersTest extends TestCase
     public function test_admin_can_filter_users_by_status(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         User::factory(3)->create(['status' => 'active']);
         User::factory(2)->create(['status' => 'inactive']);
         User::factory(1)->create(['status' => 'suspended']);
-        
+
         Sanctum::actingAs($admin);
 
         // Filtrar por status active
@@ -176,14 +176,14 @@ class AdministratorUsersTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $sponsor = User::factory()->create(['name' => 'Main Sponsor']);
-        
+
         User::factory(3)->create(['sponsor_id' => $sponsor->id]);
         User::factory(2)->create(['sponsor_id' => null]); // Sem patrocinador
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson("/api/v1/administrator/users?sponsor_uuid={$sponsor->uuid}");
-        
+
         $response->assertStatus(200);
         $users = $response->json('users.data');
         $this->assertCount(3, $users);
@@ -202,46 +202,46 @@ class AdministratorUsersTest extends TestCase
         $targetUser = User::factory()->create([
             'name' => 'Target User',
             'email' => 'target@example.com',
-            'sponsor_id' => $sponsor->id
+            'sponsor_id' => $sponsor->id,
         ]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson("/api/v1/administrator/users/{$targetUser->uuid}");
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'user' => [
+            ->assertJsonStructure([
+                'user' => [
+                    'id',
+                    'uuid',
+                    'name',
+                    'email',
+                    'username',
+                    'role',
+                    'status',
+                    'phone',
+                    'sponsor_id',
+                    'created_at',
+                    'updated_at',
+                    'sponsor' => [
                         'id',
                         'uuid',
                         'name',
                         'email',
-                        'username',
-                        'role',
-                        'status',
-                        'phone',
-                        'sponsor_id',
-                        'created_at',
-                        'updated_at',
-                        'sponsor' => [
-                            'id',
-                            'uuid',
-                            'name',
-                            'email'
-                        ]
-                    ]
-                ])
-                ->assertJson([
-                    'user' => [
-                        'uuid' => $targetUser->uuid,
-                        'name' => 'Target User',
-                        'email' => 'target@example.com',
-                        'sponsor' => [
-                            'uuid' => $sponsor->uuid,
-                            'name' => 'Sponsor User'
-                        ]
-                    ]
-                ]);
+                    ],
+                ],
+            ])
+            ->assertJson([
+                'user' => [
+                    'uuid' => $targetUser->uuid,
+                    'name' => 'Target User',
+                    'email' => 'target@example.com',
+                    'sponsor' => [
+                        'uuid' => $sponsor->uuid,
+                        'name' => 'Sponsor User',
+                    ],
+                ],
+            ]);
     }
 
     /**
@@ -251,7 +251,7 @@ class AdministratorUsersTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $sponsor = User::factory()->create();
-        
+
         Sanctum::actingAs($admin);
 
         $userData = [
@@ -263,46 +263,46 @@ class AdministratorUsersTest extends TestCase
             'phone' => '123456789',
             'role' => 'user',
             'status' => 'active',
-            'sponsor_uuid' => $sponsor->uuid
+            'sponsor_uuid' => $sponsor->uuid,
         ];
 
         $response = $this->postJson('/api/v1/administrator/users', $userData);
 
         $response->assertStatus(201)
-                ->assertJsonStructure([
-                    'message',
-                    'user' => [
-                        'id',
-                        'uuid',
-                        'name',
-                        'email',
-                        'username',
-                        'role',
-                        'status',
-                        'phone',
-                        'sponsor_id',
-                        'created_at',
-                        'updated_at',
-                        'sponsor'
-                    ]
-                ])
-                ->assertJson([
-                    'message' => 'Usuário criado com sucesso',
-                    'user' => [
-                        'name' => 'New User',
-                        'email' => 'newuser@example.com',
-                        'username' => 'newuser',
-                        'role' => 'user',
-                        'status' => 'active',
-                        'phone' => '123456789',
-                        'sponsor_id' => $sponsor->id
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'user' => [
+                    'id',
+                    'uuid',
+                    'name',
+                    'email',
+                    'username',
+                    'role',
+                    'status',
+                    'phone',
+                    'sponsor_id',
+                    'created_at',
+                    'updated_at',
+                    'sponsor',
+                ],
+            ])
+            ->assertJson([
+                'message' => 'Usuário criado com sucesso',
+                'user' => [
+                    'name' => 'New User',
+                    'email' => 'newuser@example.com',
+                    'username' => 'newuser',
+                    'role' => 'user',
+                    'status' => 'active',
+                    'phone' => '123456789',
+                    'sponsor_id' => $sponsor->id,
+                ],
+            ]);
 
         $this->assertDatabaseHas('users', [
             'email' => 'newuser@example.com',
             'username' => 'newuser',
-            'sponsor_id' => $sponsor->id
+            'sponsor_id' => $sponsor->id,
         ]);
     }
 
@@ -313,7 +313,7 @@ class AdministratorUsersTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $existingUser = User::factory()->create(['email' => 'existing@example.com']);
-        
+
         Sanctum::actingAs($admin);
 
         $userData = [
@@ -321,13 +321,13 @@ class AdministratorUsersTest extends TestCase
             'email' => 'existing@example.com', // Email duplicado
             'username' => 'newuser',
             'password' => 'password123',
-            'password_confirmation' => 'password123'
+            'password_confirmation' => 'password123',
         ];
 
         $response = $this->postJson('/api/v1/administrator/users', $userData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['email']);
+            ->assertJsonValidationErrors(['email']);
     }
 
     /**
@@ -340,10 +340,10 @@ class AdministratorUsersTest extends TestCase
             'name' => 'Old Name',
             'email' => 'old@example.com',
             'role' => 'user',
-            'status' => 'active'
+            'status' => 'active',
         ]);
         $newSponsor = User::factory()->create();
-        
+
         Sanctum::actingAs($admin);
 
         $updateData = [
@@ -351,23 +351,23 @@ class AdministratorUsersTest extends TestCase
             'email' => 'updated@example.com',
             'role' => 'moderator',
             'status' => 'inactive',
-            'sponsor_uuid' => $newSponsor->uuid
+            'sponsor_uuid' => $newSponsor->uuid,
         ];
 
         $response = $this->putJson("/api/v1/administrator/users/{$targetUser->uuid}", $updateData);
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'Usuário atualizado com sucesso',
-                    'user' => [
-                        'uuid' => $targetUser->uuid,
-                        'name' => 'Updated Name',
-                        'email' => 'updated@example.com',
-                        'role' => 'moderator',
-                        'status' => 'inactive',
-                        'sponsor_id' => $newSponsor->id
-                    ]
-                ]);
+            ->assertJson([
+                'message' => 'Usuário atualizado com sucesso',
+                'user' => [
+                    'uuid' => $targetUser->uuid,
+                    'name' => 'Updated Name',
+                    'email' => 'updated@example.com',
+                    'role' => 'moderator',
+                    'status' => 'inactive',
+                    'sponsor_id' => $newSponsor->id,
+                ],
+            ]);
 
         $this->assertDatabaseHas('users', [
             'uuid' => $targetUser->uuid,
@@ -375,7 +375,7 @@ class AdministratorUsersTest extends TestCase
             'email' => 'updated@example.com',
             'role' => 'moderator',
             'status' => 'inactive',
-            'sponsor_id' => $newSponsor->id
+            'sponsor_id' => $newSponsor->id,
         ]);
     }
 
@@ -386,18 +386,18 @@ class AdministratorUsersTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $targetUser = User::factory()->create(['name' => 'To Delete']);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->deleteJson("/api/v1/administrator/users/{$targetUser->uuid}");
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'Usuário excluído com sucesso'
-                ]);
+            ->assertJson([
+                'message' => 'Usuário excluído com sucesso',
+            ]);
 
         $this->assertSoftDeleted('users', [
-            'uuid' => $targetUser->uuid
+            'uuid' => $targetUser->uuid,
         ]);
     }
 
@@ -407,18 +407,18 @@ class AdministratorUsersTest extends TestCase
     public function test_admin_cannot_delete_themselves(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->deleteJson("/api/v1/administrator/users/{$admin->uuid}");
 
         $response->assertStatus(403)
-                ->assertJson([
-                    'message' => 'Você não pode excluir sua própria conta.'
-                ]);
+            ->assertJson([
+                'message' => 'Você não pode excluir sua própria conta.',
+            ]);
 
         $this->assertDatabaseHas('users', [
-            'uuid' => $admin->uuid
+            'uuid' => $admin->uuid,
         ]);
     }
 
@@ -429,41 +429,41 @@ class AdministratorUsersTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $targetUser = User::factory()->create(['name' => 'Network Owner']);
-        
+
         // Criar rede para o usuário alvo
         User::factory(3)->create(['sponsor_id' => $targetUser->id]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson("/api/v1/administrator/users/{$targetUser->uuid}/network");
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'network' => [
-                        'data' => [
-                            '*' => [
-                                'id',
-                                'uuid',
-                                'name',
-                                'email',
-                                'sponsor_id'
-                            ]
-                        ]
+            ->assertJsonStructure([
+                'network' => [
+                    'data' => [
+                        '*' => [
+                            'id',
+                            'uuid',
+                            'name',
+                            'email',
+                            'sponsor_id',
+                        ],
                     ],
-                    'total_network',
-                    'target_user' => [
-                        'uuid',
-                        'name',
-                        'email'
-                    ]
-                ])
-                ->assertJson([
-                    'total_network' => 3,
-                    'target_user' => [
-                        'uuid' => $targetUser->uuid,
-                        'name' => 'Network Owner'
-                    ]
-                ]);
+                ],
+                'total_network',
+                'target_user' => [
+                    'uuid',
+                    'name',
+                    'email',
+                ],
+            ])
+            ->assertJson([
+                'total_network' => 3,
+                'target_user' => [
+                    'uuid' => $targetUser->uuid,
+                    'name' => 'Network Owner',
+                ],
+            ]);
     }
 
     /**
@@ -475,38 +475,38 @@ class AdministratorUsersTest extends TestCase
         $sponsor = User::factory()->create(['name' => 'The Sponsor']);
         $targetUser = User::factory()->create([
             'sponsor_id' => $sponsor->id,
-            'name' => 'Sponsored User'
+            'name' => 'Sponsored User',
         ]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson("/api/v1/administrator/users/{$targetUser->uuid}/sponsor");
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'sponsor' => [
-                        'uuid',
-                        'name',
-                        'email',
-                        'phone',
-                        'created_at'
-                    ],
-                    'target_user' => [
-                        'uuid',
-                        'name',
-                        'email'
-                    ]
-                ])
-                ->assertJson([
-                    'sponsor' => [
-                        'uuid' => $sponsor->uuid,
-                        'name' => 'The Sponsor'
-                    ],
-                    'target_user' => [
-                        'uuid' => $targetUser->uuid,
-                        'name' => 'Sponsored User'
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'sponsor' => [
+                    'uuid',
+                    'name',
+                    'email',
+                    'phone',
+                    'created_at',
+                ],
+                'target_user' => [
+                    'uuid',
+                    'name',
+                    'email',
+                ],
+            ])
+            ->assertJson([
+                'sponsor' => [
+                    'uuid' => $sponsor->uuid,
+                    'name' => 'The Sponsor',
+                ],
+                'target_user' => [
+                    'uuid' => $targetUser->uuid,
+                    'name' => 'Sponsored User',
+                ],
+            ]);
     }
 
     /**
@@ -516,46 +516,46 @@ class AdministratorUsersTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $targetUser = User::factory()->create(['status' => 'active']);
-        
+
         // Criar rede com diferentes status
         User::factory(2)->create(['sponsor_id' => $targetUser->id, 'status' => 'active']);
         User::factory(1)->create(['sponsor_id' => $targetUser->id, 'status' => 'inactive']);
         User::factory(1)->create(['sponsor_id' => $targetUser->id, 'status' => 'suspended']);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson("/api/v1/administrator/users/{$targetUser->uuid}/statistics");
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'statistics' => [
-                        'total_network',
-                        'active_network',
-                        'inactive_network',
-                        'suspended_network',
-                        'account_created_at',
-                        'last_login',
-                        'user_info' => [
-                            'uuid',
-                            'name',
-                            'email',
-                            'role',
-                            'status'
-                        ]
-                    ]
-                ])
-                ->assertJson([
-                    'statistics' => [
-                        'total_network' => 4,
-                        'active_network' => 2,
-                        'inactive_network' => 1,
-                        'suspended_network' => 1,
-                        'user_info' => [
-                            'uuid' => $targetUser->uuid,
-                            'status' => 'active'
-                        ]
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'statistics' => [
+                    'total_network',
+                    'active_network',
+                    'inactive_network',
+                    'suspended_network',
+                    'account_created_at',
+                    'last_login',
+                    'user_info' => [
+                        'uuid',
+                        'name',
+                        'email',
+                        'role',
+                        'status',
+                    ],
+                ],
+            ])
+            ->assertJson([
+                'statistics' => [
+                    'total_network' => 4,
+                    'active_network' => 2,
+                    'inactive_network' => 1,
+                    'suspended_network' => 1,
+                    'user_info' => [
+                        'uuid' => $targetUser->uuid,
+                        'status' => 'active',
+                    ],
+                ],
+            ]);
     }
 
     /**
@@ -565,31 +565,31 @@ class AdministratorUsersTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $sponsor = User::factory()->create();
-        
+
         // Criar usuários variados
         User::factory(3)->create(['role' => 'user', 'status' => 'active']);
         User::factory(2)->create(['role' => 'user', 'status' => 'inactive']);
         User::factory(1)->create(['role' => 'moderator', 'status' => 'suspended']);
         User::factory(2)->create(['sponsor_id' => $sponsor->id]); // Com patrocinador
         User::factory(1)->create(['sponsor_id' => null]); // Sem patrocinador
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/statistics');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'system_statistics' => [
-                        'total_users',
-                        'active_users',
-                        'inactive_users',
-                        'suspended_users',
-                        'users_by_role',
-                        'users_by_status',
-                        'users_with_sponsors',
-                        'users_without_sponsors'
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'system_statistics' => [
+                    'total_users',
+                    'active_users',
+                    'inactive_users',
+                    'suspended_users',
+                    'users_by_role',
+                    'users_by_status',
+                    'users_with_sponsors',
+                    'users_without_sponsors',
+                ],
+            ]);
 
         $stats = $response->json('system_statistics');
         $this->assertEquals(11, $stats['total_users']); // Todos os usuários
@@ -606,30 +606,30 @@ class AdministratorUsersTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $users = User::factory(3)->create(['role' => 'user', 'status' => 'active']);
-        
+
         Sanctum::actingAs($admin);
 
         $bulkData = [
             'user_uuids' => $users->pluck('uuid')->toArray(),
             'updates' => [
                 'role' => 'moderator',
-                'status' => 'inactive'
-            ]
+                'status' => 'inactive',
+            ],
         ];
 
         $response = $this->postJson('/api/v1/administrator/users/bulk-update', $bulkData);
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'updated_count' => 3,
-                    'errors' => []
-                ]);
+            ->assertJson([
+                'updated_count' => 3,
+                'errors' => [],
+            ]);
 
         foreach ($users as $user) {
             $this->assertDatabaseHas('users', [
                 'uuid' => $user->uuid,
                 'role' => 'moderator',
-                'status' => 'inactive'
+                'status' => 'inactive',
             ]);
         }
     }
@@ -641,24 +641,24 @@ class AdministratorUsersTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $users = User::factory(3)->create();
-        
+
         Sanctum::actingAs($admin);
 
         $bulkData = [
-            'user_uuids' => $users->pluck('uuid')->toArray()
+            'user_uuids' => $users->pluck('uuid')->toArray(),
         ];
 
         $response = $this->postJson('/api/v1/administrator/users/bulk-delete', $bulkData);
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'deleted_count' => 3,
-                    'errors' => []
-                ]);
+            ->assertJson([
+                'deleted_count' => 3,
+                'errors' => [],
+            ]);
 
         foreach ($users as $user) {
             $this->assertSoftDeleted('users', [
-                'uuid' => $user->uuid
+                'uuid' => $user->uuid,
             ]);
         }
     }
@@ -670,17 +670,17 @@ class AdministratorUsersTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $otherUser = User::factory()->create();
-        
+
         Sanctum::actingAs($admin);
 
         $bulkData = [
-            'user_uuids' => [$admin->uuid, $otherUser->uuid]
+            'user_uuids' => [$admin->uuid, $otherUser->uuid],
         ];
 
         $response = $this->postJson('/api/v1/administrator/users/bulk-delete', $bulkData);
 
         $response->assertStatus(200);
-        
+
         $responseData = $response->json();
         $this->assertEquals(1, $responseData['deleted_count']); // Apenas o outro usuário
         $this->assertCount(1, $responseData['errors']); // Erro para o admin
@@ -698,33 +698,33 @@ class AdministratorUsersTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $sponsor = User::factory()->create(['name' => 'Export Sponsor']);
-        
+
         User::factory(3)->create(['sponsor_id' => $sponsor->id]);
         User::factory(2)->create(['role' => 'moderator']);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->postJson('/api/v1/administrator/users/export');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'message',
-                    'total',
-                    'users' => [
-                        '*' => [
-                            'uuid',
-                            'name',
-                            'email',
-                            'username',
-                            'role',
-                            'status',
-                            'phone',
-                            'sponsor_uuid',
-                            'created_at',
-                            'updated_at'
-                        ]
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'total',
+                'users' => [
+                    '*' => [
+                        'uuid',
+                        'name',
+                        'email',
+                        'username',
+                        'role',
+                        'status',
+                        'phone',
+                        'sponsor_uuid',
+                        'created_at',
+                        'updated_at',
+                    ],
+                ],
+            ]);
 
         $exportData = $response->json();
         $this->assertEquals(7, $exportData['total']); // Todos os usuários criados
@@ -737,44 +737,44 @@ class AdministratorUsersTest extends TestCase
     public function test_admin_can_get_dashboard_overview(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         // Criar dados para dashboard
         $topSponsor = User::factory()->create(['name' => 'Top Sponsor']);
         User::factory(5)->create(['sponsor_id' => $topSponsor->id]); // Rede grande
         User::factory(2)->create(['sponsor_id' => null]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/dashboard');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'summary' => [
-                        'total_users',
-                        'active_users',
-                        'inactive_users',
-                        'suspended_users',
-                        'new_users_last_30_days'
+            ->assertJsonStructure([
+                'summary' => [
+                    'total_users',
+                    'active_users',
+                    'inactive_users',
+                    'suspended_users',
+                    'new_users_last_30_days',
+                ],
+                'top_sponsors' => [
+                    '*' => [
+                        'uuid',
+                        'name',
+                        'email',
+                        'sponsored_count',
                     ],
-                    'top_sponsors' => [
-                        '*' => [
-                            'uuid',
-                            'name',
-                            'email',
-                            'sponsored_count'
-                        ]
+                ],
+                'recent_users' => [
+                    '*' => [
+                        'uuid',
+                        'name',
+                        'email',
+                        'role',
+                        'status',
+                        'created_at',
                     ],
-                    'recent_users' => [
-                        '*' => [
-                            'uuid',
-                            'name',
-                            'email',
-                            'role',
-                            'status',
-                            'created_at'
-                        ]
-                    ]
-                ]);
+                ],
+            ]);
 
         $dashboardData = $response->json();
         $this->assertEquals(9, $dashboardData['summary']['total_users']);
@@ -789,7 +789,7 @@ class AdministratorUsersTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'user']);
         $targetUser = User::factory()->create();
-        
+
         Sanctum::actingAs($user);
 
         $adminEndpoints = [
@@ -805,16 +805,16 @@ class AdministratorUsersTest extends TestCase
             ['GET', '/api/v1/administrator/dashboard'],
             ['POST', '/api/v1/administrator/users/bulk-update'],
             ['POST', '/api/v1/administrator/users/bulk-delete'],
-            ['POST', '/api/v1/administrator/users/export']
+            ['POST', '/api/v1/administrator/users/export'],
         ];
 
         foreach ($adminEndpoints as [$method, $endpoint]) {
             $response = $this->json($method, $endpoint, []);
             $response->assertStatus(403)
-                    ->assertJson([
-                        'message' => 'Acesso negado. Apenas administradores podem acessar esta funcionalidade.',
-                        'error' => 'Forbidden'
-                    ]);
+                ->assertJson([
+                    'message' => 'Acesso negado. Apenas administradores podem acessar esta funcionalidade.',
+                    'error' => 'Forbidden',
+                ]);
         }
     }
 
@@ -832,7 +832,7 @@ class AdministratorUsersTest extends TestCase
             ['PUT', "/api/v1/administrator/users/{$targetUser->uuid}"],
             ['DELETE', "/api/v1/administrator/users/{$targetUser->uuid}"],
             ['GET', '/api/v1/administrator/statistics'],
-            ['GET', '/api/v1/administrator/dashboard']
+            ['GET', '/api/v1/administrator/dashboard'],
         ];
 
         foreach ($adminEndpoints as [$method, $endpoint]) {
@@ -848,7 +848,7 @@ class AdministratorUsersTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $fakeUuid = $this->faker->uuid();
-        
+
         Sanctum::actingAs($admin);
 
         $endpoints = [
@@ -857,7 +857,7 @@ class AdministratorUsersTest extends TestCase
             ['DELETE', "/api/v1/administrator/users/{$fakeUuid}"],
             ['GET', "/api/v1/administrator/users/{$fakeUuid}/network"],
             ['GET', "/api/v1/administrator/users/{$fakeUuid}/sponsor"],
-            ['GET', "/api/v1/administrator/users/{$fakeUuid}/statistics"]
+            ['GET', "/api/v1/administrator/users/{$fakeUuid}/statistics"],
         ];
 
         foreach ($endpoints as [$method, $endpoint]) {

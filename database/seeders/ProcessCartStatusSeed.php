@@ -6,7 +6,6 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Plan;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -26,6 +25,7 @@ class ProcessCartStatusSeed extends Seeder
 
         if ($activeCarts->isEmpty()) {
             $this->command->warn('⚠️ Nenhum carrinho ativo encontrado');
+
             return;
         }
 
@@ -38,7 +38,7 @@ class ProcessCartStatusSeed extends Seeder
         foreach ($activeCarts as $cart) {
             // Determinar o novo status (70% completed, 30% abandoned)
             $shouldComplete = rand(1, 100) <= 70;
-            
+
             if ($shouldComplete) {
                 $this->processCompletedCart($cart);
                 $completed++;
@@ -53,7 +53,7 @@ class ProcessCartStatusSeed extends Seeder
         }
 
         // Processar orders pendentes (aprovar algumas)
-       // $this->processOrders();
+        // $this->processOrders();
 
         // Mostrar resumo
         $this->showProcessingSummary($activeCarts->count(), $completed, $abandoned, $ordersCreated);
@@ -77,7 +77,7 @@ class ProcessCartStatusSeed extends Seeder
                 'plan_id' => $cart->plan_id,
                 'user_metadata' => $this->getUserMetadata($cart->user),
                 'plan_metadata' => $this->getPlanMetadata($cart->plan),
-                'status' => 'pending' // Orders iniciam como pending
+                'status' => 'pending', // Orders iniciam como pending
             ]);
 
             $cart->update(['order_id' => $order->id]);
@@ -121,7 +121,7 @@ class ProcessCartStatusSeed extends Seeder
             'status' => $user->status,
             'sponsor_id' => $user->sponsor_id,
             'created_at' => $user->created_at?->toISOString(),
-            'snapshot_date' => now()->toISOString()
+            'snapshot_date' => now()->toISOString(),
         ];
     }
 
@@ -144,10 +144,9 @@ class ProcessCartStatusSeed extends Seeder
             'start_date' => $plan->start_date?->toISOString(),
             'end_date' => $plan->end_date?->toISOString(),
             'created_at' => $plan->created_at?->toISOString(),
-            'snapshot_date' => now()->toISOString()
+            'snapshot_date' => now()->toISOString(),
         ];
     }
-
 
     /**
      * Mostrar resumo do processamento de orders
@@ -161,7 +160,7 @@ class ProcessCartStatusSeed extends Seeder
         $this->command->info("✅ Orders aprovadas: {$approved}");
         $this->command->info("❌ Orders rejeitadas: {$rejected}");
         $this->command->info("🚫 Orders canceladas: {$cancelled}");
-        
+
         if ($total > 0) {
             $approvalRate = round(($approved / $total) * 100, 2);
             $rejectionRate = round(($rejected / $total) * 100, 2);
@@ -170,7 +169,7 @@ class ProcessCartStatusSeed extends Seeder
             $this->command->info("📉 Taxa de rejeição: {$rejectionRate}%");
             $this->command->info("🚫 Taxa de cancelamento: {$cancellationRate}%");
         }
-        
+
         $this->command->info('═══════════════════════════════════════');
     }
 
@@ -186,14 +185,14 @@ class ProcessCartStatusSeed extends Seeder
         $this->command->info("✅ Carrinhos completados: {$completed}");
         $this->command->info("🚫 Carrinhos abandonados: {$abandoned}");
         $this->command->info("📦 Orders criadas: {$ordersCreated}");
-        
+
         if ($total > 0) {
             $completionRate = round(($completed / $total) * 100, 2);
             $abandonmentRate = round(($abandoned / $total) * 100, 2);
             $this->command->info("📈 Taxa de conversão: {$completionRate}%");
             $this->command->info("📉 Taxa de abandono: {$abandonmentRate}%");
         }
-        
+
         $this->command->info('══════════════════════════════════════');
     }
 
@@ -203,22 +202,22 @@ class ProcessCartStatusSeed extends Seeder
     private function showCartStatistics(): void
     {
         $this->command->info('📊 Estatísticas dos Carrinhos:');
-        
+
         $activeCount = Cart::where('status', 'active')->count();
         $completedCount = Cart::where('status', 'completed')->count();
         $abandonedCount = Cart::where('status', 'abandoned')->count();
         $totalCarts = Cart::count();
-        
+
         $this->command->line("  🔄 Carrinhos Ativos: {$activeCount}");
         $this->command->line("  ✅ Carrinhos Completados: {$completedCount}");
         $this->command->line("  🚫 Carrinhos Abandonados: {$abandonedCount}");
         $this->command->line("  📊 Total de Carrinhos: {$totalCarts}");
-        
+
         if ($totalCarts > 0) {
             $activePercent = round(($activeCount / $totalCarts) * 100, 1);
             $completedPercent = round(($completedCount / $totalCarts) * 100, 1);
             $abandonedPercent = round(($abandonedCount / $totalCarts) * 100, 1);
-            
+
             $this->command->line("  📈 Distribuição: {$activePercent}% ativos | {$completedPercent}% completados | {$abandonedPercent}% abandonados");
         }
     }
@@ -229,20 +228,22 @@ class ProcessCartStatusSeed extends Seeder
     private function validateDataIntegrity(): bool
     {
         $this->command->info('🔍 Validando integridade dos dados...');
-        
+
         // Verificar se há carrinhos órfãos (sem usuário ou plano)
         $orphanCarts = Cart::leftJoin('users', 'carts.user_id', '=', 'users.id')
             ->leftJoin('plans', 'carts.plan_id', '=', 'plans.id')
             ->whereNull('users.id')
             ->orWhereNull('plans.id')
             ->count();
-            
+
         if ($orphanCarts > 0) {
             $this->command->warn("⚠️ Encontrados {$orphanCarts} carrinhos órfãos (sem usuário ou plano válido)");
+
             return false;
         }
-        
+
         $this->command->info('✅ Integridade dos dados validada');
+
         return true;
     }
 }

@@ -25,7 +25,7 @@ class CustomerController extends Controller
     public function show(Request $request): JsonResponse
     {
         $user = $this->customerService->show($request->user());
-        
+
         return response()->json([
             'user' => $user,
         ]);
@@ -47,7 +47,7 @@ class CustomerController extends Controller
 
         try {
             $updatedUser = $this->customerService->updateProfile($user, $validated);
-            
+
             return response()->json([
                 'message' => 'Perfil atualizado com sucesso',
                 'user' => $updatedUser,
@@ -65,7 +65,7 @@ class CustomerController extends Controller
     public function network(Request $request): JsonResponse
     {
         $result = $this->customerService->network($request->user());
-        
+
         return response()->json($result);
     }
 
@@ -76,7 +76,7 @@ class CustomerController extends Controller
     {
         try {
             $result = $this->customerService->sponsor($request->user());
-            
+
             return response()->json($result);
         } catch (\Exception $e) {
             return response()->json([
@@ -91,7 +91,7 @@ class CustomerController extends Controller
     public function statistics(Request $request): JsonResponse
     {
         $result = $this->customerService->statistics($request->user());
-        
+
         return response()->json($result);
     }
 
@@ -109,7 +109,7 @@ class CustomerController extends Controller
 
         try {
             $this->customerService->changePassword($user, $request->current_password, $request->password);
-            
+
             return response()->json([
                 'message' => 'Password changed successfully',
             ]);
@@ -129,7 +129,7 @@ class CustomerController extends Controller
     {
         try {
             $result = $this->customerService->userNetwork($request->user(), $uuid);
-            
+
             return response()->json($result);
         } catch (ModelNotFoundException $e) {
             return response()->json([
@@ -149,19 +149,19 @@ class CustomerController extends Controller
     {
         try {
             $result = $this->customerService->userSponsor($request->user(), $uuid);
-            
+
             return response()->json($result);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'message' => 'Usuário não encontrado',
             ], 404);
         } catch (\Exception $e) {
-            $statusCode = match($e->getMessage()) {
+            $statusCode = match ($e->getMessage()) {
                 'Acesso negado.' => 403,
                 'Usuário não possui patrocinador' => 404,
                 default => 500
             };
-            
+
             return response()->json([
                 'message' => $e->getMessage(),
             ], $statusCode);
@@ -175,7 +175,7 @@ class CustomerController extends Controller
     {
         try {
             $result = $this->customerService->userStatistics($request->user(), $uuid);
-            
+
             return response()->json($result);
         } catch (ModelNotFoundException $e) {
             return response()->json([

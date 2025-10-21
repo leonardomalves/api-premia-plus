@@ -3,7 +3,6 @@
 namespace App\Services\Administrator;
 
 use App\Models\Raffle;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class RaffleManagementService
 {
@@ -15,7 +14,7 @@ class RaffleManagementService
         $query = Raffle::with('creator');
 
         // Aplicar filtros
-        if (isset($filters['status']) && !empty($filters['status'])) {
+        if (isset($filters['status']) && ! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
@@ -28,18 +27,18 @@ class RaffleManagementService
         }
 
         // Busca por título/descrição
-        if (isset($filters['search']) && !empty($filters['search'])) {
+        if (isset($filters['search']) && ! empty($filters['search'])) {
             $searchTerm = $filters['search'];
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', "%{$searchTerm}%")
-                  ->orWhere('description', 'like', "%{$searchTerm}%");
+                    ->orWhere('description', 'like', "%{$searchTerm}%");
             });
         }
 
         // Ordenação
         $sortBy = $filters['sort_by'] ?? 'created_at';
         $sortOrder = $filters['sort_order'] ?? 'desc';
-        
+
         if (in_array($sortBy, ['created_at', 'title', 'prize_value', 'status'])) {
             $query->orderBy($sortBy, $sortOrder === 'asc' ? 'asc' : 'desc');
         }
@@ -73,6 +72,7 @@ class RaffleManagementService
     public function createRaffle(array $data): Raffle
     {
         $raffle = Raffle::create($data);
+
         return $raffle->load('creator');
     }
 
@@ -82,6 +82,7 @@ class RaffleManagementService
     public function updateRaffle(Raffle $raffle, array $data): Raffle
     {
         $raffle->update($data);
+
         return $raffle->fresh()->load('creator');
     }
 
@@ -91,6 +92,7 @@ class RaffleManagementService
     public function deleteRaffle(string $uuid): bool
     {
         $raffle = Raffle::where('uuid', $uuid)->firstOrFail();
+
         return $raffle->delete();
     }
 
@@ -101,6 +103,7 @@ class RaffleManagementService
     {
         $raffle = Raffle::withTrashed()->where('uuid', $uuid)->firstOrFail();
         $raffle->restore();
+
         return $raffle->load('creator');
     }
 
@@ -110,14 +113,14 @@ class RaffleManagementService
     public function toggleRaffleStatus(string $uuid): array
     {
         $raffle = Raffle::where('uuid', $uuid)->firstOrFail();
-        
+
         $newStatus = $raffle->status === 'active' ? 'inactive' : 'active';
         $raffle->update(['status' => $newStatus]);
 
         return [
             'raffle' => $raffle->load('creator'),
             'new_status' => $newStatus,
-            'message' => "Status alterado para {$newStatus}"
+            'message' => "Status alterado para {$newStatus}",
         ];
     }
 
@@ -137,7 +140,7 @@ class RaffleManagementService
             'recent_raffles' => Raffle::with('creator')
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
-                ->get()
+                ->get(),
         ];
     }
 }

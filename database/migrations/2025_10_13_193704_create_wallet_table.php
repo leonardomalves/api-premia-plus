@@ -15,27 +15,26 @@ return new class extends Migration
             $table->id();
 
             $table->uuid('uuid')
-            ->unique();
-
+                ->unique();
 
             $table->foreignId('user_id')
-            ->constrained('users')
-            ->onDelete('cascade');
+                ->constrained('users')
+                ->onDelete('cascade');
 
             $table->decimal('commissions_for_this_month', 10, 2)
-            ->default(0);   
+                ->default(0);
 
             $table->decimal('total_commissions', 10, 2)
-            ->default(0); 
+                ->default(0);
 
             $table->decimal('balance', 10, 2)
-            ->default(0);   
+                ->default(0);
 
             $table->decimal('withdrawals', 10, 2)
-            ->default(0);
+                ->default(0);
 
             $table->decimal('blocked', 10, 2)
-            ->default(0);
+                ->default(0);
 
             $table->timestamps();
 

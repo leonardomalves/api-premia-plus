@@ -6,7 +6,6 @@ use Ixudra\Curl\Facades\Curl;
 
 class HttpClient
 {
-
     public function apiRequest($endpoint, $data, $headers, $method)
     {
         $response = Curl::to($endpoint)
@@ -22,6 +21,4 @@ class HttpClient
             default => $response->get()
         };
     }
-
-
 }

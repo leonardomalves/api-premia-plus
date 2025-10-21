@@ -16,11 +16,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group([], function () {
-    
+
     // Autenticação pública
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
-    
+
     // Autenticação protegida
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -30,7 +30,7 @@ Route::group([], function () {
         Route::put('/profile', [AuthController::class, 'updateProfile']);
         Route::post('/change-password', [AuthController::class, 'changePassword']);
     });
-    
+
     // Health check e teste
     Route::get('/health', [HealthController::class, 'check']);
     Route::get('/test', [TestController::class, 'index']);

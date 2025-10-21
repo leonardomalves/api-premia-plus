@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Order;
 use App\Models\WalletTicket;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -21,6 +20,7 @@ class WalletTicketSeed extends Seeder
 
         if ($approvedOrders->isEmpty()) {
             $this->command->info('Nenhum pedido aprovado encontrado para criar wallet tickets.');
+
             return;
         }
 
@@ -30,13 +30,15 @@ class WalletTicketSeed extends Seeder
         foreach ($approvedOrders as $order) {
             try {
                 // Valida se o plano existe e tem os dados necessários
-                if (!$order->plan) {
+                if (! $order->plan) {
                     $this->command->warn("Pedido {$order->id} não possui plano associado. Pulando...");
+
                     continue;
                 }
 
-                if (!$order->plan->grant_tickets || $order->plan->grant_tickets <= 0) {
+                if (! $order->plan->grant_tickets || $order->plan->grant_tickets <= 0) {
                     $this->command->warn("Plano {$order->plan->name} não possui tickets para conceder. Pulando...");
+
                     continue;
                 }
 
@@ -63,7 +65,7 @@ class WalletTicketSeed extends Seeder
                 }
 
             } catch (\Exception $e) {
-                $this->command->error("Erro ao criar wallet ticket para pedido {$order->id}: " . $e->getMessage());
+                $this->command->error("Erro ao criar wallet ticket para pedido {$order->id}: ".$e->getMessage());
             }
         }
 

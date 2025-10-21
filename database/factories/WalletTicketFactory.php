@@ -4,8 +4,8 @@ namespace Database\Factories;
 
 use App\Models\Order;
 use App\Models\Plan;
-use App\Models\WalletTicket;
 use App\Models\User;
+use App\Models\WalletTicket;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 

@@ -15,11 +15,11 @@ class ApiMetricsMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         $startTime = microtime(true);
-        
+
         $response = $next($request);
-        
+
         $duration = microtime(true) - $startTime;
-        
+
         // Log estruturado para métricas
         Log::channel('metrics')->info('api_request', [
             'method' => $request->method(),
@@ -30,9 +30,9 @@ class ApiMetricsMiddleware
             'user_id' => auth('sanctum')->id(),
             'ip' => $request->ip(),
             'user_agent' => $request->userAgent(),
-            'timestamp' => now()->toISOString()
+            'timestamp' => now()->toISOString(),
         ]);
-        
+
         return $response;
     }
 }

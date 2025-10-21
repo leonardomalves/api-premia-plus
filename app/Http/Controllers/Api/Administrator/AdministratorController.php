@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Administrator\UserManagementService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class AdministratorController extends Controller
@@ -17,6 +16,7 @@ class AdministratorController extends Controller
     {
         $this->userService = $userService;
     }
+
     /**
      * Display a listing of users (admin only)
      */
@@ -39,7 +39,7 @@ class AdministratorController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao listar usuários',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -62,7 +62,7 @@ class AdministratorController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao buscar usuário',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -93,12 +93,12 @@ class AdministratorController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Dados inválidos',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao criar usuário',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -131,7 +131,7 @@ class AdministratorController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Dados inválidos',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
@@ -140,7 +140,7 @@ class AdministratorController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao atualizar usuário',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -174,6 +174,7 @@ class AdministratorController extends Controller
     {
         try {
             $networkData = $this->userService->getUserNetwork($uuid);
+
             return response()->json($networkData);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
@@ -182,7 +183,7 @@ class AdministratorController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao buscar rede do usuário',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -194,6 +195,7 @@ class AdministratorController extends Controller
     {
         try {
             $sponsorData = $this->userService->getUserSponsor($uuid);
+
             return response()->json($sponsorData);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
@@ -213,6 +215,7 @@ class AdministratorController extends Controller
     {
         try {
             $stats = $this->userService->getUserStatistics($uuid);
+
             return response()->json([
                 'statistics' => $stats,
             ]);
@@ -223,7 +226,7 @@ class AdministratorController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao buscar estatísticas do usuário',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -235,13 +238,14 @@ class AdministratorController extends Controller
     {
         try {
             $stats = $this->userService->getSystemStatistics();
+
             return response()->json([
                 'system_statistics' => $stats,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao buscar estatísticas do sistema',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -270,12 +274,12 @@ class AdministratorController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Dados inválidos',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro na atualização em massa',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -303,12 +307,12 @@ class AdministratorController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Dados inválidos',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro na exclusão em massa',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -336,7 +340,7 @@ class AdministratorController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao exportar usuários',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -348,11 +352,12 @@ class AdministratorController extends Controller
     {
         try {
             $dashboardData = $this->userService->getDashboardData();
+
             return response()->json($dashboardData);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao carregar dashboard',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

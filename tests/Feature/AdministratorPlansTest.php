@@ -20,40 +20,40 @@ class AdministratorPlansTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         Plan::factory(5)->create();
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/plans');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'success',
-                    'message',
-                    'data' => [
-                        'plans' => [
-                            '*' => [
-                                'uuid',
-                                'name',
-                                'description',
-                                'price',
-                                'status',
-                                'is_promotional',
-                                'created_at',
-                                'updated_at'
-                            ]
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    'plans' => [
+                        '*' => [
+                            'uuid',
+                            'name',
+                            'description',
+                            'price',
+                            'status',
+                            'is_promotional',
+                            'created_at',
+                            'updated_at',
                         ],
-                        'pagination' => [
-                            'current_page',
-                            'per_page',
-                            'total',
-                            'last_page'
-                        ]
-                    ]
-                ])
-                ->assertJson([
-                    'success' => true,
-                    'message' => 'Planos listados com sucesso'
-                ]);
+                    ],
+                    'pagination' => [
+                        'current_page',
+                        'per_page',
+                        'total',
+                        'last_page',
+                    ],
+                ],
+            ])
+            ->assertJson([
+                'success' => true,
+                'message' => 'Planos listados com sucesso',
+            ]);
 
         $this->assertCount(5, $response->json('data.plans'));
     }
@@ -66,14 +66,14 @@ class AdministratorPlansTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         Plan::factory(3)->create(['status' => 'active']);
         Plan::factory(2)->create(['status' => 'inactive']);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/plans?status=active');
 
         $response->assertStatus(200);
         $this->assertCount(3, $response->json('data.plans'));
-        
+
         foreach ($response->json('data.plans') as $plan) {
             $this->assertEquals('active', $plan['status']);
         }
@@ -87,14 +87,14 @@ class AdministratorPlansTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         Plan::factory(3)->create(['is_promotional' => true]);
         Plan::factory(2)->create(['is_promotional' => false]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/plans?promotional=true');
 
         $response->assertStatus(200);
         $this->assertCount(3, $response->json('data.plans'));
-        
+
         foreach ($response->json('data.plans') as $plan) {
             $this->assertTrue($plan['is_promotional']);
         }
@@ -110,14 +110,14 @@ class AdministratorPlansTest extends TestCase
         Plan::factory()->create(['price' => 100]);
         Plan::factory()->create(['price' => 200]);
         Plan::factory()->create(['price' => 300]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/plans?min_price=75&max_price=250');
 
         $response->assertStatus(200);
         $plans = $response->json('data.plans');
-        
+
         foreach ($plans as $plan) {
             $this->assertGreaterThanOrEqual(75, $plan['price']);
             $this->assertLessThanOrEqual(250, $plan['price']);
@@ -133,14 +133,14 @@ class AdministratorPlansTest extends TestCase
         Plan::factory()->create(['name' => 'Premium Plan', 'description' => 'Best plan available']);
         Plan::factory()->create(['name' => 'Basic Plan', 'description' => 'Simple starter plan']);
         Plan::factory()->create(['name' => 'Gold Plan', 'description' => 'Premium features included']);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/plans?search=Premium');
 
         $response->assertStatus(200);
         $plans = $response->json('data.plans');
-        
+
         // Should find 2 plans: one with "Premium" in name, one with "Premium" in description
         $this->assertCount(2, $plans);
     }
@@ -154,7 +154,7 @@ class AdministratorPlansTest extends TestCase
         Plan::factory()->create(['name' => 'C Plan', 'price' => 300]);
         Plan::factory()->create(['name' => 'A Plan', 'price' => 100]);
         Plan::factory()->create(['name' => 'B Plan', 'price' => 200]);
-        
+
         Sanctum::actingAs($admin);
 
         // Test sort by name ascending
@@ -181,43 +181,43 @@ class AdministratorPlansTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $plan = Plan::factory()->create();
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson("/api/v1/administrator/plans/{$plan->uuid}");
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'success',
-                    'message',
-                    'data' => [
-                        'plan' => [
-                            'uuid',
-                            'name',
-                            'description',
-                            'price',
-                            'status',
-                            'commission_level_1',
-                            'commission_level_2',
-                            'commission_level_3',
-                            'is_promotional',
-                            'start_date',
-                            'end_date',
-                            'created_at',
-                            'updated_at'
-                        ]
-                    ]
-                ])
-                ->assertJson([
-                    'success' => true,
-                    'message' => 'Plano encontrado com sucesso',
-                    'data' => [
-                        'plan' => [
-                            'uuid' => $plan->uuid,
-                            'name' => $plan->name
-                        ]
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    'plan' => [
+                        'uuid',
+                        'name',
+                        'description',
+                        'price',
+                        'status',
+                        'commission_level_1',
+                        'commission_level_2',
+                        'commission_level_3',
+                        'is_promotional',
+                        'start_date',
+                        'end_date',
+                        'created_at',
+                        'updated_at',
+                    ],
+                ],
+            ])
+            ->assertJson([
+                'success' => true,
+                'message' => 'Plano encontrado com sucesso',
+                'data' => [
+                    'plan' => [
+                        'uuid' => $plan->uuid,
+                        'name' => $plan->name,
+                    ],
+                ],
+            ]);
     }
 
     /**
@@ -226,7 +226,7 @@ class AdministratorPlansTest extends TestCase
     public function test_admin_can_create_new_plan(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $planData = [
@@ -239,40 +239,40 @@ class AdministratorPlansTest extends TestCase
             'commission_level_3' => 5.0,
             'is_promotional' => false,
             'start_date' => '2025-01-01',
-            'end_date' => '2025-12-31'
+            'end_date' => '2025-12-31',
         ];
 
         $response = $this->postJson('/api/v1/administrator/plans', $planData);
 
         $response->assertStatus(201)
-                ->assertJsonStructure([
-                    'success',
-                    'message',
-                    'data' => [
-                        'plan' => [
-                            'uuid',
-                            'name',
-                            'description',
-                            'price',
-                            'status',
-                            'commission_level_1',
-                            'commission_level_2',
-                            'commission_level_3',
-                            'is_promotional',
-                            'start_date',
-                            'end_date'
-                        ]
-                    ]
-                ])
-                ->assertJson([
-                    'success' => true,
-                    'message' => 'Plano criado com sucesso'
-                ]);
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    'plan' => [
+                        'uuid',
+                        'name',
+                        'description',
+                        'price',
+                        'status',
+                        'commission_level_1',
+                        'commission_level_2',
+                        'commission_level_3',
+                        'is_promotional',
+                        'start_date',
+                        'end_date',
+                    ],
+                ],
+            ])
+            ->assertJson([
+                'success' => true,
+                'message' => 'Plano criado com sucesso',
+            ]);
 
         $this->assertDatabaseHas('plans', [
             'name' => 'Test Plan',
             'description' => 'This is a test plan for unit testing',
-            'price' => 99.99
+            'price' => 99.99,
         ]);
     }
 
@@ -282,28 +282,28 @@ class AdministratorPlansTest extends TestCase
     public function test_admin_cannot_create_plan_with_invalid_data(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $invalidData = [
             'name' => '', // Required field empty
             'price' => -10, // Negative price
             'commission_level_1' => 150, // Over 100%
-            'status' => 'invalid_status' // Invalid status
+            'status' => 'invalid_status', // Invalid status
         ];
 
         $response = $this->postJson('/api/v1/administrator/plans', $invalidData);
 
         $response->assertStatus(422)
-                ->assertJsonStructure([
-                    'success',
-                    'message',
-                    'errors'
-                ])
-                ->assertJson([
-                    'success' => false,
-                    'message' => 'Dados inválidos'
-                ]);
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'errors',
+            ])
+            ->assertJson([
+                'success' => false,
+                'message' => 'Dados inválidos',
+            ]);
     }
 
     /**
@@ -313,7 +313,7 @@ class AdministratorPlansTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $existingPlan = Plan::factory()->create(['name' => 'Unique Plan']);
-        
+
         Sanctum::actingAs($admin);
 
         $planData = [
@@ -324,13 +324,13 @@ class AdministratorPlansTest extends TestCase
             'commission_level_1' => 10,
             'commission_level_2' => 7,
             'commission_level_3' => 5,
-            'start_date' => '2025-01-01'
+            'start_date' => '2025-01-01',
         ];
 
         $response = $this->postJson('/api/v1/administrator/plans', $planData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['name']);
+            ->assertJsonValidationErrors(['name']);
     }
 
     /**
@@ -341,29 +341,29 @@ class AdministratorPlansTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $plan = Plan::factory()->create([
             'name' => 'Original Plan',
-            'price' => 100
+            'price' => 100,
         ]);
-        
+
         Sanctum::actingAs($admin);
 
         $updateData = [
             'name' => 'Updated Plan',
             'price' => 150,
-            'description' => 'Updated description'
+            'description' => 'Updated description',
         ];
 
         $response = $this->putJson("/api/v1/administrator/plans/{$plan->uuid}", $updateData);
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'success' => true,
-                    'message' => 'Plano atualizado com sucesso'
-                ]);
+            ->assertJson([
+                'success' => true,
+                'message' => 'Plano atualizado com sucesso',
+            ]);
 
         $this->assertDatabaseHas('plans', [
             'uuid' => $plan->uuid,
             'name' => 'Updated Plan',
-            'price' => 150
+            'price' => 150,
         ]);
     }
 
@@ -374,19 +374,19 @@ class AdministratorPlansTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $plan = Plan::factory()->create();
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->deleteJson("/api/v1/administrator/plans/{$plan->uuid}");
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'success' => true,
-                    'message' => 'Plano deletado com sucesso'
-                ]);
+            ->assertJson([
+                'success' => true,
+                'message' => 'Plano deletado com sucesso',
+            ]);
 
         $this->assertSoftDeleted('plans', [
-            'uuid' => $plan->uuid
+            'uuid' => $plan->uuid,
         ]);
     }
 
@@ -396,34 +396,34 @@ class AdministratorPlansTest extends TestCase
     public function test_admin_can_toggle_plan_status(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         // Test activating inactive plan
         $inactivePlan = Plan::factory()->create(['status' => 'inactive']);
         $response = $this->postJson("/api/v1/administrator/plans/{$inactivePlan->uuid}/toggle-status");
-        
+
         $response->assertStatus(200)
-                ->assertJson([
-                    'success' => true,
-                    'message' => 'Plano ativado com sucesso',
-                    'data' => [
-                        'new_status' => 'active'
-                    ]
-                ]);
+            ->assertJson([
+                'success' => true,
+                'message' => 'Plano ativado com sucesso',
+                'data' => [
+                    'new_status' => 'active',
+                ],
+            ]);
 
         // Test deactivating active plan
         $activePlan = Plan::factory()->create(['status' => 'active']);
         $response = $this->postJson("/api/v1/administrator/plans/{$activePlan->uuid}/toggle-status");
-        
+
         $response->assertStatus(200)
-                ->assertJson([
-                    'success' => true,
-                    'message' => 'Plano desativado com sucesso',
-                    'data' => [
-                        'new_status' => 'inactive'
-                    ]
-                ]);
+            ->assertJson([
+                'success' => true,
+                'message' => 'Plano desativado com sucesso',
+                'data' => [
+                    'new_status' => 'inactive',
+                ],
+            ]);
     }
 
     /**
@@ -432,38 +432,38 @@ class AdministratorPlansTest extends TestCase
     public function test_admin_can_get_plan_statistics(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         // Clear existing plans and create controlled test data
         Plan::query()->delete();
-        
+
         Plan::factory(3)->create(['status' => 'active', 'is_promotional' => false, 'price' => 100]);
         Plan::factory(2)->create(['status' => 'inactive', 'is_promotional' => false, 'price' => 200]);
         Plan::factory(1)->create(['is_promotional' => true, 'status' => 'active', 'price' => 50]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson('/api/v1/administrator/plans/statistics/overview');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'success',
-                    'message',
-                    'data' => [
-                        'statistics' => [
-                            'total_plans',
-                            'active_plans',
-                            'inactive_plans',
-                            'promotional_plans',
-                            'average_price',
-                            'min_price',
-                            'max_price'
-                        ]
-                    ]
-                ])
-                ->assertJson([
-                    'success' => true,
-                    'message' => 'Estatísticas dos planos'
-                ]);
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    'statistics' => [
+                        'total_plans',
+                        'active_plans',
+                        'inactive_plans',
+                        'promotional_plans',
+                        'average_price',
+                        'min_price',
+                        'max_price',
+                    ],
+                ],
+            ])
+            ->assertJson([
+                'success' => true,
+                'message' => 'Estatísticas dos planos',
+            ]);
 
         $stats = $response->json('data.statistics');
         $this->assertEquals(6, $stats['total_plans']);
@@ -480,22 +480,22 @@ class AdministratorPlansTest extends TestCase
     public function test_plan_validation_rules_for_required_fields(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->postJson('/api/v1/administrator/plans', []);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors([
-                    'name',
-                    'description',
-                    'price',
-                    'status',
-                    'commission_level_1',
-                    'commission_level_2',
-                    'commission_level_3',
-                    'start_date'
-                ]);
+            ->assertJsonValidationErrors([
+                'name',
+                'description',
+                'price',
+                'status',
+                'commission_level_1',
+                'commission_level_2',
+                'commission_level_3',
+                'start_date',
+            ]);
     }
 
     /**
@@ -504,7 +504,7 @@ class AdministratorPlansTest extends TestCase
     public function test_plan_validation_for_numeric_constraints(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $invalidData = [
@@ -515,18 +515,18 @@ class AdministratorPlansTest extends TestCase
             'commission_level_2' => -5,  // Should be >= 0
             'commission_level_3' => 200, // Should be <= 100
             'status' => 'active',
-            'start_date' => '2025-01-01'
+            'start_date' => '2025-01-01',
         ];
 
         $response = $this->postJson('/api/v1/administrator/plans', $invalidData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors([
-                    'price',
-                    'commission_level_1',
-                    'commission_level_2',
-                    'commission_level_3'
-                ]);
+            ->assertJsonValidationErrors([
+                'price',
+                'commission_level_1',
+                'commission_level_2',
+                'commission_level_3',
+            ]);
     }
 
     /**
@@ -535,7 +535,7 @@ class AdministratorPlansTest extends TestCase
     public function test_plan_validation_for_date_constraints(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $planData = [
@@ -547,13 +547,13 @@ class AdministratorPlansTest extends TestCase
             'commission_level_2' => 7,
             'commission_level_3' => 5,
             'start_date' => '2025-12-31',
-            'end_date' => '2025-01-01' // End date before start date
+            'end_date' => '2025-01-01', // End date before start date
         ];
 
         $response = $this->postJson('/api/v1/administrator/plans', $planData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['end_date']);
+            ->assertJsonValidationErrors(['end_date']);
     }
 
     /**
@@ -562,7 +562,7 @@ class AdministratorPlansTest extends TestCase
     public function test_promotional_plan_functionality(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         Sanctum::actingAs($admin);
 
         $promotionalData = [
@@ -575,13 +575,13 @@ class AdministratorPlansTest extends TestCase
             'commission_level_3' => 2,
             'is_promotional' => true,
             'start_date' => '2025-01-01',
-            'end_date' => '2025-01-31'
+            'end_date' => '2025-01-31',
         ];
 
         $response = $this->postJson('/api/v1/administrator/plans', $promotionalData);
 
         $response->assertStatus(201);
-        
+
         $plan = $response->json('data.plan');
         $this->assertTrue($plan['is_promotional']);
         $this->assertEquals('Black Friday Special', $plan['name']);
@@ -594,28 +594,28 @@ class AdministratorPlansTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $fakeUuid = 'fake-uuid-that-does-not-exist';
-        
+
         Sanctum::actingAs($admin);
 
         // Test show
         $response = $this->getJson("/api/v1/administrator/plans/{$fakeUuid}");
         $response->assertStatus(404)
-                ->assertJson(['success' => false, 'message' => 'Plano não encontrado']);
+            ->assertJson(['success' => false, 'message' => 'Plano não encontrado']);
 
         // Test update
         $response = $this->putJson("/api/v1/administrator/plans/{$fakeUuid}", ['name' => 'Updated']);
         $response->assertStatus(404)
-                ->assertJson(['success' => false, 'message' => 'Plano não encontrado']);
+            ->assertJson(['success' => false, 'message' => 'Plano não encontrado']);
 
         // Test delete
         $response = $this->deleteJson("/api/v1/administrator/plans/{$fakeUuid}");
         $response->assertStatus(404)
-                ->assertJson(['success' => false, 'message' => 'Plano não encontrado']);
+            ->assertJson(['success' => false, 'message' => 'Plano não encontrado']);
 
         // Test toggle status
         $response = $this->postJson("/api/v1/administrator/plans/{$fakeUuid}/toggle-status");
         $response->assertStatus(404)
-                ->assertJson(['success' => false, 'message' => 'Plano não encontrado']);
+            ->assertJson(['success' => false, 'message' => 'Plano não encontrado']);
     }
 
     /**
@@ -625,7 +625,7 @@ class AdministratorPlansTest extends TestCase
     {
         $customer = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create();
-        
+
         Sanctum::actingAs($customer);
 
         // Test all endpoints
@@ -636,13 +636,13 @@ class AdministratorPlansTest extends TestCase
             ['method' => 'put', 'url' => "/api/v1/administrator/plans/{$plan->uuid}", 'data' => ['name' => 'Updated']],
             ['method' => 'delete', 'url' => "/api/v1/administrator/plans/{$plan->uuid}"],
             ['method' => 'post', 'url' => "/api/v1/administrator/plans/{$plan->uuid}/toggle-status"],
-            ['method' => 'get', 'url' => '/api/v1/administrator/plans/statistics/overview']
+            ['method' => 'get', 'url' => '/api/v1/administrator/plans/statistics/overview'],
         ];
 
         foreach ($endpoints as $endpoint) {
-            $method = $endpoint['method'] . 'Json';
+            $method = $endpoint['method'].'Json';
             $data = $endpoint['data'] ?? [];
-            
+
             $response = $this->$method($endpoint['url'], $data);
             $response->assertStatus(403);
         }
@@ -662,13 +662,13 @@ class AdministratorPlansTest extends TestCase
             ['method' => 'put', 'url' => "/api/v1/administrator/plans/{$plan->uuid}", 'data' => ['name' => 'Updated']],
             ['method' => 'delete', 'url' => "/api/v1/administrator/plans/{$plan->uuid}"],
             ['method' => 'post', 'url' => "/api/v1/administrator/plans/{$plan->uuid}/toggle-status"],
-            ['method' => 'get', 'url' => '/api/v1/administrator/plans/statistics/overview']
+            ['method' => 'get', 'url' => '/api/v1/administrator/plans/statistics/overview'],
         ];
 
         foreach ($endpoints as $endpoint) {
-            $method = $endpoint['method'] . 'Json';
+            $method = $endpoint['method'].'Json';
             $data = $endpoint['data'] ?? [];
-            
+
             $response = $this->$method($endpoint['url'], $data);
             $response->assertStatus(401);
         }
@@ -681,13 +681,13 @@ class AdministratorPlansTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         Plan::factory(25)->create(); // Create more than default per_page
-        
+
         Sanctum::actingAs($admin);
 
         // Test default pagination
         $response = $this->getJson('/api/v1/administrator/plans');
         $response->assertStatus(200);
-        
+
         $pagination = $response->json('data.pagination');
         $this->assertEquals(1, $pagination['current_page']);
         $this->assertEquals(15, $pagination['per_page']); // Default per page
@@ -697,7 +697,7 @@ class AdministratorPlansTest extends TestCase
         // Test custom per_page
         $response = $this->getJson('/api/v1/administrator/plans?per_page=10');
         $response->assertStatus(200);
-        
+
         $pagination = $response->json('data.pagination');
         $this->assertEquals(10, $pagination['per_page']);
         $this->assertEquals(3, $pagination['last_page']);
@@ -705,7 +705,7 @@ class AdministratorPlansTest extends TestCase
         // Test specific page
         $response = $this->getJson('/api/v1/administrator/plans?page=2&per_page=10');
         $response->assertStatus(200);
-        
+
         $pagination = $response->json('data.pagination');
         $this->assertEquals(2, $pagination['current_page']);
     }
@@ -716,29 +716,29 @@ class AdministratorPlansTest extends TestCase
     public function test_complex_filtering_combinations(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        
+
         // Create specific test data
         Plan::factory()->create([
             'name' => 'Premium Gold Plan',
             'status' => 'active',
             'is_promotional' => true,
-            'price' => 150
+            'price' => 150,
         ]);
-        
+
         Plan::factory()->create([
-            'name' => 'Basic Silver Plan', 
+            'name' => 'Basic Silver Plan',
             'status' => 'active',
             'is_promotional' => false,
-            'price' => 80
+            'price' => 80,
         ]);
-        
+
         Plan::factory()->create([
             'name' => 'Premium Bronze Plan',
             'status' => 'inactive',
             'is_promotional' => true,
-            'price' => 120
+            'price' => 120,
         ]);
-        
+
         Sanctum::actingAs($admin);
 
         // Test multiple filters combined
@@ -746,7 +746,7 @@ class AdministratorPlansTest extends TestCase
 
         $response->assertStatus(200);
         $plans = $response->json('data.plans');
-        
+
         // Should only return the Premium Gold Plan
         $this->assertCount(1, $plans);
         $this->assertEquals('Premium Gold Plan', $plans[0]['name']);

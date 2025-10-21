@@ -26,17 +26,17 @@ class SystemHealthMonitoringTest extends TestCase
         $response = $this->getJson('/api/v1/health');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'status',
-                    'timestamp',
-                    'version',
-                    'environment',
-                    'uptime'
-                ])
-                ->assertJson([
-                    'status' => 'ok',
-                    'version' => '1.0.0'
-                ]);
+            ->assertJsonStructure([
+                'status',
+                'timestamp',
+                'version',
+                'environment',
+                'uptime',
+            ])
+            ->assertJson([
+                'status' => 'ok',
+                'version' => '1.0.0',
+            ]);
 
         $data = $response->json();
         $this->assertNotNull($data['timestamp']);
@@ -52,34 +52,34 @@ class SystemHealthMonitoringTest extends TestCase
         $response = $this->getJson('/api/v1/health/detailed');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'status',
-                    'timestamp',
-                    'version',
-                    'environment',
-                    'checks' => [
-                        'database' => [
-                            'status',
-                            'message'
-                        ],
-                        'cache' => [
-                            'status',
-                            'message'
-                        ],
-                        'storage' => [
-                            'status',
-                            'message'
-                        ],
-                        'queue' => [
-                            'status',
-                            'message'
-                        ]
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'status',
+                'timestamp',
+                'version',
+                'environment',
+                'checks' => [
+                    'database' => [
+                        'status',
+                        'message',
+                    ],
+                    'cache' => [
+                        'status',
+                        'message',
+                    ],
+                    'storage' => [
+                        'status',
+                        'message',
+                    ],
+                    'queue' => [
+                        'status',
+                        'message',
+                    ],
+                ],
+            ]);
 
         $data = $response->json();
         $this->assertContains($data['status'], ['ok', 'error', 'warning']);
-        
+
         // Verify all subsystems were checked
         $this->assertArrayHasKey('database', $data['checks']);
         $this->assertArrayHasKey('cache', $data['checks']);
@@ -92,12 +92,12 @@ class SystemHealthMonitoringTest extends TestCase
      */
     public function test_health_check_service_database(): void
     {
-        $service = new HealthCheckService();
+        $service = new HealthCheckService;
         $result = $service->check();
 
         $this->assertArrayHasKey('checks', $result);
         $this->assertArrayHasKey('database', $result['checks']);
-        
+
         $dbCheck = $result['checks']['database'];
         $this->assertEquals('ok', $dbCheck['status']);
         $this->assertEquals('Database connected', $dbCheck['message']);
@@ -111,7 +111,7 @@ class SystemHealthMonitoringTest extends TestCase
      */
     public function test_health_check_service_cache(): void
     {
-        $service = new HealthCheckService();
+        $service = new HealthCheckService;
         $result = $service->check();
 
         $cacheCheck = $result['checks']['cache'];
@@ -125,7 +125,7 @@ class SystemHealthMonitoringTest extends TestCase
      */
     public function test_health_check_service_storage(): void
     {
-        $service = new HealthCheckService();
+        $service = new HealthCheckService;
         $result = $service->check();
 
         $storageCheck = $result['checks']['storage'];
@@ -140,16 +140,16 @@ class SystemHealthMonitoringTest extends TestCase
      */
     public function test_health_check_service_queue(): void
     {
-        $service = new HealthCheckService();
+        $service = new HealthCheckService;
         $result = $service->check();
 
         $queueCheck = $result['checks']['queue'];
         $this->assertContains($queueCheck['status'], ['ok', 'warning', 'error']);
-        
+
         if ($queueCheck['status'] === 'ok') {
             $this->assertEquals('Queue system operational', $queueCheck['message']);
         }
-        
+
         $this->assertArrayHasKey('details', $queueCheck);
         $this->assertArrayHasKey('driver', $queueCheck['details']);
     }
@@ -159,7 +159,7 @@ class SystemHealthMonitoringTest extends TestCase
      */
     public function test_overall_health_status_aggregation(): void
     {
-        $service = new HealthCheckService();
+        $service = new HealthCheckService;
         $result = $service->check();
 
         $this->assertArrayHasKey('status', $result);
@@ -189,17 +189,17 @@ class SystemHealthMonitoringTest extends TestCase
         $response = $this->getJson('/api/v1/test');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'message',
-                    'timestamp',
-                    'user_agent',
-                    'ip',
-                    'version'
-                ])
-                ->assertJson([
-                    'message' => 'API Premia Plus funcionando!',
-                    'version' => '1.0.0'
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'timestamp',
+                'user_agent',
+                'ip',
+                'version',
+            ])
+            ->assertJson([
+                'message' => 'API Premia Plus funcionando!',
+                'version' => '1.0.0',
+            ]);
 
         $data = $response->json();
         $this->assertNotNull($data['timestamp']);
@@ -213,20 +213,20 @@ class SystemHealthMonitoringTest extends TestCase
     public function test_user_metrics_endpoint_for_authenticated_users(): void
     {
         $user = User::factory()->create();
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/v1/metrics/user');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'user_id',
-                    'requests_today',
-                    'last_activity'
-                ])
-                ->assertJson([
-                    'user_id' => $user->id
-                ]);
+            ->assertJsonStructure([
+                'user_id',
+                'requests_today',
+                'last_activity',
+            ])
+            ->assertJson([
+                'user_id' => $user->id,
+            ]);
 
         $data = $response->json();
         $this->assertIsNumeric($data['requests_today']);
@@ -250,8 +250,8 @@ class SystemHealthMonitoringTest extends TestCase
     {
         // Mock cache to throw exception
         Cache::shouldReceive('put')->andThrow(new \Exception('Cache connection failed'));
-        
-        $service = new HealthCheckService();
+
+        $service = new HealthCheckService;
         $result = $service->check();
 
         $this->assertEquals('error', $result['status']);
@@ -271,7 +271,7 @@ class SystemHealthMonitoringTest extends TestCase
         // Simulate requests from different users
         Sanctum::actingAs($user1);
         $response1 = $this->getJson('/api/v1/metrics/user');
-        
+
         Sanctum::actingAs($user2);
         $response2 = $this->getJson('/api/v1/metrics/user');
 
@@ -294,19 +294,19 @@ class SystemHealthMonitoringTest extends TestCase
     {
         // Change cache driver to array to avoid database dependency
         config(['cache.default' => 'array']);
-        
+
         Log::shouldReceive('warning')
-           ->once()
-           ->with('Health check failed', \Mockery::type('array'));
+            ->once()
+            ->with('Health check failed', \Mockery::type('array'));
 
         // Mock database connection to fail
         DB::shouldReceive('connection')
-          ->andReturnSelf();
-        
+            ->andReturnSelf();
+
         DB::shouldReceive('getPdo')
-          ->andThrow(new \Exception('Connection failed'));
-        
-        $service = new HealthCheckService();
+            ->andThrow(new \Exception('Connection failed'));
+
+        $service = new HealthCheckService;
         $result = $service->check();
 
         $this->assertEquals('error', $result['status']);
@@ -319,12 +319,12 @@ class SystemHealthMonitoringTest extends TestCase
     {
         // Ensure we're using database queue driver
         config(['queue.default' => 'database']);
-        
-        $service = new HealthCheckService();
+
+        $service = new HealthCheckService;
         $result = $service->check();
 
         $queueCheck = $result['checks']['queue'];
-        
+
         if ($queueCheck['status'] === 'ok') {
             $this->assertArrayHasKey('details', $queueCheck);
             $this->assertEquals('database', $queueCheck['details']['driver']);
@@ -348,13 +348,13 @@ class SystemHealthMonitoringTest extends TestCase
                 'queue' => 'default',
                 'payload' => json_encode(['test' => 'job']),
                 'exception' => 'Test exception',
-                'failed_at' => now()
+                'failed_at' => now(),
             ]);
         }
 
         config(['queue.default' => 'database']);
-        
-        $service = new HealthCheckService();
+
+        $service = new HealthCheckService;
         $result = $service->check();
 
         $queueCheck = $result['checks']['queue'];
@@ -368,12 +368,12 @@ class SystemHealthMonitoringTest extends TestCase
      */
     public function test_storage_free_space_formatting(): void
     {
-        $service = new HealthCheckService();
+        $service = new HealthCheckService;
         $result = $service->check();
 
         $storageCheck = $result['checks']['storage'];
         $freeSpace = $storageCheck['free_space'];
-        
+
         // Should contain a unit (B, KB, MB, GB, TB)
         $this->assertMatchesRegularExpression('/\d+(\.\d+)?\s+(B|KB|MB|GB|TB)/', $freeSpace);
     }
@@ -383,7 +383,7 @@ class SystemHealthMonitoringTest extends TestCase
      */
     public function test_health_check_response_structure_consistency(): void
     {
-        $service = new HealthCheckService();
+        $service = new HealthCheckService;
         $result = $service->check();
 
         // Check main structure
@@ -411,7 +411,7 @@ class SystemHealthMonitoringTest extends TestCase
     public function test_system_performance_under_load(): void
     {
         $startTime = microtime(true);
-        
+
         // Make multiple concurrent requests to health endpoints
         $responses = [];
         for ($i = 0; $i < 5; $i++) {
@@ -424,7 +424,7 @@ class SystemHealthMonitoringTest extends TestCase
         // All responses should be successful
         foreach ($responses as $response) {
             $response->assertStatus(200)
-                    ->assertJson(['status' => 'ok']);
+                ->assertJson(['status' => 'ok']);
         }
 
         // Should complete within reasonable time (2 seconds for 5 requests)
@@ -471,10 +471,10 @@ class SystemHealthMonitoringTest extends TestCase
     {
         // Mock a scenario where users table doesn't exist
         DB::shouldReceive('table')
-          ->with('users')
-          ->andThrow(new \Exception('Table users doesn\'t exist'));
+            ->with('users')
+            ->andThrow(new \Exception('Table users doesn\'t exist'));
 
-        $service = new HealthCheckService();
+        $service = new HealthCheckService;
         $result = $service->check();
 
         $this->assertEquals('error', $result['status']);
@@ -490,8 +490,8 @@ class SystemHealthMonitoringTest extends TestCase
     {
         // Test with array driver (default in testing)
         config(['cache.default' => 'array']);
-        
-        $service = new HealthCheckService();
+
+        $service = new HealthCheckService;
         $result = $service->check();
 
         $cacheCheck = $result['checks']['cache'];
@@ -505,12 +505,12 @@ class SystemHealthMonitoringTest extends TestCase
     public function test_detailed_health_check_includes_version_information(): void
     {
         config(['app.version' => '2.1.0']);
-        
+
         $response = $this->getJson('/api/v1/health/detailed');
-        
+
         $response->assertStatus(200)
-                ->assertJson([
-                    'version' => '2.1.0'
-                ]);
+            ->assertJson([
+                'version' => '2.1.0',
+            ]);
     }
 }

@@ -14,10 +14,15 @@ class RaffleTicket extends Model
 
     // Status constants
     const STATUS_REJECTED = 'rejected';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_PENDING = 'pending';
+
     const STATUS_CONFIRMED = 'confirmed';
+
     const STATUS_WINNER = 'winner';
+
     const STATUS_LOSER = 'loser';
 
     protected $fillable = [
@@ -40,9 +45,9 @@ class RaffleTicket extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
-            if (!$model->uuid) {
+            if (! $model->uuid) {
                 $model->uuid = Str::uuid();
             }
         });
@@ -53,7 +58,7 @@ class RaffleTicket extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);  
+        return $this->belongsTo(User::class);
     }
 
     /**

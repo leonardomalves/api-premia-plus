@@ -23,30 +23,30 @@ class CustomerProfileTest extends TestCase
             'email' => 'customer@example.com',
             'role' => 'user',
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/v1/customer/me');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'user' => [
-                        'id',
-                        'uuid',
-                        'name',
-                        'email',
-                        'username',
-                        'created_at',
-                        'updated_at'
-                    ]
-                ])
-                ->assertJson([
-                    'user' => [
-                        'name' => 'John Customer',
-                        'email' => 'customer@example.com',
-                        'role' => 'user'
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'user' => [
+                    'id',
+                    'uuid',
+                    'name',
+                    'email',
+                    'username',
+                    'created_at',
+                    'updated_at',
+                ],
+            ])
+            ->assertJson([
+                'user' => [
+                    'name' => 'John Customer',
+                    'email' => 'customer@example.com',
+                    'role' => 'user',
+                ],
+            ]);
     }
 
     /**
@@ -57,9 +57,9 @@ class CustomerProfileTest extends TestCase
         $response = $this->getJson('/api/v1/customer/me');
 
         $response->assertStatus(401)
-                ->assertJson([
-                    'message' => 'Unauthenticated.'
-                ]);
+            ->assertJson([
+                'message' => 'Unauthenticated.',
+            ]);
     }
 
     /**
@@ -71,35 +71,35 @@ class CustomerProfileTest extends TestCase
             'name' => 'Old Name',
             'phone' => '11999999999',
             'email' => 'old@example.com',
-            'username' => 'oldusername'
+            'username' => 'oldusername',
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $updateData = [
             'name' => 'New Customer Name',
             'phone' => '11888888888',
             'email' => 'new@example.com',
-            'username' => 'newusername'
+            'username' => 'newusername',
         ];
 
         $response = $this->putJson('/api/v1/customer/profile', $updateData);
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'message',
-                    'user'
-                ])
-                ->assertJson([
-                    'message' => 'Perfil atualizado com sucesso'
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'user',
+            ])
+            ->assertJson([
+                'message' => 'Perfil atualizado com sucesso',
+            ]);
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
             'name' => 'New Customer Name',
             'phone' => '11888888888',
             'email' => 'new@example.com',
-            'username' => 'newusername'
+            'username' => 'newusername',
         ]);
     }
 
@@ -111,7 +111,7 @@ class CustomerProfileTest extends TestCase
         $user = User::factory()->create([
             'password' => Hash::make('oldpassword123'),
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $passwordData = [
@@ -123,9 +123,9 @@ class CustomerProfileTest extends TestCase
         $response = $this->postJson('/api/v1/customer/change-password', $passwordData);
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'Password changed successfully'
-                ]);
+            ->assertJson([
+                'message' => 'Password changed successfully',
+            ]);
 
         // Verify password was changed
         $user->refresh();
@@ -140,29 +140,29 @@ class CustomerProfileTest extends TestCase
         $user = User::factory()->create();
         $sponsored1 = User::factory()->create(['sponsor_id' => $user->id]);
         $sponsored2 = User::factory()->create(['sponsor_id' => $user->id]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/v1/customer/network');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'network' => [
-                        'data',
-                        'current_page',
-                        'last_page',
-                        'total'
-                    ],
-                    'total_network',
-                    'user_info' => [
-                        'uuid',
-                        'name',
-                        'email'
-                    ]
-                ])
-                ->assertJson([
-                    'total_network' => 2
-                ]);
+            ->assertJsonStructure([
+                'network' => [
+                    'data',
+                    'current_page',
+                    'last_page',
+                    'total',
+                ],
+                'total_network',
+                'user_info' => [
+                    'uuid',
+                    'name',
+                    'email',
+                ],
+            ])
+            ->assertJson([
+                'total_network' => 2,
+            ]);
     }
 
     /**
@@ -174,36 +174,36 @@ class CustomerProfileTest extends TestCase
             'name' => 'Sponsor User',
             'email' => 'sponsor@example.com',
         ]);
-        
+
         $user = User::factory()->create([
             'sponsor_id' => $sponsor->id,
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/v1/customer/sponsor');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'sponsor' => [
-                        'uuid',
-                        'name',
-                        'email',
-                        'phone',
-                        'created_at'
-                    ],
-                    'user_info' => [
-                        'uuid',
-                        'name',
-                        'email'
-                    ]
-                ])
-                ->assertJson([
-                    'sponsor' => [
-                        'name' => 'Sponsor User',
-                        'email' => 'sponsor@example.com'
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'sponsor' => [
+                    'uuid',
+                    'name',
+                    'email',
+                    'phone',
+                    'created_at',
+                ],
+                'user_info' => [
+                    'uuid',
+                    'name',
+                    'email',
+                ],
+            ])
+            ->assertJson([
+                'sponsor' => [
+                    'name' => 'Sponsor User',
+                    'email' => 'sponsor@example.com',
+                ],
+            ]);
     }
 
     /**
@@ -214,15 +214,15 @@ class CustomerProfileTest extends TestCase
         $user = User::factory()->create([
             'sponsor_id' => null,
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/v1/customer/sponsor');
 
         $response->assertStatus(404)
-                ->assertJson([
-                    'message' => 'Você não possui patrocinador'
-                ]);
+            ->assertJson([
+                'message' => 'Você não possui patrocinador',
+            ]);
     }
 
     /**
@@ -231,43 +231,43 @@ class CustomerProfileTest extends TestCase
     public function test_customer_can_view_their_statistics(): void
     {
         $user = User::factory()->create();
-        
+
         // Create sponsored users with different statuses
         User::factory()->create(['sponsor_id' => $user->id, 'status' => 'active']);
         User::factory()->create(['sponsor_id' => $user->id, 'status' => 'active']);
         User::factory()->create(['sponsor_id' => $user->id, 'status' => 'inactive']);
         User::factory()->create(['sponsor_id' => $user->id, 'status' => 'suspended']);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/v1/customer/statistics');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'statistics' => [
-                        'total_network',
-                        'active_network',
-                        'inactive_network',
-                        'suspended_network',
-                        'account_created_at',
-                        'last_login',
-                        'user_info' => [
-                            'uuid',
-                            'name',
-                            'email',
-                            'role',
-                            'status'
-                        ]
-                    ]
-                ])
-                ->assertJson([
-                    'statistics' => [
-                        'total_network' => 4,
-                        'active_network' => 2,
-                        'inactive_network' => 1,
-                        'suspended_network' => 1
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'statistics' => [
+                    'total_network',
+                    'active_network',
+                    'inactive_network',
+                    'suspended_network',
+                    'account_created_at',
+                    'last_login',
+                    'user_info' => [
+                        'uuid',
+                        'name',
+                        'email',
+                        'role',
+                        'status',
+                    ],
+                ],
+            ])
+            ->assertJson([
+                'statistics' => [
+                    'total_network' => 4,
+                    'active_network' => 2,
+                    'inactive_network' => 1,
+                    'suspended_network' => 1,
+                ],
+            ]);
     }
 
     /**
@@ -277,15 +277,15 @@ class CustomerProfileTest extends TestCase
     {
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson("/api/v1/customer/users/{$otherUser->uuid}/network");
 
         $response->assertStatus(403)
-                ->assertJson([
-                    'message' => 'Acesso negado.'
-                ]);
+            ->assertJson([
+                'message' => 'Acesso negado.',
+            ]);
     }
 
     /**
@@ -296,17 +296,17 @@ class CustomerProfileTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $user = User::factory()->create();
         $sponsored = User::factory()->create(['sponsor_id' => $user->id]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->getJson("/api/v1/customer/users/{$user->uuid}/network");
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'network',
-                    'total_network',
-                    'target_user'
-                ]);
+            ->assertJsonStructure([
+                'network',
+                'total_network',
+                'target_user',
+            ]);
     }
 
     /**
@@ -317,7 +317,7 @@ class CustomerProfileTest extends TestCase
         $user = User::factory()->create([
             'password' => Hash::make('oldpassword123'),
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $passwordData = [
@@ -329,7 +329,7 @@ class CustomerProfileTest extends TestCase
         $response = $this->postJson('/api/v1/customer/change-password', $passwordData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['current_password']);
+            ->assertJsonValidationErrors(['current_password']);
     }
 
     /**
@@ -348,7 +348,7 @@ class CustomerProfileTest extends TestCase
         $response = $this->putJson('/api/v1/customer/profile', $updateData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['name', 'email']);
+            ->assertJsonValidationErrors(['name', 'email']);
     }
 
     /**
@@ -362,9 +362,9 @@ class CustomerProfileTest extends TestCase
         $response = $this->putJson('/api/v1/customer/profile', []);
 
         $response->assertStatus(422)
-                ->assertJson([
-                    'message' => 'Nenhuma alteração fornecida.'
-                ]);
+            ->assertJson([
+                'message' => 'Nenhuma alteração fornecida.',
+            ]);
     }
 
     /**
@@ -377,13 +377,13 @@ class CustomerProfileTest extends TestCase
             ['method' => 'GET', 'url' => '/api/v1/customer/sponsor'],
             ['method' => 'GET', 'url' => '/api/v1/customer/statistics'],
             ['method' => 'PUT', 'url' => '/api/v1/customer/profile'],
-            ['method' => 'POST', 'url' => '/api/v1/customer/change-password']
+            ['method' => 'POST', 'url' => '/api/v1/customer/change-password'],
         ];
 
         foreach ($endpoints as $endpoint) {
             $response = $this->json($endpoint['method'], $endpoint['url'], []);
             $response->assertStatus(401)
-                    ->assertJson(['message' => 'Unauthenticated.']);
+                ->assertJson(['message' => 'Unauthenticated.']);
         }
     }
 
@@ -393,15 +393,15 @@ class CustomerProfileTest extends TestCase
     public function test_customer_with_no_network_sees_empty_results(): void
     {
         $user = User::factory()->create();
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/v1/customer/network');
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'total_network' => 0
-                ]);
+            ->assertJson([
+                'total_network' => 0,
+            ]);
     }
 
     /**
@@ -417,7 +417,7 @@ class CustomerProfileTest extends TestCase
         $endpoints = [
             "/api/v1/customer/users/{$nonExistentUuid}/network",
             "/api/v1/customer/users/{$nonExistentUuid}/sponsor",
-            "/api/v1/customer/users/{$nonExistentUuid}/statistics"
+            "/api/v1/customer/users/{$nonExistentUuid}/statistics",
         ];
 
         foreach ($endpoints as $endpoint) {

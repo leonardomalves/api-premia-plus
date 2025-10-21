@@ -26,14 +26,14 @@ class RaffleTicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $this->assertDatabaseHas('raffle_tickets', [
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $this->assertNotNull($raffleTicket->uuid);
@@ -52,7 +52,7 @@ class RaffleTicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $this->assertInstanceOf(User::class, $raffleTicket->user);
@@ -72,7 +72,7 @@ class RaffleTicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $this->assertInstanceOf(Raffle::class, $raffleTicket->raffle);
@@ -92,7 +92,7 @@ class RaffleTicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $this->assertInstanceOf(Ticket::class, $raffleTicket->ticket);
@@ -152,14 +152,14 @@ class RaffleTicketModelTest extends TestCase
     public function test_mark_as_confirmed_method(): void
     {
         $raffleTicket = RaffleTicket::factory()->create(['status' => 'pending']);
-        
+
         $result = $raffleTicket->markAsConfirmed();
 
         $this->assertTrue($result);
         $this->assertEquals('confirmed', $raffleTicket->status);
         $this->assertDatabaseHas('raffle_tickets', [
             'id' => $raffleTicket->id,
-            'status' => 'confirmed'
+            'status' => 'confirmed',
         ]);
     }
 
@@ -169,14 +169,14 @@ class RaffleTicketModelTest extends TestCase
     public function test_mark_as_winner_method(): void
     {
         $raffleTicket = RaffleTicket::factory()->create(['status' => 'confirmed']);
-        
+
         $result = $raffleTicket->markAsWinner();
 
         $this->assertTrue($result);
         $this->assertEquals('winner', $raffleTicket->status);
         $this->assertDatabaseHas('raffle_tickets', [
             'id' => $raffleTicket->id,
-            'status' => 'winner'
+            'status' => 'winner',
         ]);
     }
 
@@ -235,11 +235,11 @@ class RaffleTicketModelTest extends TestCase
     public function test_raffle_ticket_can_be_soft_deleted(): void
     {
         $raffleTicket = RaffleTicket::factory()->create();
-        
+
         $raffleTicket->delete();
 
         $this->assertSoftDeleted('raffle_tickets', [
-            'id' => $raffleTicket->id
+            'id' => $raffleTicket->id,
         ]);
     }
 
@@ -249,13 +249,13 @@ class RaffleTicketModelTest extends TestCase
     public function test_raffle_ticket_can_be_restored(): void
     {
         $raffleTicket = RaffleTicket::factory()->create();
-        
+
         $raffleTicket->delete();
         $raffleTicket->restore();
 
         $this->assertDatabaseHas('raffle_tickets', [
             'id' => $raffleTicket->id,
-            'deleted_at' => null
+            'deleted_at' => null,
         ]);
     }
 
@@ -298,7 +298,7 @@ class RaffleTicketModelTest extends TestCase
     {
         $user = User::factory()->create();
         $raffle = Raffle::factory()->create();
-        
+
         $ticket1 = Ticket::create(['number' => '0000001']);
         $ticket2 = Ticket::create(['number' => '0000002']);
 
@@ -306,14 +306,14 @@ class RaffleTicketModelTest extends TestCase
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket1->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         RaffleTicket::create([
             'user_id' => $user->id,
             'raffle_id' => $raffle->id,
             'ticket_id' => $ticket2->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $userTickets = RaffleTicket::where('user_id', $user->id)
