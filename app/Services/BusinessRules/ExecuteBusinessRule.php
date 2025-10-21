@@ -7,6 +7,7 @@ use App\Models\Order;
 class ExecuteBusinessRule
 {
     public function __construct(
+        private CreateStatementService $createStatementService,
         private PayCommissionService $payCommissionService,
         private WalletTicketService $walletTicketService
     ) {}
@@ -15,13 +16,19 @@ class ExecuteBusinessRule
     {
         $results = [];
 
+
+        $createStatementResult = $this->createStatementService->processFinancialStatementOrder($order);
+        $results['financial_statement'] = $createStatementResult;
+
         // Process commissions
         $commissionResult = $this->payCommissionService->processOrderCommissions($order);
         $results['commissions'] = $commissionResult;
 
         // Create wallet ticket
-        $walletTicketResult = $this->walletTicketService->createWalletTicket($order);
-        $results['wallet_ticket'] = $walletTicketResult;
+        // $walletTicketResult = $this->walletTicketService->createWalletTicket($order);
+        // $results['wallet_ticket'] = $walletTicketResult;
+
+        
 
         return [
             'success' => true,
@@ -29,5 +36,6 @@ class ExecuteBusinessRule
             'order_id' => $order->id,
             'results' => $results
         ];
+
     }
 }

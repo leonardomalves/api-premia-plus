@@ -110,9 +110,9 @@ class AddToCartSeed extends Seeder
     private function tryFetchPlansFromCustomerEndpoint(array $headers): ?object
     {
         try {
-            $response = (new HttpClient())->apiRequest("{$this->baseUrl}/customer/plans", [], $headers, 'GET');
+            $response = (new HttpClient())->apiRequest("{$this->baseUrl}/plans", [], $headers, 'GET');
             
-            $this->command->line("  Status da resposta /customer/plans: {$response->status}");
+            $this->command->line("  Status da resposta /plans: {$response->status}");
             
             if ($response->status !== 200) {
                 $this->command->line("  Conteúdo da resposta: " . json_encode($response->content));
@@ -279,7 +279,7 @@ class AddToCartSeed extends Seeder
             '/health' => 'Health Check',
             '/test' => 'Test Endpoint', 
             '/plans' => 'Planos (Público)',
-            '/customer/plans' => 'Planos (Customer)',
+           // '/plans' => 'Planos (Customer)',
             '/customer/cart/add' => 'Carrinho (Customer)',
             '/login' => 'Login',
             '/register' => 'Registro'
@@ -397,7 +397,7 @@ class AddToCartSeed extends Seeder
 
         try {
             // Usar endpoint correto do customer conforme as rotas
-            $response = (new HttpClient())->apiRequest("{$this->baseUrl}/customer/plans", [], $headers, 'GET');
+            $response = (new HttpClient())->apiRequest("{$this->baseUrl}/plans", [], $headers, 'GET');
 
             if ($response->status == 200) {
                 $this->command->line("  👀 Visitou a lista de planos");

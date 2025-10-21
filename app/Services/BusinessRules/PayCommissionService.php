@@ -73,16 +73,11 @@ class PayCommissionService
                 if ($result['success']) {
                     $totalAmount += $result['amount'];
                     $commissionsCreated++;
-                    Log::info("✅ Commission created: {$upline->name} - Level {$level} - R$ " . number_format($result['amount'], 2, ',', '.'));
                     
-                    // PAY IMMEDIATELY
-                    $paymentResult = $this->processCommissionPayment($result['commission']);
-                    
-                    if ($paymentResult['success']) {
-                        Log::info("💰 PAID IMMEDIATELY: {$upline->name} - R$ " . number_format($result['amount'], 2, ',', '.'));
-                    } else {
-                        Log::error("❌ Error paying commission: {$paymentResult['message']}");
-                    }
+                    $availableDate = $result['commission']->available_at->format('d/m/Y');
+                    Log::info("✅ Commission created: {$upline->name} - Level {$level} - R$ " . 
+                             number_format($result['amount'], 2, ',', '.') . 
+                             " - Available: {$availableDate}");
                 } else {
                     Log::error("❌ Error creating commission: {$result['message']}");
                 }
@@ -283,6 +278,9 @@ class PayCommissionService
             $planPrice = (float) $planMetadata['price'];
             $commissionAmount = $planPrice * ($commissionRate / 100);
             
+            // Calculate available_at: first day of next month
+            $availableAt = now()->addMonth()->startOfMonth();
+            
             // Use updateOrCreate to avoid duplication
             $commission = Commission::updateOrCreate(
                 [
@@ -292,9 +290,12 @@ class PayCommissionService
                 ],
                 [
                     'amount' => $commissionAmount,
-                    'available_at' => now(), // Available immediately for payment
+                    'available_at' => $availableAt,
+                    'paid' => false,
                 ]
             );
+            
+            Log::info("📅 Commission will be available on: {$availableAt->format('d/m/Y')}");
             
             return [
                 'success' => true,

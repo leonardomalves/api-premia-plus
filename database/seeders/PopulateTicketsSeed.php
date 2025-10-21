@@ -16,7 +16,7 @@ class PopulateTicketsSeed extends Seeder
         // Otimizações de memória e performance
         DB::disableQueryLog();
 
-        $total = 10_000_000; // total de tickets
+        $total = 10_000; // total de tickets
         $batchSize = 2_000; // tamanho do lote (reduzido para menor uso de memória)
         $padding = 7; // zeros à esquerda para manter largura suficiente (até 9.999.999)
 

@@ -21,9 +21,7 @@ return new class extends Migration
             $table->decimal('unit_ticket_value', 10, 2);
             $table->decimal('liquidity_ratio', 5, 2)->default(0);
             $table->decimal('liquid_value', 10, 2);
-            $table->integer('tickets_required')->default(5);
-            $table->tinyInteger('min_ticket_level')->default(1);           
-            $table->integer('max_tickets_per_user')->default(1);
+            $table->integer('min_tickets_required')->default(5);
             $table->date('draw_date')->nullable();            
             $table->enum('status', ['pending', 'active', 'completed', 'cancelled', 'inactive']);            
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');

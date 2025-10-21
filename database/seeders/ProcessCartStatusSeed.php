@@ -136,15 +136,11 @@ class ProcessCartStatusSeed extends Seeder
             'name' => $plan->name,
             'description' => $plan->description,
             'price' => $plan->price,
-            'grant_tickets' => $plan->grant_tickets,
             'status' => $plan->status,
-            'ticket_level' => $plan->ticket_level,
             'commission_level_1' => $plan->commission_level_1,
             'commission_level_2' => $plan->commission_level_2,
             'commission_level_3' => $plan->commission_level_3,
             'is_promotional' => $plan->is_promotional,
-            'max_users' => $plan->max_users,
-            'overlap' => $plan->overlap,
             'start_date' => $plan->start_date?->toISOString(),
             'end_date' => $plan->end_date?->toISOString(),
             'created_at' => $plan->created_at?->toISOString(),
@@ -152,53 +148,6 @@ class ProcessCartStatusSeed extends Seeder
         ];
     }
 
-    /**
-     * Processar orders pendentes
-     */
-    private function processOrders(): void
-    {
-        $this->command->info('');
-        $this->command->info('📋 Processando orders pendentes...');
-
-        // Buscar orders com status pending
-        $pendingOrders = Order::where('status', 'pending')->get();
-
-        if ($pendingOrders->isEmpty()) {
-            $this->command->warn('⚠️ Nenhuma order pendente encontrada');
-            return;
-        }
-
-        $this->command->info("📊 Encontradas {$pendingOrders->count()} orders pendentes para processar");
-
-        $approved = 0;
-        $rejected = 0;
-        $cancelled = 0;
-
-        foreach ($pendingOrders as $order) {
-            // Distribuição: 70% aprovadas, 20% rejeitadas, 10% canceladas
-            $random = rand(1, 100);
-            
-            if ($random <= 70) {
-                $order->update(['status' => 'approved']);
-                $this->command->line("  ✅ Order {$order->uuid} → Aprovada");
-                $approved++;
-            } elseif ($random <= 90) {
-                $order->update(['status' => 'rejected']);
-                $this->command->line("  ❌ Order {$order->uuid} → Rejeitada");
-                $rejected++;
-            } else {
-                $order->update(['status' => 'cancelled']);
-                $this->command->line("  🚫 Order {$order->uuid} → Cancelada");
-                $cancelled++;
-            }
-
-            // Pequena pausa
-            usleep(50000); // 0.05 segundo
-        }
-
-        // Mostrar resumo das orders
-        $this->showOrdersProcessingSummary($pendingOrders->count(), $approved, $rejected, $cancelled);
-    }
 
     /**
      * Mostrar resumo do processamento de orders

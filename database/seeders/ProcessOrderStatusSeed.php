@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Jobs\ExecuteBusinessRuleJob;
 use App\Models\Order;
-use App\Services\BusinessRules\ExecuteBusinessRule;
+use App\Services\BusinessRules\CreateStatementService;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -69,6 +69,7 @@ class ProcessOrderStatusSeed extends Seeder
             
             $this->command->line("  ✅ Order {$order->uuid} → Aprovada | {$userEmail} | {$planName}");
             ExecuteBusinessRuleJob::dispatch($order->id);
+            
         } catch (\Exception $e) {
             $this->command->error("  ❌ Erro ao aprovar order {$order->uuid}: {$e->getMessage()}");
         }

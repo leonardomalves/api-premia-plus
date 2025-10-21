@@ -85,7 +85,7 @@ class EndToEndUserSeed extends Seeder
     private function testListPlans($httpClient, $token, $userEmail): void
     {
         try {
-            $plansEndpoint = "{$this->baseUrl}/customer/plans";
+            $plansEndpoint = "{$this->baseUrl}/plans";
             $headers = ['Authorization' => 'Bearer ' . $token];
             $plansResponse = $httpClient->apiRequest($plansEndpoint, [], $headers, 'GET');
             
@@ -116,7 +116,7 @@ class EndToEndUserSeed extends Seeder
     {
         try {
             // Primeiro, buscar um plano para obter seu UUID
-            $plansEndpoint = "{$this->baseUrl}/customer/plans";
+            $plansEndpoint = "{$this->baseUrl}/plans";
             $headers = ['Authorization' => 'Bearer ' . $token];
             $plansResponse = $httpClient->apiRequest($plansEndpoint, [], $headers, 'GET');
             
@@ -134,7 +134,7 @@ class EndToEndUserSeed extends Seeder
                 $planUuid = $firstPlan['uuid'];
                 
                 // Visualizar o plano específico
-                $planEndpoint = "{$this->baseUrl}/customer/plans/{$planUuid}";
+                $planEndpoint = "{$this->baseUrl}/plans/{$planUuid}";
                 $planResponse = $httpClient->apiRequest($planEndpoint, [], $headers, 'GET');
                 
                 // Converter para array se for objeto
