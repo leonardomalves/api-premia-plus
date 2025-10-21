@@ -26,7 +26,7 @@ class CustomerPlansTest extends TestCase
         
         Sanctum::actingAs($user);
 
-        $response = $this->getJson('/api/v1/customer/plans');
+        $response = $this->getJson('/api/v1/plans');
 
         $response->assertStatus(200)
                 ->assertJsonStructure([
@@ -40,15 +40,11 @@ class CustomerPlansTest extends TestCase
                                 'name',
                                 'description',
                                 'price',
-                                'grant_tickets',
                                 'status',
-                                'ticket_level',
                                 'commission_level_1',
                                 'commission_level_2',
                                 'commission_level_3',
                                 'is_promotional',
-                                'max_users',
-                                'overlap',
                                 'start_date',
                                 'end_date',
                                 'created_at',
@@ -80,7 +76,7 @@ class CustomerPlansTest extends TestCase
         
         Sanctum::actingAs($user);
 
-        $response = $this->getJson('/api/v1/customer/plans?promotional=1');
+        $response = $this->getJson('/api/v1/plans?promotional=1');
 
         $response->assertStatus(200)
                 ->assertJson([
@@ -115,7 +111,7 @@ class CustomerPlansTest extends TestCase
         Sanctum::actingAs($user);
 
         // Testar filtro de preço mínimo
-        $response = $this->getJson('/api/v1/customer/plans?min_price=100');
+        $response = $this->getJson('/api/v1/plans?min_price=100');
         $response->assertStatus(200);
         
         $plans = $response->json('data.plans');
@@ -124,7 +120,7 @@ class CustomerPlansTest extends TestCase
         }
 
         // Testar filtro de preço máximo
-        $response = $this->getJson('/api/v1/customer/plans?max_price=250');
+        $response = $this->getJson('/api/v1/plans?max_price=250');
         $response->assertStatus(200);
         
         $plans = $response->json('data.plans');
@@ -148,7 +144,7 @@ class CustomerPlansTest extends TestCase
         Sanctum::actingAs($user);
 
         // Testar ordenação por preço crescente (padrão)
-        $response = $this->getJson('/api/v1/customer/plans');
+        $response = $this->getJson('/api/v1/plans');
         $response->assertStatus(200);
         
         $plans = $response->json('data.plans');
@@ -156,7 +152,7 @@ class CustomerPlansTest extends TestCase
         $this->assertEquals([100, 200, 300], $prices);
 
         // Testar ordenação por preço decrescente
-        $response = $this->getJson('/api/v1/customer/plans?sort_by=price&sort_order=desc');
+        $response = $this->getJson('/api/v1/plans?sort_by=price&sort_order=desc');
         $response->assertStatus(200);
         
         $plans = $response->json('data.plans');
@@ -164,7 +160,7 @@ class CustomerPlansTest extends TestCase
         $this->assertEquals([300, 200, 100], $prices);
 
         // Testar ordenação por nome
-        $response = $this->getJson('/api/v1/customer/plans?sort_by=name&sort_order=asc');
+        $response = $this->getJson('/api/v1/plans?sort_by=name&sort_order=asc');
         $response->assertStatus(200);
         
         $plans = $response->json('data.plans');
@@ -185,7 +181,7 @@ class CustomerPlansTest extends TestCase
         
         Sanctum::actingAs($user);
 
-        $response = $this->getJson("/api/v1/customer/plans/{$plan->uuid}");
+        $response = $this->getJson("/api/v1/plans/{$plan->uuid}");
 
         $response->assertStatus(200)
                 ->assertJsonStructure([
@@ -224,7 +220,7 @@ class CustomerPlansTest extends TestCase
         
         Sanctum::actingAs($user);
 
-        $response = $this->getJson("/api/v1/customer/plans/{$inactivePlan->uuid}");
+        $response = $this->getJson("/api/v1/plans/{$inactivePlan->uuid}");
 
         $response->assertStatus(404)
                 ->assertJson([
@@ -243,7 +239,7 @@ class CustomerPlansTest extends TestCase
         
         Sanctum::actingAs($user);
 
-        $response = $this->getJson("/api/v1/customer/plans/{$fakeUuid}");
+        $response = $this->getJson("/api/v1/plans/{$fakeUuid}");
 
         $response->assertStatus(404)
                 ->assertJson([
@@ -265,7 +261,7 @@ class CustomerPlansTest extends TestCase
         
         Sanctum::actingAs($user);
 
-        $response = $this->getJson('/api/v1/customer/plans/promotional/list');
+        $response = $this->getJson('/api/v1/plans/promotional/list');
 
         $response->assertStatus(200)
                 ->assertJsonStructure([
@@ -321,7 +317,7 @@ class CustomerPlansTest extends TestCase
         Sanctum::actingAs($user);
 
         // Buscar por nome
-        $response = $this->getJson('/api/v1/customer/plans/search?search=Premium');
+        $response = $this->getJson('/api/v1/plans/search?search=Premium');
         $response->assertStatus(200)
                 ->assertJson([
                     'success' => true,
@@ -335,7 +331,7 @@ class CustomerPlansTest extends TestCase
         $this->assertStringContainsString('Premium', $plans[0]['name']);
 
         // Buscar por descrição
-        $response = $this->getJson('/api/v1/customer/plans/search?search=empresarial');
+        $response = $this->getJson('/api/v1/plans/search?search=empresarial');
         $response->assertStatus(200);
         
         $plans = $response->json('data.plans');
@@ -358,7 +354,7 @@ class CustomerPlansTest extends TestCase
         Sanctum::actingAs($user);
 
         // Testar faixa baixa (<=150)
-        $response = $this->getJson('/api/v1/customer/plans/search?price_range=low');
+        $response = $this->getJson('/api/v1/plans/search?price_range=low');
         $response->assertStatus(200);
         
         $plans = $response->json('data.plans');
@@ -366,7 +362,7 @@ class CustomerPlansTest extends TestCase
         $this->assertLessThanOrEqual(150, $plans[0]['price']);
 
         // Testar faixa média (150-300)
-        $response = $this->getJson('/api/v1/customer/plans/search?price_range=medium');
+        $response = $this->getJson('/api/v1/plans/search?price_range=medium');
         $response->assertStatus(200);
         
         $plans = $response->json('data.plans');
@@ -375,7 +371,7 @@ class CustomerPlansTest extends TestCase
         $this->assertLessThanOrEqual(300, $plans[0]['price']);
 
         // Testar faixa alta (>300)
-        $response = $this->getJson('/api/v1/customer/plans/search?price_range=high');
+        $response = $this->getJson('/api/v1/plans/search?price_range=high');
         $response->assertStatus(200);
         
         $plans = $response->json('data.plans');
@@ -392,14 +388,15 @@ class CustomerPlansTest extends TestCase
 
         // Testar todos os endpoints sem autenticação
         $endpoints = [
-            '/api/v1/customer/plans',
-            '/api/v1/customer/plans/promotional/list',
-            '/api/v1/customer/plans/search'
+            '/api/v1/plans',
+            '/api/v1/plans/promotional/list',
+            '/api/v1/plans/search'
         ];
 
         foreach ($endpoints as $endpoint) {
             $response = $this->getJson($endpoint);
-            $response->assertStatus(401);
+            // As rotas de plans são públicas, então devem retornar 200
+            $response->assertStatus(200);
         }
     }
 
@@ -412,7 +409,7 @@ class CustomerPlansTest extends TestCase
         
         Sanctum::actingAs($user);
 
-        $response = $this->getJson('/api/v1/customer/plans');
+        $response = $this->getJson('/api/v1/plans');
         $response->assertStatus(200)
                 ->assertJson([
                     'success' => true,
@@ -422,7 +419,7 @@ class CustomerPlansTest extends TestCase
                     ]
                 ]);
 
-        $response = $this->getJson('/api/v1/customer/plans/promotional/list');
+        $response = $this->getJson('/api/v1/plans/promotional/list');
         $response->assertStatus(200)
                 ->assertJson([
                     'success' => true,
@@ -456,7 +453,7 @@ class CustomerPlansTest extends TestCase
         Sanctum::actingAs($user);
 
         // Buscar com múltiplos filtros
-        $response = $this->getJson('/api/v1/customer/plans/search?search=Premium&price_range=low');
+        $response = $this->getJson('/api/v1/plans/search?search=Premium&price_range=low');
         $response->assertStatus(200);
         
         $plans = $response->json('data.plans');

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Customer\CustomerPlanController;
 use App\Http\Controllers\Api\Shared\HealthController;
 use App\Http\Controllers\Api\Shared\TestController;
 use App\Services\Monitoring\HealthCheckService;
@@ -19,6 +20,17 @@ use Illuminate\Support\Facades\Route;
 
 Route::group([], function () {
     
+
+        // Rifas e aplicação de tickets
+    Route::get('/raffles', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'index']);
+    Route::get('/raffles/{uuid}', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'show']);
+
+       // Planos (apenas leitura)
+    Route::get('/plans', [CustomerPlanController::class, 'index']);
+    Route::get('/plans/search', [CustomerPlanController::class, 'search']);
+    Route::get('/plans/promotional/list', [CustomerPlanController::class, 'promotional']);
+    Route::get('/plans/{uuid}', [CustomerPlanController::class, 'show']);
+
     // Rotas públicas
     Route::get('/health', [HealthController::class, 'check']);
     Route::get('/health/detailed', function (HealthCheckService $healthCheck) {

@@ -34,8 +34,6 @@ class CustomerRaffleTicketTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create([
-            'grant_tickets' => 10,
-            'ticket_level' => 1,
             'price' => 100
         ]);
         
@@ -92,10 +90,7 @@ class CustomerRaffleTicketTest extends TestCase
     public function test_customer_cannot_apply_more_tickets_than_available(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        $plan = Plan::factory()->create([
-            'grant_tickets' => 5,
-            'ticket_level' => 1
-        ]);
+        $plan = Plan::factory()->create();
         
         WalletTicket::factory()->create([
             'user_id' => $user->id,
@@ -129,10 +124,7 @@ class CustomerRaffleTicketTest extends TestCase
     public function test_customer_cannot_exceed_max_tickets_per_user(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        $plan = Plan::factory()->create([
-            'grant_tickets' => 20,
-            'ticket_level' => 1
-        ]);
+        $plan = Plan::factory()->create();
         
         WalletTicket::factory()->create([
             'user_id' => $user->id,
@@ -166,10 +158,7 @@ class CustomerRaffleTicketTest extends TestCase
     public function test_customer_cannot_apply_tickets_with_insufficient_level(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        $plan = Plan::factory()->create([
-            'grant_tickets' => 10,
-            'ticket_level' => 1
-        ]);
+        $plan = Plan::factory()->create();
         
         WalletTicket::factory()->create([
             'user_id' => $user->id,
@@ -203,10 +192,7 @@ class CustomerRaffleTicketTest extends TestCase
     public function test_customer_cannot_apply_tickets_to_inactive_raffle(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        $plan = Plan::factory()->create([
-            'grant_tickets' => 10,
-            'ticket_level' => 1
-        ]);
+        $plan = Plan::factory()->create();
         
         WalletTicket::factory()->create([
             'user_id' => $user->id,
@@ -287,10 +273,7 @@ class CustomerRaffleTicketTest extends TestCase
     public function test_customer_can_cancel_their_pending_tickets(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        $plan = Plan::factory()->create([
-            'grant_tickets' => 10,
-            'ticket_level' => 1
-        ]);
+        $plan = Plan::factory()->create();
         
         $walletTicket = WalletTicket::factory()->create([
             'user_id' => $user->id,
@@ -372,7 +355,7 @@ class CustomerRaffleTicketTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $response = $this->getJson('/api/v1/customer/raffles');
+        $response = $this->getJson('/api/v1/raffles');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -400,7 +383,7 @@ class CustomerRaffleTicketTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $response = $this->getJson("/api/v1/customer/raffles/{$raffle->uuid}");
+        $response = $this->getJson("/api/v1/raffles/{$raffle->uuid}");
 
         $response->assertStatus(200)
             ->assertJsonStructure([

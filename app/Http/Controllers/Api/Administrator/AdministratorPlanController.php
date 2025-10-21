@@ -116,13 +116,11 @@ class AdministratorPlanController extends Controller
                 'name' => 'required|string|max:255|unique:plans,name',
                 'description' => 'required|string|max:1000',
                 'price' => 'required|numeric|min:0',
-                'grant_tickets' => 'required|integer|min:0',
                 'status' => ['required', Rule::in(['active', 'inactive', 'archived'])],
                 'commission_level_1' => 'required|numeric|min:0|max:100',
                 'commission_level_2' => 'required|numeric|min:0|max:100',
                 'commission_level_3' => 'required|numeric|min:0|max:100',
                 'is_promotional' => 'boolean',
-                'overlap' => 'required|integer|min:0',
                 'start_date' => 'required|date',
                 'end_date' => 'nullable|date|after:start_date',
             ]);

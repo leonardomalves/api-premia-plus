@@ -19,7 +19,7 @@ Conta comprador
  5 - Planos tem que ser publico
  8 - Quando clicar em pagar, ai gera ordem
  9 - Tipo de tickets em tickets para definir se ele é um ticket de plano ou unitário;
- 
+10 -  
 
  
  --------------------------------------------------------------

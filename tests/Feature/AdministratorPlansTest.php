@@ -36,7 +36,6 @@ class AdministratorPlansTest extends TestCase
                                 'name',
                                 'description',
                                 'price',
-                                'grant_tickets',
                                 'status',
                                 'is_promotional',
                                 'created_at',
@@ -197,13 +196,11 @@ class AdministratorPlansTest extends TestCase
                             'name',
                             'description',
                             'price',
-                            'grant_tickets',
                             'status',
                             'commission_level_1',
                             'commission_level_2',
                             'commission_level_3',
                             'is_promotional',
-                            'overlap',
                             'start_date',
                             'end_date',
                             'created_at',
@@ -236,13 +233,11 @@ class AdministratorPlansTest extends TestCase
             'name' => 'Test Plan',
             'description' => 'This is a test plan for unit testing',
             'price' => 99.99,
-            'grant_tickets' => 10,
             'status' => 'active',
             'commission_level_1' => 10.5,
             'commission_level_2' => 7.5,
             'commission_level_3' => 5.0,
             'is_promotional' => false,
-            'overlap' => 2,
             'start_date' => '2025-01-01',
             'end_date' => '2025-12-31'
         ];
@@ -259,13 +254,11 @@ class AdministratorPlansTest extends TestCase
                             'name',
                             'description',
                             'price',
-                            'grant_tickets',
                             'status',
                             'commission_level_1',
                             'commission_level_2',
                             'commission_level_3',
                             'is_promotional',
-                            'overlap',
                             'start_date',
                             'end_date'
                         ]
@@ -295,7 +288,6 @@ class AdministratorPlansTest extends TestCase
         $invalidData = [
             'name' => '', // Required field empty
             'price' => -10, // Negative price
-            'grant_tickets' => -5, // Negative tickets
             'commission_level_1' => 150, // Over 100%
             'status' => 'invalid_status' // Invalid status
         ];
@@ -328,12 +320,10 @@ class AdministratorPlansTest extends TestCase
             'name' => 'Unique Plan', // Duplicate name
             'description' => 'Another plan',
             'price' => 50,
-            'grant_tickets' => 5,
             'status' => 'active',
             'commission_level_1' => 10,
             'commission_level_2' => 7,
             'commission_level_3' => 5,
-            'overlap' => 1,
             'start_date' => '2025-01-01'
         ];
 
@@ -446,9 +436,9 @@ class AdministratorPlansTest extends TestCase
         // Clear existing plans and create controlled test data
         Plan::query()->delete();
         
-        Plan::factory(3)->create(['status' => 'active', 'is_promotional' => false, 'price' => 100, 'grant_tickets' => 10]);
-        Plan::factory(2)->create(['status' => 'inactive', 'is_promotional' => false, 'price' => 200, 'grant_tickets' => 20]);
-        Plan::factory(1)->create(['is_promotional' => true, 'status' => 'active', 'price' => 50, 'grant_tickets' => 5]);
+        Plan::factory(3)->create(['status' => 'active', 'is_promotional' => false, 'price' => 100]);
+        Plan::factory(2)->create(['status' => 'inactive', 'is_promotional' => false, 'price' => 200]);
+        Plan::factory(1)->create(['is_promotional' => true, 'status' => 'active', 'price' => 50]);
         
         Sanctum::actingAs($admin);
 
@@ -466,8 +456,7 @@ class AdministratorPlansTest extends TestCase
                             'promotional_plans',
                             'average_price',
                             'min_price',
-                            'max_price',
-                            'total_tickets'
+                            'max_price'
                         ]
                     ]
                 ])
@@ -501,12 +490,10 @@ class AdministratorPlansTest extends TestCase
                     'name',
                     'description',
                     'price',
-                    'grant_tickets',
                     'status',
                     'commission_level_1',
                     'commission_level_2',
                     'commission_level_3',
-                    'overlap',
                     'start_date'
                 ]);
     }
@@ -524,12 +511,10 @@ class AdministratorPlansTest extends TestCase
             'name' => 'Test Plan',
             'description' => 'Test description',
             'price' => -10,              // Should be >= 0
-            'grant_tickets' => -5,       // Should be >= 0
             'commission_level_1' => 150, // Should be <= 100
             'commission_level_2' => -5,  // Should be >= 0
             'commission_level_3' => 200, // Should be <= 100
             'status' => 'active',
-            'overlap' => -1,             // Should be >= 0
             'start_date' => '2025-01-01'
         ];
 
@@ -538,11 +523,9 @@ class AdministratorPlansTest extends TestCase
         $response->assertStatus(422)
                 ->assertJsonValidationErrors([
                     'price',
-                    'grant_tickets',
                     'commission_level_1',
                     'commission_level_2',
-                    'commission_level_3',
-                    'overlap'
+                    'commission_level_3'
                 ]);
     }
 
@@ -559,12 +542,10 @@ class AdministratorPlansTest extends TestCase
             'name' => 'Test Plan',
             'description' => 'Test description',
             'price' => 100,
-            'grant_tickets' => 10,
             'status' => 'active',
             'commission_level_1' => 10,
             'commission_level_2' => 7,
             'commission_level_3' => 5,
-            'overlap' => 1,
             'start_date' => '2025-12-31',
             'end_date' => '2025-01-01' // End date before start date
         ];
@@ -588,13 +569,11 @@ class AdministratorPlansTest extends TestCase
             'name' => 'Black Friday Special',
             'description' => 'Limited time promotional offer',
             'price' => 49.99,
-            'grant_tickets' => 15,
             'status' => 'active',
             'commission_level_1' => 5,
             'commission_level_2' => 3,
             'commission_level_3' => 2,
             'is_promotional' => true,
-            'overlap' => 1,
             'start_date' => '2025-01-01',
             'end_date' => '2025-01-31'
         ];

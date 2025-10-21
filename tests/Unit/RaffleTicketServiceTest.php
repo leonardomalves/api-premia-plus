@@ -36,8 +36,6 @@ class RaffleTicketServiceTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $plan = Plan::factory()->create([
-            'grant_tickets' => 10,
-            'ticket_level' => 2,
             'price' => 100
         ]);
         
@@ -96,10 +94,7 @@ class RaffleTicketServiceTest extends TestCase
     public function test_service_throws_exception_when_user_has_insufficient_tickets(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        $plan = Plan::factory()->create([
-            'grant_tickets' => 10,
-            'ticket_level' => 1
-        ]);
+        $plan = Plan::factory()->create();
         
         WalletTicket::factory()->create([
             'user_id' => $user->id,
@@ -127,10 +122,7 @@ class RaffleTicketServiceTest extends TestCase
     public function test_service_throws_exception_when_raffle_is_not_active(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        $plan = Plan::factory()->create([
-            'grant_tickets' => 10,
-            'ticket_level' => 1
-        ]);
+        $plan = Plan::factory()->create();
         
         WalletTicket::factory()->create([
             'user_id' => $user->id,
@@ -158,10 +150,7 @@ class RaffleTicketServiceTest extends TestCase
     public function test_service_throws_exception_when_exceeding_max_tickets_per_user(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        $plan = Plan::factory()->create([
-            'grant_tickets' => 20,
-            'ticket_level' => 1
-        ]);
+        $plan = Plan::factory()->create();
         
         WalletTicket::factory()->create([
             'user_id' => $user->id,
@@ -189,10 +178,7 @@ class RaffleTicketServiceTest extends TestCase
     public function test_service_respects_max_tickets_when_user_already_has_tickets(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        $plan = Plan::factory()->create([
-            'grant_tickets' => 20,
-            'ticket_level' => 1
-        ]);
+        $plan = Plan::factory()->create();
         
         WalletTicket::factory()->create([
             'user_id' => $user->id,
@@ -228,10 +214,7 @@ class RaffleTicketServiceTest extends TestCase
     public function test_service_can_cancel_pending_tickets(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        $plan = Plan::factory()->create([
-            'grant_tickets' => 10,
-            'ticket_level' => 1
-        ]);
+        $plan = Plan::factory()->create();
         
         $walletTicket = WalletTicket::factory()->create([
             'user_id' => $user->id,
@@ -324,8 +307,8 @@ class RaffleTicketServiceTest extends TestCase
     public function test_service_uses_tickets_with_appropriate_level(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        $plan1 = Plan::factory()->create(['ticket_level' => 1]);
-        $plan2 = Plan::factory()->create(['ticket_level' => 2]);
+        $plan1 = Plan::factory()->create();
+        $plan2 = Plan::factory()->create();
         
         // Usuário tem tickets de nível 1 e 2
         WalletTicket::factory()->create([
@@ -368,10 +351,7 @@ class RaffleTicketServiceTest extends TestCase
     public function test_service_rollback_on_failure(): void
     {
         $user = User::factory()->create(['role' => 'customer']);
-        $plan = Plan::factory()->create([
-            'grant_tickets' => 10,
-            'ticket_level' => 1
-        ]);
+        $plan = Plan::factory()->create();
         
         $walletTicket = WalletTicket::factory()->create([
             'user_id' => $user->id,

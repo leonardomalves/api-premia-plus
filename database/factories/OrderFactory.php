@@ -26,7 +26,6 @@ class OrderFactory extends Factory
                 'name' => $this->faker->words(3, true),
                 'description' => $this->faker->sentence(),
                 'price' => $this->faker->randomFloat(2, 10, 500),
-                'grant_tickets' => $this->faker->numberBetween(1, 20),
                 'commission_level_1' => $this->faker->randomFloat(2, 1, 15),
                 'commission_level_2' => $this->faker->randomFloat(2, 1, 10),
                 'commission_level_3' => $this->faker->randomFloat(2, 1, 5),

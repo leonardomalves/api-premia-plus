@@ -138,7 +138,6 @@ class CustomerCartService
                 'name' => $cart->plan->name,
                 'description' => $cart->plan->description,
                 'price' => $cart->plan->price,
-                'grant_tickets' => $cart->plan->grant_tickets,
                 'commission_level_1' => $cart->plan->commission_level_1,
                 'commission_level_2' => $cart->plan->commission_level_2,
                 'commission_level_3' => $cart->plan->commission_level_3,

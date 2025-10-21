@@ -17,17 +17,13 @@ return new class extends Migration
             $table->string('name');
             $table->text('description');
             $table->decimal('price', 10, 2);
-            $table->integer('grant_tickets');
             $table->enum('status', ['active', 'inactive', 'archived'])->default('active');
             $table->enum('plan_type', ['public', 'private'])->default('public');
-            $table->integer('ticket_level')->default(1);
             $table->decimal('commission_level_1', 5, 2)->default(10.00);
             $table->decimal('commission_level_2', 5, 2)->default(5.00);
             $table->decimal('commission_level_3', 5, 2)->default(2.00);
             $table->boolean('is_promotional')
                 ->default(false);
-            $table->integer('max_users')->default(0);
-            $table->integer('overlap');
             $table->date('start_date');
             $table->date('end_date');
             $table->softDeletes();

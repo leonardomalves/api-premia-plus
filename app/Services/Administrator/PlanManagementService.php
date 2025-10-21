@@ -142,7 +142,6 @@ class PlanManagementService
             'average_price' => Plan::avg('price'),
             'min_price' => Plan::min('price'),
             'max_price' => Plan::max('price'),
-            'total_tickets' => Plan::sum('grant_tickets'),
         ];
     }
 

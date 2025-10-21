@@ -157,13 +157,11 @@ class AdministratorSystemTest extends TestCase
                                 'name',
                                 'description',
                                 'price',
-                                'grant_tickets',
                                 'status',
                                 'commission_level_1',
                                 'commission_level_2',
                                 'commission_level_3',
                                 'is_promotional',
-                                'overlap',
                                 'start_date',
                                 'end_date',
                                 'created_at',
@@ -304,13 +302,11 @@ class AdministratorSystemTest extends TestCase
             'name' => 'New Premium Plan',
             'description' => 'A brand new premium subscription plan',
             'price' => 199.99,
-            'grant_tickets' => 15,
             'status' => 'active',
             'commission_level_1' => 20.00,
             'commission_level_2' => 15.00,
             'commission_level_3' => 10.00,
             'is_promotional' => true,
-            'overlap' => 5,
             'start_date' => '2025-01-01',
             'end_date' => '2025-12-31'
         ];
@@ -328,13 +324,11 @@ class AdministratorSystemTest extends TestCase
                             'name',
                             'description',
                             'price',
-                            'grant_tickets',
                             'status',
                             'commission_level_1',
                             'commission_level_2',
                             'commission_level_3',
                             'is_promotional',
-                            'overlap',
                             'start_date',
                             'end_date',
                             'created_at',
@@ -350,7 +344,6 @@ class AdministratorSystemTest extends TestCase
                             'name' => 'New Premium Plan',
                             'description' => 'A brand new premium subscription plan',
                             'price' => '199.99',
-                            'grant_tickets' => 15,
                             'status' => 'active',
                             'is_promotional' => true
                         ]
@@ -378,12 +371,10 @@ class AdministratorSystemTest extends TestCase
             'name' => 'Existing Plan', // Nome duplicado
             'description' => 'Another plan with same name',
             'price' => 99.99,
-            'grant_tickets' => 10,
             'status' => 'active',
             'commission_level_1' => 15.00,
             'commission_level_2' => 10.00,
             'commission_level_3' => 5.00,
-            'overlap' => 3,
             'start_date' => '2025-01-01'
         ];
 
@@ -515,9 +506,9 @@ class AdministratorSystemTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         
         // Criar planos para estatísticas
-        Plan::factory(5)->create(['status' => 'active', 'is_promotional' => false, 'price' => 100, 'grant_tickets' => 10]);
-        Plan::factory(3)->create(['status' => 'inactive', 'is_promotional' => false, 'price' => 200, 'grant_tickets' => 20]);
-        Plan::factory(2)->create(['is_promotional' => true, 'status' => 'active', 'price' => 50, 'grant_tickets' => 5]);
+        Plan::factory(5)->create(['status' => 'active', 'is_promotional' => false, 'price' => 100]);
+        Plan::factory(3)->create(['status' => 'inactive', 'is_promotional' => false, 'price' => 200]);
+        Plan::factory(2)->create(['is_promotional' => true, 'status' => 'active', 'price' => 50]);
         
         Sanctum::actingAs($admin);
 
@@ -535,8 +526,7 @@ class AdministratorSystemTest extends TestCase
                             'promotional_plans',
                             'average_price',
                             'min_price',
-                            'max_price',
-                            'total_tickets'
+                            'max_price'
                         ]
                     ]
                 ])
@@ -552,7 +542,6 @@ class AdministratorSystemTest extends TestCase
         $this->assertEquals(2, $stats['promotional_plans']);
         $this->assertEquals(50, $stats['min_price']);
         $this->assertEquals(200, $stats['max_price']);
-        $this->assertEquals(120, $stats['total_tickets']); // (5*10) + (3*20) + (2*5) = 50 + 60 + 10 = 120
     }
 
     /**
@@ -695,12 +684,10 @@ class AdministratorSystemTest extends TestCase
                     'name',
                     'description',
                     'price',
-                    'grant_tickets',
                     'status',
                     'commission_level_1',
                     'commission_level_2',
                     'commission_level_3',
-                    'overlap',
                     'start_date'
                 ]);
 
@@ -709,12 +696,10 @@ class AdministratorSystemTest extends TestCase
             'name' => '', // Vazio
             'description' => str_repeat('a', 1001), // Muito longo
             'price' => -1, // Negativo
-            'grant_tickets' => -1, // Negativo
             'status' => 'invalid_status', // Status inválido
             'commission_level_1' => 101, // Acima de 100
             'commission_level_2' => -1, // Negativo
             'commission_level_3' => 'invalid', // Não numérico
-            'overlap' => -1, // Negativo
             'start_date' => 'invalid_date', // Data inválida
             'end_date' => '2024-01-01' // Anterior à start_date
         ];

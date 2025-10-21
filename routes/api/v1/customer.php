@@ -33,11 +33,7 @@ Route::prefix('customer')->middleware('auth:sanctum')->group(function () {
     Route::get('/users/{uuid}/sponsor', [CustomerController::class, 'userSponsor']);
     Route::get('/users/{uuid}/statistics', [CustomerController::class, 'userStatistics']);
     
-    // Planos (apenas leitura)
-    Route::get('/plans', [CustomerPlanController::class, 'index']);
-    Route::get('/plans/search', [CustomerPlanController::class, 'search']);
-    Route::get('/plans/promotional/list', [CustomerPlanController::class, 'promotional']);
-    Route::get('/plans/{uuid}', [CustomerPlanController::class, 'show']);
+ 
     
     // Carrinho (1 item não pago por usuário)
     Route::post('/cart/add', [CustomerCartController::class, 'addToCart']);
@@ -46,9 +42,7 @@ Route::prefix('customer')->middleware('auth:sanctum')->group(function () {
     Route::delete('/cart/clear', [CustomerCartController::class, 'clearCart']);
     Route::post('/cart/checkout', [CustomerCartController::class, 'checkout']);
     
-    // Rifas e aplicação de tickets
-    Route::get('/raffles', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'index']);
-    Route::get('/raffles/{uuid}', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'show']);
+
     Route::post('/raffles/{uuid}/tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'applyTickets']);
     Route::get('/raffles/{uuid}/my-tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'myTickets']);
     Route::delete('/raffles/{uuid}/tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'cancelTickets']);

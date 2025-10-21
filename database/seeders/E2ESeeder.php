@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Ticket;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 
@@ -26,6 +27,8 @@ class E2ESeeder extends Seeder
                     RaffleSeeder::class,         // 7. Criar rifas
                     UserApplyToRaffleSeed::class // 8. Usuários aplicam tickets nas rifas
                 ]);
+
+        Ticket::factory()->count(10)->create();
 
         $this->command->info('✅ Simulação E2E completa finalizada!');
     }

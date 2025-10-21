@@ -88,6 +88,7 @@ class CustomerService
             'inactive_network' => User::where('sponsor_id', $user->id)->where('status', 'inactive')->count(),
             'suspended_network' => User::where('sponsor_id', $user->id)->where('status', 'suspended')->count(),
             'account_created_at' => $user->created_at,
+            'commssions_earned' => $user->commissions()->sum('amount'), // Placeholder para futuras implementações
             'last_login' => $user->updated_at,
             'user_info' => [
                 'uuid' => $user->uuid,
