@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Jobs\CreateTicketsForRafflesJob;
 use App\Models\Raffle;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class RaffleSeeder extends Seeder
 {
@@ -14,147 +14,100 @@ class RaffleSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->command->info('� Iniciando seed de raffles...');
+        $this->command->info('🎰 Iniciando seed de raffles...');
 
         // Busca um admin para ser o criador dos raffles
         $admin = User::where('role', 'admin')->first();
-        if (! $admin) {
-            $this->command->error('❌ Nenhum admin encontrado! Execute CreateAdminSeed primeiro.');
-
+        if (!$admin) {
+            $this->command->error('❌ Nenhum admin encontrado! Execute AdminDirectSeed primeiro.');
             return;
         }
 
-        $raffleTemplates = [
-            [
-                'title' => 'iPhone 15 Pro Max 512GB',
-                'description' => 'Último modelo do iPhone com 512GB de armazenamento, cor Titânio Natural. Produto lacrado com garantia Apple.',
-                'prize_value' => 8999.99,
-                'operation_cost' => 500.00,
-                'unit_ticket_value' => 25.00,
-                'min_tickets_required' => 5,
-                
-                
-                'status' => 'active',
-                'notes' => 'Campanha de lançamento - produto premium',
-                'liquid_value' => 0,
-                'liquidity_ratio' => 0,
-            ],
+        $this->command->info("👤 Admin criador: {$admin->name} (ID: {$admin->id})");
 
-            /*
-            [
-                'title' => 'MacBook Pro M3 16" 1TB',
-                'description' => 'MacBook Pro com chip M3, tela de 16 polegadas, 1TB SSD, 32GB RAM. Ideal para profissionais.',
-                'prize_value' => 15999.99,
-                'operation_cost' => 800.00,
-                'unit_ticket_value' => 50.00,
-                'min_tickets_required' => 5,
-                
-                
-                'status' => 'active',
-                'notes' => 'Produto para profissionais de tecnologia',
-                'liquid_value' => 0,
-                'liquidity_ratio' => 0
-            ],
-            [
-                'title' => 'PlayStation 5 + 2 Controles',
-                'description' => 'Console PlayStation 5 lacrado com 2 controles DualSense e jogo Spider-Man 2 incluso.',
-                'prize_value' => 3499.99,
-                'operation_cost' => 200.00,
-                'unit_ticket_value' => 15.00,
-                'min_tickets_required' => 5,
-                
-                
-                'status' => 'active',
-                'notes' => 'Campanha focada em gamers',
-                'liquid_value' => 0,
-                'liquidity_ratio' => 0
-            ],
-            [
-                'title' => 'R$ 10.000 em Dinheiro',
-                'description' => 'Prêmio em dinheiro vivo de R$ 10.000,00 para usar como quiser. Valor depositado via PIX.',
-                'prize_value' => 10000.00,
-                'operation_cost' => 300.00,
-                'unit_ticket_value' => 20.00,
-                'min_tickets_required' => 5,
-                
-                
-                'status' => 'active',
-                'notes' => 'Prêmio em dinheiro sempre atrai',
-                'liquid_value' => 0,
-                'liquidity_ratio' => 0
-            ],
-            [
-                'title' => 'Apple Watch Ultra 2',
-                'description' => 'Apple Watch Ultra 2 com pulseira Ocean Band, GPS + Cellular, resistente e ideal para esportes.',
-                'prize_value' => 4999.99,
-                'operation_cost' => 250.00,
-                'unit_ticket_value' => 12.00,
-                'min_tickets_required' => 5,
-                
-                
-                'status' => 'active',
-                'notes' => 'Produto em preparação',
-                'liquid_value' => 0,
-                'liquidity_ratio' => 0
-            ],
-            [
-                'title' => 'Samsung Galaxy S24 Ultra 512GB',
-                'description' => 'Smartphone Samsung Galaxy S24 Ultra com 512GB, S Pen incluída, câmera de 200MP.',
-                'prize_value' => 6499.99,
-                'operation_cost' => 350.00,
-                'unit_ticket_value' => 18.00,
-                'min_tickets_required' => 5,
-                
-                
-                'status' => 'active',
-                'notes' => 'Campanha pausada temporariamente',
-                'liquid_value' => 0,
-                'liquidity_ratio' => 0
-            ]
-
-            */
-        ];
-
-        $this->command->info('🔢 Criando '.count($raffleTemplates).' raffles base...');
-
-        // Criar raffles adicionais aleatórios
-        $this->command->info('🎰 Criando raffles adicionais aleatórios...');
+        // Definir quantidade de raffles a criar
+        $quantity = 10000;
+        $batchSize = 500; // Processar em lotes para melhor performance
+        
+        $this->command->info("📦 Criando {$quantity} raffles em lotes de {$batchSize}...");
 
         $prizes = [
             'Nintendo Switch OLED', 'Xbox Series X', 'iPad Pro M2', 'AirPods Pro 2',
             'Smart TV 65" 4K', 'Notebook Gamer', 'Câmera Canon EOS', 'Drone DJI Mini',
             'R$ 5.000 em Dinheiro', 'Perfume Importado Kit', 'Relógio Smartwatch',
-            'Fone Beats Studio', 'Tablet Samsung', 'Kindle Oasis',
+            'Fone Beats Studio', 'Tablet Samsung', 'Kindle Oasis', 'iPhone 15',
+            'MacBook Air', 'PlayStation 5', 'Bicicleta Elétrica', 'Ar Condicionado',
         ];
 
-        for ($i = 0; $i < 1; $i++) {
-            $prize = $prizes[array_rand($prizes)];
-            $prizeValue = rand(500, 5000);
-            $operationCost = $prizeValue * 0.1; // 10% do valor do prêmio
-            $ticketValue = rand(5, 30);
-            $ticketsNeeded = intval($prizeValue / $ticketValue);
+        $statusOptions = ['active', 'active', 'active', 'inactive']; // 75% ativos, 25% inativos
 
-            $raffle = Raffle::create([
-                'title' => $prize.' #'.($i + 1),
-                'description' => "Sorteio de {$prize} em excelente estado. Produto original com garantia.",
-                'prize_value' => $prizeValue,
-                'operation_cost' => $operationCost,
-                'unit_ticket_value' => $ticketValue,
-                'min_tickets_required' => $ticketsNeeded,
-                'status' => ['active', 'active', 'inactive'][rand(0, 2)],
-                'created_by' => $admin->id,
-                'notes' => "Raffle gerado automaticamente - {$prize}",
-                'liquid_value' => 0,
-                'liquidity_ratio' => 0,
-            ]);
+        $created = 0;
+        $startTime = microtime(true);
 
-            CreateTicketsForRafflesJob::dispatch($raffle->id);
+        // Criar em lotes para melhor performance
+        for ($batch = 0; $batch < ceil($quantity / $batchSize); $batch++) {
+            $rafflesData = [];
+            $currentBatchSize = min($batchSize, $quantity - $created);
+
+            for ($i = 0; $i < $currentBatchSize; $i++) {
+                $prize = $prizes[array_rand($prizes)];
+                $prizeValue = rand(500, 5000) + (rand(0, 99) / 100);
+                $operationCost = round($prizeValue * 0.1, 2); // 10% do valor do prêmio
+                $ticketValue = rand(1, 3) + (rand(0, 99) / 100); // Entre 1.00 e 3.99
+                $ticketsNeeded = rand(100, 500);
+                $liquidityRatio = rand(12, 15);
+
+                $totalCost = $prizeValue + $operationCost;
+                $liquidValue = round(($totalCost * ($liquidityRatio / 100)) + $totalCost, 2);
+
+                $rafflesData[] = [
+                    'uuid' => \Illuminate\Support\Str::uuid(),
+                    'title' => $prize . ' #' . ($created + $i + 1),
+                    'description' => "Sorteio de {$prize} em excelente estado. Produto original com garantia de 1 ano.",
+                    'prize_value' => $prizeValue,
+                    'operation_cost' => $operationCost,
+                    'unit_ticket_value' => $ticketValue,
+                    'min_tickets_required' => $ticketsNeeded,
+                    'status' => $statusOptions[array_rand($statusOptions)],
+                    'created_by' => $admin->id,
+                    'notes' => "Raffle gerado automaticamente - {$prize}",
+                    'liquid_value' => $liquidValue,
+                    'liquidity_ratio' => $liquidityRatio,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            // Insert em lote para melhor performance
+            DB::table('raffles')->insert($rafflesData);
+            
+            $created += $currentBatchSize;
+            $progress = round(($created / $quantity) * 100, 1);
+            
+            $this->command->info("  ✅ Lote " . ($batch + 1) . " criado: {$currentBatchSize} raffles | Progresso: {$progress}% ({$created}/{$quantity})");
         }
 
-        $totalRaffles = count($raffleTemplates) + 10;
-        $this->command->info("✅ Seed de raffles concluído! Total: {$totalRaffles} raffles criados.");
-        $this->command->info('📊 Status: '.Raffle::where('status', 'active')->count().' ativos, '.
-                            Raffle::where('status', 'draft')->count().' rascunhos, '.
-                            Raffle::where('status', 'inactive')->count().' inativos');
+        $endTime = microtime(true);
+        $duration = round($endTime - $startTime, 2);
+
+        // Estatísticas finais
+        $this->command->info('');
+        $this->command->info('📊 ESTATÍSTICAS FINAIS');
+        $this->command->info('═══════════════════════════════════════');
+        $this->command->info("✅ Total de raffles criados: {$created}");
+        $this->command->info("⏱️  Tempo de execução: {$duration}s");
+        $this->command->info("⚡ Média: " . round($created / $duration, 0) . " raffles/segundo");
+        
+        $activeCount = Raffle::where('status', 'active')->count();
+        $inactiveCount = Raffle::where('status', 'inactive')->count();
+        $totalValue = Raffle::sum('prize_value');
+        $avgValue = round(Raffle::avg('prize_value'), 2);
+        
+        $this->command->info("🟢 Ativos: {$activeCount}");
+        $this->command->info("🔴 Inativos: {$inactiveCount}");
+        $this->command->info("💰 Valor total em prêmios: R$ " . number_format($totalValue, 2, ',', '.'));
+        $this->command->info("📈 Valor médio: R$ " . number_format($avgValue, 2, ',', '.'));
+        $this->command->info('═══════════════════════════════════════');
+        $this->command->info('✅ Seed de raffles concluído com sucesso!');
     }
 }
