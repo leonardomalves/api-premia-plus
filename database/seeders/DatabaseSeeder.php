@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Ticket;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 class DatabaseSeeder extends Seeder
 {
@@ -11,24 +13,25 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        
+        $this->command->info('🚀 Iniciando simulação E2E completa...');
+
+        Artisan::call('migrate:fresh'); // Limpa o banco antes de rodar a simulação
+
         $this->call([
-            // Criar admin primeiro
-            CreateAdminSeed::class,
-
-            // Depois criar usuários de teste
-            CreateUsersSeed::class,
-
-            // Seeds de dados complementares
-            PlanSeed::class,
-
-            // Simular comportamento real dos usuários
-            AddToCartSeed::class,
-
-            // Processar carrinhos e criar orders
-            ProcessCartStatusSeed::class,
-
-            // Processar status das orders (aprovar/rejeitar/cancelar)
-            ProcessOrderStatusSeed::class,
+            AdminDirectSeed::class,     // 1. Criar admins DIRETAMENTE no banco
+            PopulateTicketsSeed::class, // 2. Popular tickets diretamente
+            PlanSeed::class,            // 2. Criar planos ANTES dos usuários
+            CreateUsersSeed::class,     // 3. Criar usuários via API
+            AddToCartSeed::class,       // 4. Simular adição ao carrinho
+            ProcessCartStatusSeed::class,   // 5. Processar carrinhos → orders
+            ProcessOrderStatusSeed::class,  // 6. Aprovar/rejeitar orders
+            // RaffleSeeder::class,         // 7. Criar rifas
+            // UserApplyToRaffleSeed::class // 8. Usuários aplicam tickets nas rifas
         ]);
+
+        Ticket::factory()->count(10)->create();
+
+        $this->command->info('✅ Simulação E2E completa finalizada!');
     }
 }
