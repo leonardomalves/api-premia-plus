@@ -33,7 +33,7 @@ class RaffleFactory extends Factory
                 'prize_value' => 8999.99,
                 'operation_cost' => 500.00,
                 'unit_ticket_value' => 25.00,
-                'tickets_required' => 400,
+                'min_tickets_required' => 400,
             ],
             [
                 'title' => 'PlayStation 5 Digital Edition',
@@ -41,7 +41,7 @@ class RaffleFactory extends Factory
                 'prize_value' => 3999.99,
                 'operation_cost' => 300.00,
                 'unit_ticket_value' => 15.00,
-                'tickets_required' => 300,
+                'min_tickets_required' => 300,
             ],
             [
                 'title' => 'MacBook Pro M3 14" 512GB',
@@ -49,7 +49,7 @@ class RaffleFactory extends Factory
                 'prize_value' => 12999.99,
                 'operation_cost' => 800.00,
                 'unit_ticket_value' => 35.00,
-                'tickets_required' => 400,
+                'min_tickets_required' => 400,
             ],
             [
                 'title' => 'Samsung Galaxy S24 Ultra 256GB',
@@ -57,7 +57,7 @@ class RaffleFactory extends Factory
                 'prize_value' => 6999.99,
                 'operation_cost' => 400.00,
                 'unit_ticket_value' => 20.00,
-                'tickets_required' => 350,
+                'min_tickets_required' => 350,
             ],
             [
                 'title' => 'Vale Compras R$ 5.000',
@@ -65,7 +65,7 @@ class RaffleFactory extends Factory
                 'prize_value' => 5000.00,
                 'operation_cost' => 250.00,
                 'unit_ticket_value' => 18.00,
-                'tickets_required' => 280,
+                'min_tickets_required' => 280,
             ],
             [
                 'title' => 'Nintendo Switch OLED',
@@ -73,7 +73,7 @@ class RaffleFactory extends Factory
                 'prize_value' => 2499.99,
                 'operation_cost' => 150.00,
                 'unit_ticket_value' => 12.00,
-                'tickets_required' => 210,
+                'min_tickets_required' => 210,
             ],
         ];
 
@@ -88,9 +88,7 @@ class RaffleFactory extends Factory
             'unit_ticket_value' => $product['unit_ticket_value'],
             'liquidity_ratio' => $this->faker->numberBetween(60, 95),
             'liquid_value' => $product['prize_value'] * 0.8, // 80% do valor do prêmio como padrão
-            'tickets_required' => $product['tickets_required'],
-            'min_ticket_level' => $this->faker->numberBetween(1, 5),
-            'max_tickets_per_user' => $this->faker->numberBetween(5, 20),
+            'min_tickets_required' => $product['min_tickets_required'],
             'status' => $this->faker->randomElement(['pending', 'active', 'inactive', 'cancelled']),
             'notes' => $this->faker->optional(0.7)->paragraph(),
             'created_by' => User::factory(),
@@ -148,7 +146,7 @@ class RaffleFactory extends Factory
             'prize_value' => $this->faker->numberBetween(10000, 50000),
             'operation_cost' => $this->faker->numberBetween(500, 2000),
             'unit_ticket_value' => $this->faker->numberBetween(30, 100),
-            'tickets_required' => $this->faker->numberBetween(300, 800),
+            'min_tickets_required' => $this->faker->numberBetween(300, 800),
         ]);
     }
 
@@ -161,7 +159,7 @@ class RaffleFactory extends Factory
             'prize_value' => $this->faker->numberBetween(100, 1000),
             'operation_cost' => $this->faker->numberBetween(10, 100),
             'unit_ticket_value' => $this->faker->numberBetween(5, 20),
-            'tickets_required' => $this->faker->numberBetween(50, 200),
+            'min_tickets_required' => $this->faker->numberBetween(50, 200),
         ]);
     }
 

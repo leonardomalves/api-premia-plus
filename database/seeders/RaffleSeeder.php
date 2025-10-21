@@ -31,9 +31,9 @@ class RaffleSeeder extends Seeder
                 'prize_value' => 8999.99,
                 'operation_cost' => 500.00,
                 'unit_ticket_value' => 25.00,
-                'tickets_required' => 5,
-                'min_ticket_level' => 0,
-                'max_tickets_per_user' => 10,
+                'min_tickets_required' => 5,
+                
+                
                 'status' => 'active',
                 'notes' => 'Campanha de lançamento - produto premium',
                 'liquid_value' => 0,
@@ -47,9 +47,9 @@ class RaffleSeeder extends Seeder
                 'prize_value' => 15999.99,
                 'operation_cost' => 800.00,
                 'unit_ticket_value' => 50.00,
-                'tickets_required' => 5,
-                'min_ticket_level' => 0,
-                'max_tickets_per_user' => 5,
+                'min_tickets_required' => 5,
+                
+                
                 'status' => 'active',
                 'notes' => 'Produto para profissionais de tecnologia',
                 'liquid_value' => 0,
@@ -61,9 +61,9 @@ class RaffleSeeder extends Seeder
                 'prize_value' => 3499.99,
                 'operation_cost' => 200.00,
                 'unit_ticket_value' => 15.00,
-                'tickets_required' => 5,
-                'min_ticket_level' => 0,
-                'max_tickets_per_user' => 20,
+                'min_tickets_required' => 5,
+                
+                
                 'status' => 'active',
                 'notes' => 'Campanha focada em gamers',
                 'liquid_value' => 0,
@@ -75,9 +75,9 @@ class RaffleSeeder extends Seeder
                 'prize_value' => 10000.00,
                 'operation_cost' => 300.00,
                 'unit_ticket_value' => 20.00,
-                'tickets_required' => 5,
-                'min_ticket_level' => 0,
-                'max_tickets_per_user' => 25,
+                'min_tickets_required' => 5,
+                
+                
                 'status' => 'active',
                 'notes' => 'Prêmio em dinheiro sempre atrai',
                 'liquid_value' => 0,
@@ -89,9 +89,9 @@ class RaffleSeeder extends Seeder
                 'prize_value' => 4999.99,
                 'operation_cost' => 250.00,
                 'unit_ticket_value' => 12.00,
-                'tickets_required' => 5,
-                'min_ticket_level' => 0,
-                'max_tickets_per_user' => 15,
+                'min_tickets_required' => 5,
+                
+                
                 'status' => 'active',
                 'notes' => 'Produto em preparação',
                 'liquid_value' => 0,
@@ -103,9 +103,9 @@ class RaffleSeeder extends Seeder
                 'prize_value' => 6499.99,
                 'operation_cost' => 350.00,
                 'unit_ticket_value' => 18.00,
-                'tickets_required' => 5,
-                'min_ticket_level' => 0,
-                'max_tickets_per_user' => 12,
+                'min_tickets_required' => 5,
+                
+                
                 'status' => 'active',
                 'notes' => 'Campanha pausada temporariamente',
                 'liquid_value' => 0,
@@ -140,9 +140,7 @@ class RaffleSeeder extends Seeder
                 'prize_value' => $prizeValue,
                 'operation_cost' => $operationCost,
                 'unit_ticket_value' => $ticketValue,
-                'tickets_required' => $ticketsNeeded,
-                'min_ticket_level' => 0,
-                'max_tickets_per_user' => rand(5, 20),
+                'min_tickets_required' => $ticketsNeeded,
                 'status' => ['active', 'active', 'inactive'][rand(0, 2)],
                 'created_by' => $admin->id,
                 'notes' => "Raffle gerado automaticamente - {$prize}",
