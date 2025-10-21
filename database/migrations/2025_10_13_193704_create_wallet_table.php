@@ -21,12 +21,6 @@ return new class extends Migration
                 ->constrained('users')
                 ->onDelete('cascade');
 
-            $table->decimal('commissions_for_this_month', 10, 2)
-                ->default(0);
-
-            $table->decimal('total_commissions', 10, 2)
-                ->default(0);
-
             $table->decimal('balance', 10, 2)
                 ->default(0);
 

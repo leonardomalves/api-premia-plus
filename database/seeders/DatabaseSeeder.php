@@ -26,8 +26,8 @@ class DatabaseSeeder extends Seeder
             AddToCartSeed::class,       // 4. Simular adição ao carrinho
             ProcessCartStatusSeed::class,   // 5. Processar carrinhos → orders
             ProcessOrderStatusSeed::class,  // 6. Aprovar/rejeitar orders
-            // RaffleSeeder::class,         // 7. Criar rifas
-            // UserApplyToRaffleSeed::class // 8. Usuários aplicam tickets nas rifas
+            RaffleSeeder::class,         // 7. Criar rifas
+            UserApplyToRaffleSeed::class // 8. Usuários aplicam tickets nas rifas
         ]);
 
         Ticket::factory()->count(10)->create();

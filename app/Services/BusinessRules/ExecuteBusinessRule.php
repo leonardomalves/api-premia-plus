@@ -9,7 +9,7 @@ class ExecuteBusinessRule
     public function __construct(
         private CreateStatementService $createStatementService,
         private PayCommissionService $payCommissionService,
-        private WalletTicketService $walletTicketService
+        private WalletService $walletService,
     ) {}
 
     public function execute(Order $order): array
@@ -24,8 +24,8 @@ class ExecuteBusinessRule
         $results['commissions'] = $commissionResult;
 
         // Create wallet ticket
-        // $walletTicketResult = $this->walletTicketService->createWalletTicket($order);
-        // $results['wallet_ticket'] = $walletTicketResult;
+        $walletTicketResult = $this->walletService->processWallet($order);
+        $results['wallet'] = $walletTicketResult;
 
         return [
             'success' => true,

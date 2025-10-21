@@ -104,9 +104,9 @@ class User extends Authenticatable
     /**
      * Relacionamento com WalletTicket (carteira de tickets do usuário)
      */
-    public function walletTickets()
+    public function wallet()
     {
-        return $this->hasMany(WalletTicket::class);
+        return $this->hasMany(Wallet::class);
     }
 
     /**
@@ -125,5 +125,10 @@ class User extends Authenticatable
         return $this->belongsToMany(Raffle::class, 'raffle_tickets')
             ->withPivot('ticket_id', 'status')
             ->withTimestamps();
+    }
+
+    public function financialStatements()
+    {
+        return $this->hasMany(FinancialStatement::class);
     }
 }

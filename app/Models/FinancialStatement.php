@@ -16,6 +16,7 @@ class FinancialStatement extends Model
         'amount',
         'type',
         'description',
+        'origin'
     ];
 
     public function getRouteKeyName()
