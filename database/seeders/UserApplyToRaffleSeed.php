@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Jobs\UserApplyToRaffleJob;
 use App\Models\Raffle;
 use App\Models\User;
 use App\Services\BusinessRules\UserApplyToRaffleService;
@@ -15,9 +16,7 @@ class UserApplyToRaffleSeed extends Seeder
      */
     public function run(): void
     {
-        $service = new UserApplyToRaffleService();
-        
-        $this->command->info('🎫 Iniciando aplicação de usuários em rifas...');
+        $this->command->info('🎫 Iniciando aplicação de usuários em rifas via Jobs...');
 
         // Buscar usuários com saldo em wallet (exceto admins)
         $users = User::where('role', '!=', 'admin')
@@ -48,18 +47,14 @@ class UserApplyToRaffleSeed extends Seeder
         $this->command->info("🎰 Rifas ativas disponíveis: {$activeRaffles->count()}");
         $this->command->info('');
 
-        $totalApplications = 0;
-        $totalTicketsPurchased = 0;
-        $totalMoneySpent = 0;
-        $totalErrors = 0;
+        $totalJobsDispatched = 0;
 
         foreach ($users as $user) {
             $wallet = $user->wallet;
-            $initialBalance = $wallet->balance;
             
             $this->command->info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             $this->command->info("👤 {$user->name} (ID: {$user->id})");
-            $this->command->info("💰 Saldo inicial: R$ " . number_format($initialBalance, 2, ',', '.'));
+            $this->command->info("💰 Saldo atual: R$ " . number_format($wallet->balance, 2, ',', '.'));
 
             // Buscar rifas em que o usuário ainda NÃO aplicou
             $appliedRaffleIds = DB::table('raffle_tickets')
@@ -74,47 +69,44 @@ class UserApplyToRaffleSeed extends Seeder
                 continue;
             }
 
-            // Cada usuário aplica em 3-8 rifas aleatórias (que ainda não aplicou)
-            $rafflesToApply = $availableRaffles->random(rand(3, min(8, $availableRaffles->count())));
-            $userApplications = 0;
-            $userTickets = 0;
-            $userSpent = 0;
+            // Calcular quantas rifas o usuário pode aplicar com base no saldo
+            $maxRafflesAffordable = 0;
+            $affordableRaffles = [];
+            
+            foreach ($availableRaffles as $raffle) {
+                $cost = $raffle->min_tickets_required * $raffle->unit_ticket_value;
+                if ($wallet->balance >= $cost) {
+                    $affordableRaffles[] = $raffle;
+                    $maxRafflesAffordable++;
+                }
+            }
+
+            if (empty($affordableRaffles)) {
+                $this->command->warn("  ⚠️  Saldo insuficiente para aplicar em qualquer rifa");
+                continue;
+            }
+
+            // Aplicar em 3-8 rifas aleatórias (limitado pelo que pode pagar)
+            $numberOfRaffles = rand(3, min(8, count($affordableRaffles)));
+            $rafflesToApply = collect($affordableRaffles)
+                ->random(min($numberOfRaffles, count($affordableRaffles)));
+
+            $userJobsDispatched = 0;
 
             foreach ($rafflesToApply as $raffle) {
-                // 🚀 USAR O SERVICE AQUI
-                $result = $service->applyUserToRaffle(
+                // Dispatch do job para fila
+                UserApplyToRaffleJob::dispatch(
                     $user,
                     $raffle,
                     $raffle->min_tickets_required
                 );
 
-                if ($result['success']) {
-                    $userApplications++;
-                    $userTickets += $result['tickets_count'];
-                    $userSpent += $result['total_cost'];
-
-                    $this->command->info("  ✅ {$result['raffle_title']}");
-                    $this->command->info("     Tickets: {$result['tickets_count']} x R$ " . number_format($raffle->unit_ticket_value, 2, ',', '.') . " = R$ " . number_format($result['total_cost'], 2, ',', '.'));
-                    $this->command->info("     Números: " . implode(', ', array_slice($result['ticket_numbers'], 0, 10)) . (count($result['ticket_numbers']) > 10 ? '...' : ''));
-                    $this->command->info("     ⏱️  Tempo: {$result['duration_ms']}ms");
-                } else {
-                    $totalErrors++;
-                    $this->command->warn("  ⚠️  {$raffle->title}: {$result['message']}");
-                }
-
-                // Refresh wallet para próxima iteração
-                $wallet->refresh();
+                $userJobsDispatched++;
+                $this->command->info("  📤 Job enviado: {$raffle->title}");
             }
 
-            $this->command->info("📊 Resumo do usuário:");
-            $this->command->info("   Rifas aplicadas: {$userApplications}");
-            $this->command->info("   Total de tickets: {$userTickets}");
-            $this->command->info("   Gasto total: R$ " . number_format($userSpent, 2, ',', '.'));
-            $this->command->info("   Saldo restante: R$ " . number_format($wallet->balance, 2, ',', '.'));
-            
-            $totalApplications += $userApplications;
-            $totalTicketsPurchased += $userTickets;
-            $totalMoneySpent += $userSpent;
+            $this->command->info("📊 Jobs enviados para o usuário: {$userJobsDispatched}");
+            $totalJobsDispatched += $userJobsDispatched;
         }
 
         $this->command->info('');
@@ -122,12 +114,15 @@ class UserApplyToRaffleSeed extends Seeder
         $this->command->info('📊 ESTATÍSTICAS FINAIS');
         $this->command->info('═══════════════════════════════════════');
         $this->command->info("👥 Usuários processados: {$users->count()}");
-        $this->command->info("🎫 Total de aplicações: {$totalApplications}");
-        $this->command->info("🎰 Total de tickets comprados: {$totalTicketsPurchased}");
-        $this->command->info("💸 Valor total gasto: R$ " . number_format($totalMoneySpent, 2, ',', '.'));
-        $this->command->info("⚠️  Erros encontrados: {$totalErrors}");
-        $this->command->info("📈 Média por usuário: " . round($totalApplications / max($users->count(), 1), 1) . " rifas");
+        $this->command->info("📤 Total de Jobs despachados: {$totalJobsDispatched}");
+        $this->command->info("📈 Média por usuário: " . round($totalJobsDispatched / max($users->count(), 1), 1) . " jobs");
+        $this->command->info('');
+        $this->command->info('⚙️  Para processar os jobs, execute:');
+        $this->command->info('   php artisan queue:work');
+        $this->command->info('');
+        $this->command->info('� Para monitorar a fila:');
+        $this->command->info('   php artisan queue:listen');
         $this->command->info('═══════════════════════════════════════');
-        $this->command->info('✅ Processo concluído com sucesso!');
+        $this->command->info('✅ Jobs enfileirados com sucesso!');
     }
 }
