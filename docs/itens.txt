@@ -37,3 +37,6 @@ Conta comprador
  Pagou uma ordem
  Confirmou pagamento
   
+
+
+php artisan queue:work --queue=raffle-applications --stop-when-empty
