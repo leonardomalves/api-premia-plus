@@ -50,8 +50,4 @@ Route::prefix('customer')->middleware('auth:sanctum')->group(function () {
     // Orders - Minhas compras
     Route::get('/orders', [CustomerOrderController::class, 'index']);
     Route::get('/orders/{uuid}', [CustomerOrderController::class, 'show']);
-
-    Route::post('/raffles/{uuid}/tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'applyTickets']);
-    Route::get('/raffles/{uuid}/my-tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'myTickets']);
-    Route::delete('/raffles/{uuid}/tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'cancelTickets']);
 });
