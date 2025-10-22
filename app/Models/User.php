@@ -102,11 +102,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Relacionamento com WalletTicket (carteira de tickets do usuário)
+     * Relacionamento com Wallet (carteira financeira do usuário)
      */
     public function wallet()
     {
-        return $this->hasMany(Wallet::class);
+        return $this->hasOne(Wallet::class);
     }
 
     /**

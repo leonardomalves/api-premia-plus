@@ -13,21 +13,16 @@ class Wallet extends Model
     protected $fillable = [
         'uuid',
         'user_id',
-        'order_id',
-        'plan_id',
-        'ticket_level',
-        'total_tickets',
-        'total_tickets_used',
-        'bonus_tickets',
-        'expiration_date',
-        'status',
+        'balance',
+        'withdrawals',
+        'blocked',
     ];
 
     protected $casts = [
-        'expiration_date' => 'date',
+        'balance' => 'decimal:2',
+        'withdrawals' => 'decimal:2',
+        'blocked' => 'decimal:2',
     ];
-
-    protected $appends = ['available_tickets'];
 
     /**
      * Relacionamento com User
@@ -38,56 +33,58 @@ class Wallet extends Model
     }
 
     /**
-     * Relacionamento com Order
+     * Calcula o saldo disponível (balance - blocked)
      */
-    public function order()
+    public function getAvailableBalanceAttribute(): float
     {
-        return $this->belongsTo(Order::class);
+        return $this->balance - $this->blocked;
     }
 
     /**
-     * Relacionamento com Plan
+     * Debita um valor do saldo
      */
-    public function plan()
+    public function debit(float $amount): bool
     {
-        return $this->belongsTo(Plan::class);
-    }
+        if ($this->getAvailableBalanceAttribute() < $amount) {
+            return false;
+        }
 
-    public function getAvailableTicketsAttribute()
-    {
-        return $this->total_tickets - $this->total_tickets_used + $this->bonus_tickets;
+        $this->balance -= $amount;
+        return $this->save();
     }
 
     /**
-     * Decrementa a quantidade especificada de tickets
-     * Prioriza tickets normais, depois bônus
-     *
-     * @param  int  $quantity  Quantidade de tickets a decrementar
-     * @return int Quantidade efetivamente decrementada
+     * Credita um valor no saldo
      */
-    public function decrementIn(int $quantity): int
+    public function credit(float $amount): bool
     {
-        $decremented = 0;
+        $this->balance += $amount;
+        return $this->save();
+    }
 
-        for ($i = 0; $i < $quantity; $i++) {
-            $normalTickets = $this->total_tickets - $this->total_tickets_used;
-
-            if ($normalTickets > 0) {
-                $this->total_tickets_used += 1;
-                $decremented++;
-            } elseif ($this->bonus_tickets > 0) {
-                $this->bonus_tickets -= 1;
-                $decremented++;
-            } else {
-                // Não há mais tickets disponíveis
-                break;
-            }
+    /**
+     * Bloqueia um valor
+     */
+    public function block(float $amount): bool
+    {
+        if ($this->getAvailableBalanceAttribute() < $amount) {
+            return false;
         }
 
-        if ($decremented > 0) {
-            $this->save();
+        $this->blocked += $amount;
+        return $this->save();
+    }
+
+    /**
+     * Desbloqueia um valor
+     */
+    public function unblock(float $amount): bool
+    {
+        if ($this->blocked < $amount) {
+            return false;
         }
 
-        return $decremented;
+        $this->blocked -= $amount;
+        return $this->save();
     }
 }

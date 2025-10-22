@@ -19,15 +19,16 @@ class DatabaseSeeder extends Seeder
         Artisan::call('migrate:fresh'); // Limpa o banco antes de rodar a simulação
 
         $this->call([
-            AdminDirectSeed::class,     // 1. Criar admins DIRETAMENTE no banco
-            PopulateTicketsSeed::class, // 2. Popular tickets diretamente
-            PlanSeed::class,            // 2. Criar planos ANTES dos usuários
-            CreateUsersSeed::class,     // 3. Criar usuários via API
-            AddToCartSeed::class,       // 4. Simular adição ao carrinho
-            ProcessCartStatusSeed::class,   // 5. Processar carrinhos → orders
-            ProcessOrderStatusSeed::class,  // 6. Aprovar/rejeitar orders
-            RaffleSeeder::class,         // 7. Criar rifas
-            //UserApplyToRaffleSeed::class // 8. Usuários aplicam tickets nas rifas
+            AdminDirectSeed::class,         // 1. Criar admins DIRETAMENTE no banco
+            PopulateTicketsSeed::class,     // 2. Popular tickets diretamente
+            PlanSeed::class,                // 3. Criar planos ANTES dos usuários
+            CreateUsersSeed::class,         // 4. Criar usuários via API
+            AddToCartSeed::class,           // 5. Simular adição ao carrinho
+            ProcessCartStatusSeed::class,   // 6. Processar carrinhos → orders
+            ProcessOrderStatusSeed::class,  // 7. Aprovar/rejeitar orders
+            WalletSeed::class,              // 8. Creditar saldo nas wallets
+            RaffleSeeder::class,            // 9. Criar rifas
+            UserApplyToRaffleSeed::class,   // 10. Usuários aplicam em rifas
         ]);
 
         Ticket::factory()->count(10)->create();

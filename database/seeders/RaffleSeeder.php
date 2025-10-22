@@ -39,7 +39,14 @@ class RaffleSeeder extends Seeder
             'MacBook Air', 'PlayStation 5', 'Bicicleta Elétrica', 'Ar Condicionado',
         ];
 
-        $statusOptions = ['active', 'active', 'active', 'inactive']; // 75% ativos, 25% inativos
+        // Distribuição de status: pending, active, completed, cancelled, inactive
+        $statusOptions = [
+            'pending', 'pending',      // 20% pending
+            'active', 'active', 'active', 'active', 'active',  // 50% active
+            'completed', 'completed',  // 20% completed
+            'cancelled',               // 10% cancelled
+            'inactive'                 // 10% inactive (removed)
+        ];
 
         $created = 0;
         $startTime = microtime(true);
@@ -54,7 +61,7 @@ class RaffleSeeder extends Seeder
                 $prizeValue = rand(500, 5000) + (rand(0, 99) / 100);
                 $operationCost = round($prizeValue * 0.1, 2); // 10% do valor do prêmio
                 $ticketValue = rand(1, 3) + (rand(0, 99) / 100); // Entre 1.00 e 3.99
-                $ticketsNeeded = rand(100, 500);
+                $ticketsNeeded = rand(1, 3); // Entre 5 e 20 tickets (mais acessível)
                 $liquidityRatio = rand(12, 15);
 
                 $totalCost = $prizeValue + $operationCost;
@@ -98,13 +105,19 @@ class RaffleSeeder extends Seeder
         $this->command->info("⏱️  Tempo de execução: {$duration}s");
         $this->command->info("⚡ Média: " . round($created / $duration, 0) . " raffles/segundo");
         
+        $pendingCount = Raffle::where('status', 'pending')->count();
         $activeCount = Raffle::where('status', 'active')->count();
+        $completedCount = Raffle::where('status', 'completed')->count();
+        $cancelledCount = Raffle::where('status', 'cancelled')->count();
         $inactiveCount = Raffle::where('status', 'inactive')->count();
         $totalValue = Raffle::sum('prize_value');
         $avgValue = round(Raffle::avg('prize_value'), 2);
         
-        $this->command->info("🟢 Ativos: {$activeCount}");
-        $this->command->info("🔴 Inativos: {$inactiveCount}");
+        $this->command->info("⏳ Pending: {$pendingCount}");
+        $this->command->info("🟢 Active: {$activeCount}");
+        $this->command->info("✅ Completed: {$completedCount}");
+        $this->command->info("❌ Cancelled: {$cancelledCount}");
+        $this->command->info("🔴 Inactive: {$inactiveCount}");
         $this->command->info("💰 Valor total em prêmios: R$ " . number_format($totalValue, 2, ',', '.'));
         $this->command->info("📈 Valor médio: R$ " . number_format($avgValue, 2, ',', '.'));
         $this->command->info('═══════════════════════════════════════');

@@ -2,12 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Models\FinancialStatement;
 use App\Models\Raffle;
 use App\Models\RaffleTicket;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class UserApplyToRaffleSeed extends Seeder
 {
@@ -16,136 +19,179 @@ class UserApplyToRaffleSeed extends Seeder
      */
     public function run(): void
     {
-        $user = User::find(9);
+        $this->command->info('🎫 Iniciando aplicação de usuários em rifas...');
 
-        if (! $user) {
-            $this->command->error('Usuário com ID 9 não encontrado!');
+        // Buscar usuários com saldo em wallet (exceto admins)
+        $users = User::where('role', '!=', 'admin')
+            ->whereHas('wallet', function ($query) {
+                $query->where('balance', '>', 0);
+            })
+            ->with('wallet')
+            ->limit(10) // Processar 10 usuários para demo
+            ->get();
 
+        if ($users->isEmpty()) {
+            $this->command->error('❌ Nenhum usuário com saldo encontrado!');
             return;
         }
 
-        $raffles = Raffle::all();
+        // Buscar rifas ativas
+        $activeRaffles = Raffle::where('status', 'active')
+            ->inRandomOrder()
+            ->limit(50) // 50 rifas aleatórias
+            ->get();
 
-        if ($raffles->isEmpty()) {
-            $this->command->error('Nenhuma rifa encontrada!');
-
+        if ($activeRaffles->isEmpty()) {
+            $this->command->error('❌ Nenhuma rifa ativa encontrada!');
             return;
         }
 
-        foreach ($raffles as $raffle) {
-            $minTicketLevel = $raffle->min_ticket_level;
-            $ticketsRequired = $raffle->tickets_required;
+        $this->command->info("👥 Usuários com saldo: {$users->count()}");
+        $this->command->info("🎰 Rifas ativas disponíveis: {$activeRaffles->count()}");
+        $this->command->info('');
 
-            // Buscar tickets do usuário que atendem o nível mínimo da rifa
-            $userTickets = $user->walletTickets()
-                ->with('plan') // Carregar o plano para obter o preço
-                ->where('ticket_level', '>=', $minTicketLevel)
-                ->where('status', 'active')
-                ->orderBy('ticket_level', 'asc') // Usar tickets de menor nível primeiro
-                ->get();
+        $totalApplications = 0;
+        $totalTicketsPurchased = 0;
+        $totalMoneySpent = 0;
 
-            // Calcular tickets disponíveis
-            $availableTickets = $userTickets->sum(function ($ticket) {
-                return ($ticket->total_tickets - $ticket->total_tickets_used) + $ticket->bonus_tickets;
-            });
+        foreach ($users as $user) {
+            $wallet = $user->wallet;
+            $initialBalance = $wallet->balance;
+            
+            $this->command->info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            $this->command->info("👤 {$user->name} (ID: {$user->id})");
+            $this->command->info("💰 Saldo inicial: R$ " . number_format($initialBalance, 2, ',', '.'));
 
-            echo "\n========================================\n";
-            echo "Rifa: {$raffle->title}\n";
-            echo "Nível mínimo: {$minTicketLevel}\n";
-            echo "Tickets requeridos: {$ticketsRequired}\n";
-            echo "Tickets disponíveis do usuário: {$availableTickets}\n";
+            // Cada usuário aplica em 3-8 rifas aleatórias
+            $rafflesToApply = $activeRaffles->random(rand(3, min(8, $activeRaffles->count())));
+            $userApplications = 0;
+            $userTickets = 0;
+            $userSpent = 0;
 
-            // Verificar se o usuário tem tickets suficientes
-            if ($availableTickets < $ticketsRequired) {
-                echo "❌ INSUFICIENTE - Usuário não tem tickets suficientes!\n";
-
-                continue;
-            }
-
-            // Aplicar os tickets na rifa com transação
-            $remainingToApply = $ticketsRequired;
-            $totalApplied = 0;
-            $allTicketsApplied = [];
-
-            DB::beginTransaction();
-
-            try {
-                foreach ($userTickets as $walletTicket) {
-                    if ($remainingToApply <= 0) {
-                        break;
-                    }
-
-                    // Verificar quantos tickets disponíveis neste wallet
-                    $available = ($walletTicket->total_tickets - $walletTicket->total_tickets_used)
-                               + $walletTicket->bonus_tickets;
-
-                    if ($available > 0) {
-                        // Decrementar a quantidade necessária (ou o disponível, o que for menor)
-                        $toDecrement = min($remainingToApply, $available);
-
-                        // Buscar tickets disponíveis do pool (não vinculados a esta rifa ainda)
-                        $availableTickets = Ticket::whereDoesntHave('raffleTickets', function ($query) use ($raffle) {
-                            $query->where('raffle_id', $raffle->id);
-                        })
-                            ->inRandomOrder()
-                            ->limit($toDecrement)
-                            ->get();
-
-                        if ($availableTickets->count() < $toDecrement) {
-                            throw new \Exception("Tickets insuficientes no pool. Necessário: {$toDecrement}, Disponível: {$availableTickets->count()}");
-                        }
-
-                        // Decrementar do wallet
-                        $decremented = $walletTicket->decrementIn($toDecrement);
-
-                        if ($decremented !== $toDecrement) {
-                            throw new \Exception("Erro ao decrementar wallet. Esperado: {$toDecrement}, Decrementado: {$decremented}");
-                        }
-
-                        // Criar registros em raffle_tickets
-                        $ticketsCreated = [];
-                        foreach ($availableTickets as $ticket) {
-                            RaffleTicket::create([
-                                'user_id' => $user->id,
-                                'raffle_id' => $raffle->id,
-                                'ticket_id' => $ticket->id,
-                                'status' => RaffleTicket::STATUS_CONFIRMED,
-                            ]);
-
-                            $ticketsCreated[] = $ticket->number;
-                            $allTicketsApplied[] = $ticket->number;
-                        }
-
-                        $totalApplied += count($ticketsCreated);
-                        $remainingToApply -= count($ticketsCreated);
-
-                        echo "  -> Aplicado {$decremented} tickets do wallet #{$walletTicket->id} (Nível: {$walletTicket->ticket_level}) - Tickets: ".implode(', ', array_slice($ticketsCreated, 0, 10)).(count($ticketsCreated) > 10 ? '...' : '')."\n";
-                    }
+            foreach ($rafflesToApply as $raffle) {
+                // Calcular custo mínimo para participar (min_tickets_required)
+                $minCost = $raffle->min_tickets_required * $raffle->unit_ticket_value;
+                
+                // Verificar se tem saldo suficiente para a quantidade mínima
+                if ($wallet->balance < $minCost) {
+                    $this->command->warn("  ⚠️  Saldo insuficiente: R$ " . number_format($wallet->balance, 2, ',', '.') . " < R$ " . number_format($minCost, 2, ',', '.') . " ({$raffle->min_tickets_required} tickets) - {$raffle->title}");
+                    continue;
                 }
 
-                // Se não conseguiu aplicar todos os tickets necessários, fazer rollback
-                if ($totalApplied < $ticketsRequired) {
-                    throw new \Exception("Não foi possível aplicar todos os tickets necessários. Aplicado: {$totalApplied}, Necessário: {$ticketsRequired}");
+                // Determinar quantos tickets comprar (entre min_tickets_required e o que o saldo permite)
+                $maxAffordable = floor($wallet->balance / $raffle->unit_ticket_value);
+                
+                // Comprar entre o mínimo e até 3x o mínimo (ou o que puder pagar)
+                $ticketsToApply = min(
+                    rand($raffle->min_tickets_required, $raffle->min_tickets_required * 3),
+                    $maxAffordable
+                );
+
+                // Garantir que está comprando pelo menos o mínimo exigido
+                if ($ticketsToApply < $raffle->min_tickets_required) {
+                    $ticketsToApply = $raffle->min_tickets_required;
                 }
 
-                DB::commit();
+                $totalCost = $ticketsToApply * $raffle->unit_ticket_value;
 
-            } catch (\Exception $e) {
-                DB::rollBack();
-                echo "  ❌ ERRO: {$e->getMessage()}\n";
+                DB::beginTransaction();
 
-                continue;
+                try {
+                    // Buscar tickets disponíveis do pool
+                    $availableTickets = Ticket::whereDoesntHave('raffleTickets', function ($query) use ($raffle) {
+                        $query->where('raffle_id', $raffle->id);
+                    })
+                        ->inRandomOrder()
+                        ->limit($ticketsToApply)
+                        ->get();
+
+                    if ($availableTickets->count() < $ticketsToApply) {
+                        throw new \Exception("Tickets insuficientes no pool");
+                    }
+
+                    // Debitar saldo da wallet
+                    $wallet->balance -= $totalCost;
+                    $wallet->save();
+
+                    // Criar entrada de débito no FinancialStatement
+                    FinancialStatement::create([
+                        'uuid' => Str::uuid(),
+                        'user_id' => $user->id,
+                        'correlation_id' => $raffle->uuid,
+                        'amount' => $totalCost,
+                        'type' => 'debit',
+                        'description' => $this->generateDebitDescription($raffle, $ticketsToApply, $totalCost),
+                        'status' => 'completed',
+                        'origin' => 'raffle',
+                    ]);
+
+                    // Criar registros em raffle_tickets
+                    $ticketNumbers = [];
+                    foreach ($availableTickets as $ticket) {
+                        RaffleTicket::create([
+                            'uuid' => Str::uuid(),
+                            'user_id' => $user->id,
+                            'raffle_id' => $raffle->id,
+                            'ticket_id' => $ticket->id,
+                            'status' => 'confirmed',
+                        ]);
+                        $ticketNumbers[] = $ticket->number;
+                    }
+
+                    DB::commit();
+
+                    $userApplications++;
+                    $userTickets += $ticketsToApply;
+                    $userSpent += $totalCost;
+
+                    $this->command->info("  ✅ {$raffle->title}");
+                    $this->command->info("     Tickets: {$ticketsToApply} x R$ " . number_format($raffle->unit_ticket_value, 2, ',', '.') . " = R$ " . number_format($totalCost, 2, ',', '.'));
+                    $this->command->info("     Números: " . implode(', ', array_slice($ticketNumbers, 0, 10)) . (count($ticketNumbers) > 10 ? '...' : ''));
+
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    $this->command->error("  ❌ Erro: {$e->getMessage()}");
+                    continue;
+                }
             }
 
-            if ($totalApplied === $ticketsRequired) {
-                echo "✅ SUCESSO - {$totalApplied} tickets aplicados na rifa!\n";
-                echo '   Números aplicados: '.implode(', ', array_slice($allTicketsApplied, 0, 20)).(count($allTicketsApplied) > 20 ? '...' : '')."\n";
-            } else {
-                echo "⚠️ PARCIAL - Apenas {$totalApplied} de {$ticketsRequired} tickets foram aplicados\n";
-            }
+            $this->command->info("📊 Resumo do usuário:");
+            $this->command->info("   Rifas aplicadas: {$userApplications}");
+            $this->command->info("   Total de tickets: {$userTickets}");
+            $this->command->info("   Gasto total: R$ " . number_format($userSpent, 2, ',', '.'));
+            $this->command->info("   Saldo restante: R$ " . number_format($wallet->balance, 2, ',', '.'));
+            
+            $totalApplications += $userApplications;
+            $totalTicketsPurchased += $userTickets;
+            $totalMoneySpent += $userSpent;
         }
 
-        echo "\n========================================\n";
-        echo "Processo concluído!\n";
+        $this->command->info('');
+        $this->command->info('═══════════════════════════════════════');
+        $this->command->info('📊 ESTATÍSTICAS FINAIS');
+        $this->command->info('═══════════════════════════════════════');
+        $this->command->info("👥 Usuários processados: {$users->count()}");
+        $this->command->info("🎫 Total de aplicações: {$totalApplications}");
+        $this->command->info("🎰 Total de tickets comprados: {$totalTicketsPurchased}");
+        $this->command->info("💸 Valor total gasto: R$ " . number_format($totalMoneySpent, 2, ',', '.'));
+        $this->command->info("📈 Média por usuário: " . round($totalApplications / $users->count(), 1) . " rifas");
+        $this->command->info('═══════════════════════════════════════');
+        $this->command->info('✅ Processo concluído com sucesso!');
+    }
+
+    /**
+     * Gera descrição para o débito no extrato financeiro
+     */
+    protected function generateDebitDescription(Raffle $raffle, int $tickets, float $amount): string
+    {
+        $unitValue = $amount / $tickets;
+        
+        return sprintf(
+            'Débito referente à aplicação em rifa - %s (%d ticket%s x R$ %.2f)',
+            $raffle->title,
+            $tickets,
+            $tickets > 1 ? 's' : '',
+            $unitValue
+        );
     }
 }

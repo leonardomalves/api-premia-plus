@@ -12,7 +12,6 @@ class Raffle extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-
         'uuid',
         'title',
         'description',
@@ -21,16 +20,13 @@ class Raffle extends Model
         'unit_ticket_value',
         'liquidity_ratio',
         'liquid_value',
-        'tickets_required',
-        'min_ticket_level',
-        'max_tickets_per_user',
+        'min_tickets_required',
         'draw_date',
         'status',
         'created_by',
         'winner_id',
         'winner_ticket',
         'notes',
-
     ];
 
     protected $casts = [
@@ -51,13 +47,15 @@ class Raffle extends Model
     }
 
     // Status constants
-    const STATUS_DRAFT = 'draft';
+    const STATUS_PENDING = 'pending';
 
     const STATUS_ACTIVE = 'active';
 
-    const STATUS_INACTIVE = 'inactive';
+    const STATUS_COMPLETED = 'completed';
 
     const STATUS_CANCELLED = 'cancelled';
+
+    const STATUS_INACTIVE = 'inactive';
 
     // Relationships
     public function creator()
