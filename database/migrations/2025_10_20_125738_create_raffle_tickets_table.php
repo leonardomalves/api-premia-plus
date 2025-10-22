@@ -24,6 +24,7 @@ return new class extends Migration
             $table->unique(['raffle_id', 'ticket_id']);
             $table->index(['raffle_id', 'user_id']);
             $table->index(['user_id', 'status']);
+            $table->index('ticket_id'); // Otimiza query whereNotExists na busca de tickets disponíveis
 
         });
     }
