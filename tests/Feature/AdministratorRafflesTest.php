@@ -36,9 +36,9 @@ class AdministratorRafflesTest extends TestCase
                             'prize_value',
                             'operation_cost',
                             'unit_ticket_value',
-                            'tickets_required',
-                            'min_ticket_level',
-                            'max_tickets_per_user',
+                            'min_tickets_required',
+                            
+                            
                             'status',
                             'notes',
                             'created_at',
@@ -185,9 +185,9 @@ class AdministratorRafflesTest extends TestCase
                     'prize_value',
                     'operation_cost',
                     'unit_ticket_value',
-                    'tickets_required',
-                    'min_ticket_level',
-                    'max_tickets_per_user',
+                    'min_tickets_required',
+                    
+                    
                     'status',
                     'notes',
                     'created_at',
@@ -220,7 +220,7 @@ class AdministratorRafflesTest extends TestCase
             'unit_ticket_value' => 25.00,
             'liquidity_ratio' => 75.0,
             'liquid_value' => 6750.00,
-            'tickets_required' => 400,
+            'min_tickets_required' => 400,
             'min_ticket_level' => 1,
             'max_tickets_per_user' => 10,
             'status' => 'pending',
@@ -239,9 +239,9 @@ class AdministratorRafflesTest extends TestCase
                     'prize_value',
                     'operation_cost',
                     'unit_ticket_value',
-                    'tickets_required',
-                    'min_ticket_level',
-                    'max_tickets_per_user',
+                    'min_tickets_required',
+                    
+                    
                     'status',
                     'notes',
                 ],
@@ -272,7 +272,7 @@ class AdministratorRafflesTest extends TestCase
             'prize_value' => -100, // Negative value
             'operation_cost' => -50, // Negative cost
             'unit_ticket_value' => 0, // Zero ticket value
-            'tickets_required' => 0, // Zero tickets
+            'min_tickets_required' => 0, // Zero tickets
             'min_ticket_level' => -1, // Negative level
             'max_tickets_per_user' => 0, // Zero max tickets
             'status' => 'invalid_status', // Invalid status
@@ -311,7 +311,7 @@ class AdministratorRafflesTest extends TestCase
             'unit_ticket_value' => 10,
             'liquidity_ratio' => 70.0,
             'liquid_value' => 700.00,
-            'tickets_required' => 100,
+            'min_tickets_required' => 100,
             'min_ticket_level' => 1,
             'max_tickets_per_user' => 5,
             'status' => 'pending',
@@ -508,9 +508,9 @@ class AdministratorRafflesTest extends TestCase
                 'prize_value',
                 'operation_cost',
                 'unit_ticket_value',
-                'tickets_required',
-                'min_ticket_level',
-                'max_tickets_per_user',
+                'min_tickets_required',
+                
+                
             ]);
     }
 
@@ -529,7 +529,7 @@ class AdministratorRafflesTest extends TestCase
             'prize_value' => -100,           // Should be >= 0.01
             'operation_cost' => -50,         // Should be >= 0
             'unit_ticket_value' => 0,        // Should be >= 0.01
-            'tickets_required' => 0,         // Should be >= 1
+            'min_tickets_required' => 0,         // Should be >= 1
             'min_ticket_level' => 0,         // Should be >= 1 (based on controller)
             'max_tickets_per_user' => 0,     // Should be >= 1
             'status' => 'active',
@@ -541,9 +541,9 @@ class AdministratorRafflesTest extends TestCase
             ->assertJsonValidationErrors([
                 'prize_value',
                 'unit_ticket_value',
-                'tickets_required',
-                'min_ticket_level',
-                'max_tickets_per_user',
+                'min_tickets_required',
+                
+                
             ]);
     }
 
@@ -562,7 +562,7 @@ class AdministratorRafflesTest extends TestCase
             'prize_value' => 9999999.99,         // Should be max 999999.99
             'operation_cost' => 9999999.99,      // Should be max 999999.99
             'unit_ticket_value' => 9999.99,      // Should be max 999.99
-            'tickets_required' => 10000000,      // Should be max 1000000
+            'min_tickets_required' => 10000000,      // Should be max 1000000
             'min_ticket_level' => 150,           // Should be max 100
             'max_tickets_per_user' => 10000,     // Should be max 1000
             'notes' => str_repeat('C', 2100),    // Should be max 2000
@@ -578,9 +578,9 @@ class AdministratorRafflesTest extends TestCase
                 'prize_value',
                 'operation_cost',
                 'unit_ticket_value',
-                'tickets_required',
-                'min_ticket_level',
-                'max_tickets_per_user',
+                'min_tickets_required',
+                
+                
                 'notes',
             ]);
     }
@@ -777,7 +777,7 @@ class AdministratorRafflesTest extends TestCase
                 'unit_ticket_value' => 10,
                 'liquidity_ratio' => 75.0,
                 'liquid_value' => 750.00,
-                'tickets_required' => 100,
+                'min_tickets_required' => 100,
                 'min_ticket_level' => 1,
                 'max_tickets_per_user' => 10,
                 'status' => $status,
@@ -796,7 +796,7 @@ class AdministratorRafflesTest extends TestCase
             'unit_ticket_value' => 10,
             'liquidity_ratio' => 75.0,
             'liquid_value' => 750.00,
-            'tickets_required' => 100,
+            'min_tickets_required' => 100,
             'min_ticket_level' => 1,
             'max_tickets_per_user' => 10,
             'status' => 'invalid_status',
