@@ -68,11 +68,42 @@ class Raffle extends Model
         return $this->hasMany(RaffleTicket::class);
     }
 
+    public function tickets()
+    {
+        return $this->hasMany(RaffleTicket::class);
+    }
+
     public function participants()
     {
         return $this->belongsToMany(User::class, 'raffle_tickets')
             ->withPivot('ticket_id', 'status')
             ->withTimestamps();
+    }
+
+    // Helper methods
+    
+    /**
+     * Conta quantos tickets estão disponíveis no pool
+     * (tickets que ainda não foram distribuídos)
+     */
+    public function availableTicketsCount(): int
+    {
+        $totalTickets = $this->calculateTotalTickets();
+        $distributedTickets = $this->raffleTickets()->count();
+        
+        return max(0, $totalTickets - $distributedTickets);
+    }
+
+    /**
+     * Calcula o total de tickets que a rifa pode ter
+     */
+    public function calculateTotalTickets(): int
+    {
+        if ($this->unit_ticket_value <= 0) {
+            return 0;
+        }
+        
+        return (int) floor($this->liquid_value / $this->unit_ticket_value);
     }
 
     // Scopes

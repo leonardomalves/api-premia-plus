@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Customer\CustomerCartController;
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\Customer\CustomerOrderController;
+use App\Http\Controllers\Api\Customer\CustomerRaffleController;
 use App\Http\Controllers\Api\Customer\CustomerWalletController;
 use Illuminate\Support\Facades\Route;
 
@@ -50,4 +51,9 @@ Route::prefix('customer')->middleware('auth:sanctum')->group(function () {
     // Orders - Minhas compras
     Route::get('/orders', [CustomerOrderController::class, 'index']);
     Route::get('/orders/{uuid}', [CustomerOrderController::class, 'show']);
+
+    // Raffles - Aplicação e consulta de tickets
+    Route::post('/raffles/{uuid}/apply', [CustomerRaffleController::class, 'apply']);
+    Route::get('/raffles/my-applications', [CustomerRaffleController::class, 'myApplications']);
+    Route::get('/raffles/{uuid}/my-tickets', [CustomerRaffleController::class, 'myTickets']);
 });
