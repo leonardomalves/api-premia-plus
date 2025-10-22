@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Customer\CustomerCartController;
 use App\Http\Controllers\Api\Customer\CustomerController;
+use App\Http\Controllers\Api\Customer\CustomerWalletController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -38,6 +39,12 @@ Route::prefix('customer')->middleware('auth:sanctum')->group(function () {
     Route::delete('/cart/remove', [CustomerCartController::class, 'removeFromCart']);
     Route::delete('/cart/clear', [CustomerCartController::class, 'clearCart']);
     Route::post('/cart/checkout', [CustomerCartController::class, 'checkout']);
+
+    // Wallet - Saldo e transações
+    Route::get('/wallet', [CustomerWalletController::class, 'index']);
+    Route::get('/wallet/balance', [CustomerWalletController::class, 'balance']);
+    Route::get('/wallet/statements', [CustomerWalletController::class, 'statements']);
+    Route::get('/wallet/transactions', [CustomerWalletController::class, 'transactions']);
 
     Route::post('/raffles/{uuid}/tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'applyTickets']);
     Route::get('/raffles/{uuid}/my-tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'myTickets']);
