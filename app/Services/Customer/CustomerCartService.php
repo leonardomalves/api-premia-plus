@@ -6,6 +6,7 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Plan;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CustomerCartService
@@ -147,10 +148,12 @@ class CustomerCartService
         ]);
 
         // Atualizar Cart com order_id e status completed
-        $cart->update([
-            'order_id' => $order->id,
-            'status' => 'completed',
-        ]);
+        // Para evitar violação da constraint unique (user_id, status),
+        // primeiro mudamos para status temporário, depois para completed
+        DB::statement(
+            'UPDATE carts SET order_id = ?, status = ?, updated_at = ? WHERE id = ?',
+            [$order->id, 'completed', now(), $cart->id]
+        );
 
         return [
             'order' => $order->load('plan'),
