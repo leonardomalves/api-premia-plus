@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Customer\CustomerCartController;
 use App\Http\Controllers\Api\Customer\CustomerController;
+use App\Http\Controllers\Api\Customer\CustomerOrderController;
 use App\Http\Controllers\Api\Customer\CustomerWalletController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +46,10 @@ Route::prefix('customer')->middleware('auth:sanctum')->group(function () {
     Route::get('/wallet/balance', [CustomerWalletController::class, 'balance']);
     Route::get('/wallet/statements', [CustomerWalletController::class, 'statements']);
     Route::get('/wallet/transactions', [CustomerWalletController::class, 'transactions']);
+
+    // Orders - Minhas compras
+    Route::get('/orders', [CustomerOrderController::class, 'index']);
+    Route::get('/orders/{uuid}', [CustomerOrderController::class, 'show']);
 
     Route::post('/raffles/{uuid}/tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'applyTickets']);
     Route::get('/raffles/{uuid}/my-tickets', [\App\Http\Controllers\Api\Customer\CustomerRaffleTicketController::class, 'myTickets']);

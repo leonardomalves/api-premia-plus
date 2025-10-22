@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Administrator\AdministratorController;
+use App\Http\Controllers\Api\Administrator\AdministratorOrderController;
 use App\Http\Controllers\Api\Administrator\AdministratorPlanController;
 use App\Http\Controllers\Api\Administrator\AdministratorRaffleController;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +44,9 @@ Route::prefix('administrator')->middleware(['auth:sanctum', 'admin'])->group(fun
     Route::apiResource('plans', AdministratorPlanController::class);
     Route::post('/plans/{uuid}/toggle-status', [AdministratorPlanController::class, 'toggleStatus']);
     Route::get('/plans/statistics/overview', [AdministratorPlanController::class, 'statistics']);
+
+    // Gerenciamento de orders
+    Route::get('/orders', [AdministratorOrderController::class, 'index']);
 
     // Gerenciamento de raffles (CRUD completo - apenas admins)
     // Rotas especiais primeiro (para evitar conflito com apiResource)
