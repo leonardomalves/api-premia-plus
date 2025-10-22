@@ -20,7 +20,9 @@ class CustomerRaffleController extends Controller
      * - Rifa existe e está ativa
      * - Quantidade é válida (>= min_tickets_required)
      * - Usuário tem saldo suficiente
-     * - Usuário não aplicou ainda
+     * - Há tickets disponíveis no pool
+     * 
+     * Usuário pode aplicar múltiplas vezes na mesma rifa
      * 
      * Após validações, dispara job assíncrono para processar
      * 
@@ -67,20 +69,7 @@ class CustomerRaffleController extends Controller
             ], 400);
         }
 
-        // Validação 3: Usuário já aplicou?
-        $alreadyApplied = $raffle->tickets()
-            ->where('user_id', $user->id)
-            ->exists();
-
-        if ($alreadyApplied) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Você já aplicou nesta rifa',
-                'raffle_id' => $raffle->id,
-            ], 400);
-        }
-
-        // Validação 4: Saldo suficiente
+        // Validação 3: Saldo suficiente
         $totalCost = $quantity * $raffle->unit_ticket_value;
         $wallet = $user->wallet;
 
@@ -93,7 +82,7 @@ class CustomerRaffleController extends Controller
             ], 400);
         }
 
-        // Validação 5: Tickets disponíveis no pool
+        // Validação 4: Tickets disponíveis no pool
         $availableTickets = $raffle->availableTicketsCount();
         
         if ($availableTickets < $quantity) {

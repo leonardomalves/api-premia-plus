@@ -48,3 +48,11 @@ php artisan queue:work --queue=raffle-applications --stop-when-empty
     "success": false,
     "message": "SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '9-completed' for key 'carts.user_active_cart' (Connection: mysql, SQL: update `carts` set `order_id` = 28, `status` = completed, `carts`.`updated_at` = 2025-10-22 18:18:53 where `id` = 38)"
 }
+
+{{base_url}}/customer/raffles/{{raffle_uuid}}/apply
+
+{
+    "success": false,
+    "message": "Você já aplicou nesta rifa",
+    "raffle_id": 1
+}

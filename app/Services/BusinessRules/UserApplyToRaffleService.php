@@ -142,19 +142,6 @@ class UserApplyToRaffleService
             ];
         }
 
-        // Verificar se o usuário já aplicou nesta rifa
-        $alreadyApplied = DB::table('raffle_tickets')
-            ->where('user_id', $user->id)
-            ->where('raffle_id', $raffle->id)
-            ->exists();
-
-        if ($alreadyApplied) {
-            return [
-                'valid' => false,
-                'message' => 'Usuário já aplicou nesta rifa',
-            ];
-        }
-
         // Calcular custo total
         $totalCost = $ticketCount * $raffle->unit_ticket_value;
 
@@ -205,10 +192,14 @@ class UserApplyToRaffleService
         $now = now();
         $unitValue = $totalCost / $ticketCount;
 
+        // Gera um UUID único para cada aplicação (correlation_id)
+        // Isso permite múltiplas aplicações na mesma rifa pelo mesmo usuário
+        $correlationId = Str::uuid();
+
         DB::table('financial_statements')->insert([
             'uuid' => Str::uuid(),
             'user_id' => $user->id,
-            'correlation_id' => $raffle->uuid,
+            'correlation_id' => $correlationId,
             'amount' => $totalCost,
             'type' => 'debit',
             'description' => sprintf(
