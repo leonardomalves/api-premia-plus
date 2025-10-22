@@ -143,7 +143,8 @@ class CustomerRaffleController extends Controller
             $query->where('user_id', $user->id);
         })
             ->with(['tickets' => function ($query) use ($user) {
-                $query->where('user_id', $user->id);
+                $query->where('user_id', $user->id)
+                    ->with('ticket'); // Eager load o ticket relacionado
             }])
             ->paginate($perPage);
 
@@ -161,7 +162,9 @@ class CustomerRaffleController extends Controller
                 ],
                 'tickets_count' => $userTickets->count(),
                 'total_paid' => $userTickets->count() * $raffle->unit_ticket_value,
-                'ticket_numbers' => $userTickets->pluck('ticket_number')->toArray(),
+                'ticket_numbers' => $userTickets->map(function($raffleTicket) {
+                    return $raffleTicket->ticket ? $raffleTicket->ticket->number : null;
+                })->toArray(),
                 'applied_at' => $userTickets->first()?->created_at?->toIso8601String(),
             ];
         });
@@ -192,7 +195,8 @@ class CustomerRaffleController extends Controller
 
         $raffle = Raffle::where('uuid', $uuid)
             ->with(['tickets' => function ($query) use ($user) {
-                $query->where('user_id', $user->id);
+                $query->where('user_id', $user->id)
+                    ->with('ticket'); // Eager load o ticket relacionado
             }])
             ->first();
 
@@ -224,7 +228,9 @@ class CustomerRaffleController extends Controller
             ],
             'tickets' => [
                 'total' => $userTickets->count(),
-                'ticket_numbers' => $userTickets->pluck('ticket_number')->toArray(),
+                'ticket_numbers' => $userTickets->map(function($raffleTicket) {
+                    return $raffleTicket->ticket ? $raffleTicket->ticket->number : null;
+                })->toArray(),
                 'by_status' => [
                     'confirmed' => $ticketsByStatus->get('confirmed', collect())->count(),
                     'winner' => $ticketsByStatus->get('winner', collect())->count(),
