@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
 		"name": "API Prêmia Plus - v8 (Wallet System)",
-		"description": "Collection completa da API Prêmia Plus v8 - Sistema de Wallet e Aplicação em Rifas\n\n**Versão:** 8.0.0\n**Data:** 2025-10-22\n**Base URL:** http://localhost:8000/api/v1\n\n## Novidades v8.0.0\n- ✅ Sistema de Wallet com saldo em reais\n- ✅ Financial Statements (crédito/débito)\n- ✅ Aplicação em rifas via saldo da wallet\n- ✅ Job assíncrono UserApplyToRaffleJob\n- ✅ Pool de tickets numerados\n- ✅ Uma aplicação por usuário por rifa\n\n## Autenticação\nTodos os endpoints (exceto públicos) requerem Bearer Token no header Authorization.\n\n## Variáveis de Ambiente\n- `base_url`: URL base da API (ex: http://localhost:8000/api/v1)\n- `token`: Token de autenticação (preenchido automaticamente após login)",
+		"description": "Collection completa da API Prêmia Plus v8 - Sistema de Wallet e Aplicação em Rifas\n\n**Versão:** 8.1.0\n**Data:** 2025-10-22\n**Base URL:** http://localhost:8000/api/v1\n\n## Novidades v8.1.0\n- ✅ Múltiplas aplicações por usuário na mesma rifa\n- ✅ Correlation_id único para cada Financial Statement\n- ✅ Correção de constraint no checkout de carrinho\n\n## Recursos v8.0.0\n- ✅ Sistema de Wallet com saldo em reais\n- ✅ Financial Statements (crédito/débito)\n- ✅ Aplicação em rifas via saldo da wallet\n- ✅ Job assíncrono UserApplyToRaffleJob\n- ✅ Pool de tickets numerados\n- ✅ Sistema de Orders (Customer e Administrator)\n\n## Autenticação\nTodos os endpoints (exceto públicos) requerem Bearer Token no header Authorization.\n\n## Variáveis de Ambiente\n- `base_url`: URL base da API (ex: http://localhost:8000/api/v1)\n- `token`: Token de autenticação (preenchido automaticamente após login)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -842,7 +842,7 @@
 										"apply"
 									]
 								},
-								"description": "Aplica tickets em uma rifa usando saldo da wallet.\n\n**Sistema v8.0:**\n- Pagamento via débito do saldo da wallet\n- Tickets sorteados aleatoriamente do pool\n- Uma aplicação por usuário por rifa\n- Quantidade mínima: min_tickets_required\n\n**Validações:**\n- Saldo suficiente na wallet\n- Rifa com status 'active'\n- Usuário não pode aplicar mais de uma vez\n- Tickets disponíveis no pool"
+								"description": "Aplica tickets em uma rifa usando saldo da wallet.\n\n**Sistema v8.0:**\n- Pagamento via débito do saldo da wallet\n- Tickets sorteados aleatoriamente do pool\n- Usuário pode aplicar múltiplas vezes na mesma rifa\n- Quantidade mínima: min_tickets_required\n\n**Validações:**\n- Saldo suficiente na wallet\n- Rifa com status 'active'\n- Tickets disponíveis no pool\n\n**Atualização v8.1:**\n- Removida restrição de uma aplicação por usuário\n- Cada aplicação gera correlation_id único no Financial Statement"
 							},
 							"response": []
 						},

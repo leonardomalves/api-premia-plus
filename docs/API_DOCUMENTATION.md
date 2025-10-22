@@ -1537,7 +1537,6 @@ Authorization: Bearer {token}
 - Usuário deve ter saldo suficiente na wallet
 - Rifa deve estar com status "active"
 - Quantidade deve ser >= min_tickets_required da rifa
-- Usuário não pode aplicar mais de uma vez na mesma rifa
 - Deve haver tickets disponíveis no pool
 
 **Resposta de Sucesso (201):**
@@ -1568,16 +1567,6 @@ Authorization: Bearer {token}
 {
   "success": false,
   "message": "Saldo insuficiente. Necessário: R$ 2.00, Disponível: R$ 1.50",
-  "user_id": 1,
-  "raffle_id": 1
-}
-```
-
-**400 - Já Aplicou:**
-```json
-{
-  "success": false,
-  "message": "Usuário já aplicou nesta rifa",
   "user_id": 1,
   "raffle_id": 1
 }
@@ -1624,7 +1613,7 @@ Authorization: Bearer {token}
 Aplica tickets em uma rifa usando o saldo da wallet do usuário. O sistema:
 1. Valida se o usuário tem saldo suficiente
 2. Debita o valor total da wallet
-3. Cria registro de débito no Financial Statement
+3. Cria registro de débito no Financial Statement com correlation_id único
 4. Sorteia tickets aleatórios do pool disponível
 5. Cria registros na tabela raffle_tickets com status "confirmed"
 6. Retorna os números dos tickets sorteados
@@ -1637,11 +1626,11 @@ A aplicação pode ser processada via Job Queue para melhor performance:
 - Timeout: 120 segundos
 
 **Regras de Negócio:**
-1. Usuário pode aplicar apenas UMA vez por rifa
-2. Sempre aplica a quantidade mínima (min_tickets_required)
+1. Usuário pode aplicar MÚLTIPLAS vezes na mesma rifa (sem limite)
+2. Cada aplicação deve respeitar a quantidade mínima (min_tickets_required)
 3. Tickets são sorteados aleatoriamente do pool disponível
 4. Operação é transacional (rollback em caso de erro)
-5. Financial Statement registra débito com descrição detalhada
+5. Cada aplicação gera um correlation_id único no Financial Statement
 6. Saldo da wallet é atualizado imediatamente
 
 ---
@@ -2865,7 +2854,8 @@ Authorization: Bearer {token}
 - **Status de Rifas**: pending|active|completed|cancelled|inactive
 - Apenas rifas com status 'active' são visíveis para aplicação
 - **Aplicação em Rifas**:
-  - Usuário pode aplicar apenas UMA vez por rifa
+  - Usuário pode aplicar MÚLTIPLAS vezes na mesma rifa (sem limite)
+  - Cada aplicação gera um correlation_id único no Financial Statement
   - Pagamento feito via débito do saldo da wallet
   - Quantidade mínima: `min_tickets_required`
   - Tickets são sorteados aleatoriamente do pool disponível
@@ -2874,6 +2864,7 @@ Authorization: Bearer {token}
   - Toda aplicação gera registro de débito na wallet
   - Descrição: "Débito referente à aplicação em rifa - {título} ({qtd} tickets x R$ {valor})"
   - Type: credit (entrada) ou debit (saída)
+  - Correlation_id: UUID único para cada transação
 - **Tickets**:
   - Pool de tickets numerados sequencialmente (0000001, 0000002, ...)
   - Status: available (livre) | used (usado em rifa) | reserved (reservado)
