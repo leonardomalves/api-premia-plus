@@ -7,7 +7,7 @@ Collection completa da API Prêmia Plus versão 8.0 com o novo sistema de Wallet
 **Arquivo:** `API_Premia_Plus_Postman_Collection_v8.json`  
 **Versão:** 8.0.0  
 **Data:** 22/10/2025  
-**Total de Endpoints:** 60+
+**Total de Endpoints:** 65+
 
 ## 🆕 Novidades v8.0
 
@@ -15,6 +15,12 @@ Collection completa da API Prêmia Plus versão 8.0 com o novo sistema de Wallet
 - ✅ Carteira digital com saldo em reais
 - ✅ Financial Statements (crédito/débito)
 - ✅ Rastreabilidade completa de transações
+
+### Sistema de Orders
+- ✅ Listar minhas compras (customer)
+- ✅ Detalhes de compra específica (customer)
+- ✅ Gerenciar todas as orders (admin)
+- ✅ Filtros avançados e estatísticas
 
 ### Aplicação em Rifas
 - ✅ Pagamento via saldo da wallet
@@ -111,7 +117,7 @@ A collection possui scripts que salvam automaticamente o token após login/regis
 - Update Profile
 - Change Password
 
-### 2. Customer (20+ endpoints)
+### 2. Customer (25+ endpoints)
 
 #### Plans
 - List Plans
@@ -132,7 +138,11 @@ A collection possui scripts que salvam automaticamente o token após login/regis
 - Get Statements (extratos com filtros)
 - Get Transactions (histórico + analytics)
 
-#### Raffles ⭐ **NOVO v8.0**
+#### Orders ⭐ **NOVO**
+- List My Orders (minhas compras)
+- Get Order Details (detalhes de uma compra)
+
+#### Raffles ⭐ **ATUALIZADO v8.0**
 - List Raffles
 - Get Raffle
 - **Apply to Raffle** (novo endpoint)
@@ -144,7 +154,7 @@ A collection possui scripts que salvam automaticamente o token após login/regis
 - My Sponsor
 - My Statistics
 
-### 3. Administrator (30+ endpoints)
+### 3. Administrator (35+ endpoints)
 
 #### Users
 - List Users
@@ -163,6 +173,9 @@ A collection possui scripts que salvam automaticamente o token após login/regis
 - Update Plan
 - Delete Plan
 - Toggle Plan Status
+
+#### Orders ⭐ **NOVO**
+- List All Orders (gerenciar todas as compras)
 
 #### Raffles ⭐ **ATUALIZADO v8.0**
 - List Raffles
@@ -319,11 +332,13 @@ API Prêmia Plus v8
 │   ├── Plans (Planos)
 │   ├── Cart (Carrinho)
 │   ├── Wallet (Carteira) ⭐ NOVO
+│   ├── Orders (Compras) ⭐ NOVO
 │   ├── Raffles (Rifas) ⭐ ATUALIZADO
 │   └── Network (Rede)
 ├── Administrator
 │   ├── Users (Usuários)
 │   ├── Plans (Planos)
+│   ├── Orders (Gestão de Compras) ⭐ NOVO
 │   ├── Raffles (Rifas) ⭐ ATUALIZADO
 │   └── System (Dashboard, Stats)
 └── Health & System
@@ -454,12 +469,13 @@ API Prêmia Plus v8
 
 ### v8.0.0 (2025-10-22)
 - ✅ Sistema de Wallet implementado
+- ✅ Sistema de Orders (compras) implementado
 - ✅ Novo endpoint de aplicação em rifas
 - ✅ Financial Statements
 - ✅ Pool de tickets numerados
 - ✅ Processamento assíncrono
 - ❌ Removidos campos obsoletos
-- 📝 242 testes passando
+- 📝 256 testes passando (14 testes de orders + 8 testes de wallet)
 
 ### v7.0.0 (2025-10-20)
 - Sistema de WalletTicket

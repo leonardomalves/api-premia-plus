@@ -1234,6 +1234,172 @@ Lista o histórico completo de transações com analytics agrupadas por tipo e o
 
 ---
 
+## Orders (Customer)
+
+> **Prefixo:** `/customer/orders`  
+> **Middleware:** `auth:sanctum`  
+> **Acesso:** Cliente autenticado
+
+### Sistema de Orders
+
+Orders (pedidos/compras) representam as compras de planos realizadas pelos usuários. Cada order registra detalhes da transação, status de pagamento, e metadados do plano adquirido.
+
+### 1. Listar Minhas Compras
+**GET** `/customer/orders`
+
+**Acesso:** Cliente autenticado
+
+**Headers:**
+```
+Authorization: Bearer {token}
+```
+
+**Query Parameters (Opcionais):**
+- `status` (string): Filtrar por status - `pending`, `approved`, `rejected`, `cancelled`
+- `date_from` (date): Data inicial - formato YYYY-MM-DD
+- `date_to` (date): Data final - formato YYYY-MM-DD
+- `per_page` (int): Itens por página (padrão: 15)
+- `page` (int): Página atual (padrão: 1)
+
+**Exemplo de URL:**
+```
+/customer/orders?status=approved&date_from=2025-01-01&date_to=2025-01-31
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "success": true,
+  "message": "Compras carregadas com sucesso",
+  "data": {
+    "orders": [
+      {
+        "id": 1,
+        "uuid": "550e8400-e29b-41d4-a716-446655440001",
+        "plan": {
+          "id": 1,
+          "uuid": "550e8400-e29b-41d4-a716-446655440002",
+          "name": "Plano Bronze",
+          "price": 50.00
+        },
+        "amount": 50.00,
+        "currency": "BRL",
+        "status": "approved",
+        "payment_method": "credit_card",
+        "paid_at": "2025-01-15T14:30:00.000000Z",
+        "created_at": "2025-01-15T14:25:00.000000Z",
+        "updated_at": "2025-01-15T14:30:00.000000Z"
+      }
+    ],
+    "pagination": {
+      "current_page": 1,
+      "per_page": 15,
+      "total": 5,
+      "last_page": 1
+    },
+    "statistics": {
+      "total_orders": 5,
+      "total_approved": 4,
+      "total_pending": 1,
+      "total_amount": 200.00
+    },
+    "filters": {
+      "status": "approved",
+      "date_from": "2025-01-01",
+      "date_to": "2025-01-31"
+    }
+  }
+}
+```
+
+**Descrição:**
+Lista todas as compras do usuário autenticado com filtros opcionais e estatísticas.
+
+**Status Possíveis:**
+- `pending`: Aguardando pagamento
+- `approved`: Pagamento aprovado
+- `rejected`: Pagamento rejeitado
+- `cancelled`: Pedido cancelado
+
+---
+
+### 2. Detalhes de uma Compra
+**GET** `/customer/orders/{uuid}`
+
+**Acesso:** Cliente autenticado
+
+**Parâmetros:**
+- `uuid` (string): UUID da order
+
+**Headers:**
+```
+Authorization: Bearer {token}
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "success": true,
+  "message": "Detalhes da compra carregados com sucesso",
+  "data": {
+    "order": {
+      "id": 1,
+      "uuid": "550e8400-e29b-41d4-a716-446655440001",
+      "user_metadata": {
+        "name": "João Silva",
+        "email": "joao@email.com"
+      },
+      "plan": {
+        "id": 1,
+        "uuid": "550e8400-e29b-41d4-a716-446655440002",
+        "name": "Plano Bronze",
+        "description": "Plano básico com benefícios essenciais",
+        "price": 50.00,
+        "type": "monthly",
+        "metadata": {
+          "benefits": ["Acesso a rifas", "Comissões"],
+          "duration_days": 30
+        }
+      },
+      "amount": 50.00,
+      "currency": "BRL",
+      "status": "approved",
+      "payment_method": "credit_card",
+      "payment_details": {
+        "card_brand": "visa",
+        "last_digits": "1234",
+        "installments": 1
+      },
+      "paid_at": "2025-01-15T14:30:00.000000Z",
+      "cart": {
+        "id": 1,
+        "uuid": "550e8400-e29b-41d4-a716-446655440003",
+        "status": "completed"
+      },
+      "created_at": "2025-01-15T14:25:00.000000Z",
+      "updated_at": "2025-01-15T14:30:00.000000Z"
+    }
+  }
+}
+```
+
+**Resposta de Erro (404):**
+```json
+{
+  "success": false,
+  "message": "Compra não encontrada"
+}
+```
+
+**Descrição:**
+Retorna detalhes completos de uma compra específica do usuário. Inclui informações do plano adquirido, metadados do pagamento, e carrinho associado.
+
+**Validações:**
+- Usuário só pode visualizar suas próprias compras
+- Order deve pertencer ao usuário autenticado
+
+---
+
 ## Rifas e Aplicações (Customer)
 
 > **Prefixo:** `/customer`  
@@ -2177,6 +2343,122 @@ Authorization: Bearer {token}
   }
 }
 ```
+
+---
+
+## Gestão de Orders (Administrator)
+
+> **Prefixo:** `/administrator/orders`  
+> **Middleware:** `auth:sanctum`, `admin`  
+> **Acesso:** Apenas administradores
+
+### Sistema de Orders (Admin)
+
+Permite aos administradores visualizar e gerenciar todas as compras (orders) do sistema com filtros avançados e estatísticas completas.
+
+### 1. Listar Todas as Orders
+**GET** `/administrator/orders`
+
+**Acesso:** Administrador
+
+**Headers:**
+```
+Authorization: Bearer {token}
+```
+
+**Query Parameters (Opcionais):**
+- `status` (string): Filtrar por status - `pending`, `approved`, `rejected`, `cancelled`
+- `user_id` (int): Filtrar por ID do usuário
+- `plan_id` (int): Filtrar por ID do plano
+- `date_from` (date): Data inicial - formato YYYY-MM-DD
+- `date_to` (date): Data final - formato YYYY-MM-DD
+- `search` (string): Buscar por UUID da order, email/nome do usuário, ou nome do plano
+- `per_page` (int): Itens por página (padrão: 15)
+- `page` (int): Página atual (padrão: 1)
+
+**Exemplo de URL:**
+```
+/administrator/orders?status=approved&user_id=5&date_from=2025-01-01&search=bronze
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "success": true,
+  "message": "Orders carregadas com sucesso",
+  "data": {
+    "orders": [
+      {
+        "id": 1,
+        "uuid": "550e8400-e29b-41d4-a716-446655440001",
+        "user": {
+          "id": 5,
+          "uuid": "550e8400-e29b-41d4-a716-446655440010",
+          "name": "João Silva",
+          "email": "joao@email.com"
+        },
+        "plan": {
+          "id": 1,
+          "uuid": "550e8400-e29b-41d4-a716-446655440002",
+          "name": "Plano Bronze",
+          "price": 50.00
+        },
+        "amount": 50.00,
+        "currency": "BRL",
+        "status": "approved",
+        "payment_method": "credit_card",
+        "paid_at": "2025-01-15T14:30:00.000000Z",
+        "created_at": "2025-01-15T14:25:00.000000Z",
+        "updated_at": "2025-01-15T14:30:00.000000Z"
+      }
+    ],
+    "pagination": {
+      "current_page": 1,
+      "per_page": 15,
+      "total": 125,
+      "last_page": 9
+    },
+    "statistics": {
+      "total_orders": 125,
+      "total_approved": 100,
+      "total_pending": 15,
+      "total_rejected": 5,
+      "total_cancelled": 5,
+      "total_revenue": 5000.00
+    },
+    "filters": {
+      "status": "approved",
+      "user_id": 5,
+      "plan_id": null,
+      "date_from": "2025-01-01",
+      "date_to": null,
+      "search": "bronze"
+    }
+  }
+}
+```
+
+**Descrição:**
+Lista todas as orders do sistema com filtros avançados por status, usuário, plano, período e busca textual. Inclui estatísticas completas.
+
+**Funcionalidades de Busca:**
+- **Por UUID**: Busca exata pelo UUID da order
+- **Por Usuário**: Busca por email ou nome do usuário (LIKE)
+- **Por Plano**: Busca por nome do plano (LIKE)
+
+**Estatísticas Incluídas:**
+- `total_orders`: Total de orders no sistema
+- `total_approved`: Orders com pagamento aprovado
+- `total_pending`: Orders aguardando pagamento
+- `total_rejected`: Orders com pagamento rejeitado
+- `total_cancelled`: Orders canceladas
+- `total_revenue`: Receita total (soma de orders aprovadas)
+
+**Status Possíveis:**
+- `pending`: Aguardando pagamento
+- `approved`: Pagamento aprovado
+- `rejected`: Pagamento rejeitado
+- `cancelled`: Pedido cancelado
 
 ---
 
