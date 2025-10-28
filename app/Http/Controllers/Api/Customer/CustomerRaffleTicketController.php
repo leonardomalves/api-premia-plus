@@ -134,7 +134,7 @@ class CustomerRaffleTicketController extends Controller
         try {
             $raffles = Raffle::where('status', Raffle::STATUS_ACTIVE)
                 ->orderBy('draw_date', 'asc')
-                ->paginate(15);
+                ->paginate(12);
 
             return response()->json([
                 'raffles' => [
