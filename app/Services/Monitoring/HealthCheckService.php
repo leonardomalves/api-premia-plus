@@ -111,10 +111,11 @@ class HealthCheckService
                 }
             }
 
+            $freeSpace = disk_free_space(storage_path());
             return [
                 'status' => 'ok',
                 'message' => 'Storage writable',
-                'free_space' => $this->formatBytes(disk_free_space(storage_path())),
+                'free_space' => $freeSpace !== false ? $this->formatBytes((int) $freeSpace) : 'Unknown',
             ];
         } catch (\Exception $e) {
             return [
