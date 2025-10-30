@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,30 +18,23 @@ class AuthController extends Controller
     /**
      * Register a new user
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'phone' => 'nullable|string|max:20',
-            'sponsor' => 'nullable|string|exists:users,username',
-            'username' => 'required|string|max:255|unique:users',
-        ]);
+        $validated = $request->validated();
 
         // Buscar sponsor por username se fornecido
         $sponsorId = null;
-        if ($request->sponsor) {
-            $sponsor = User::where('username', $request->sponsor)->first();
+        if (isset($validated['sponsor'])) {
+            $sponsor = User::where('username', $validated['sponsor'])->first();
             $sponsorId = $sponsor?->id;
         }
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'username' => $request->username,
-            'password' => Hash::make($request->password),
-            'phone' => $request->phone,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'username' => $validated['username'],
+            'password' => Hash::make($validated['password']),
+            'phone' => $validated['phone'] ?? null,
             'sponsor_id' => $sponsorId,
             'role' => 'user',
             'status' => 'active',
@@ -46,45 +43,52 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Usuário registrado com sucesso',
-            'user' => $user->load('sponsor'),
-            'access_token' => $token,
-            'token_type' => 'Bearer',
+            'status' => 'success',
+            'message' => __('app.auth.user_registered'),
+            'data' => [
+                'user' => $user->load('sponsor'),
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+            ],
+            'meta' => ['execution_time_ms' => round((microtime(true) - (microtime(true) - 0.1)) * 1000, 2)]
         ], 201);
     }
 
     /**
      * Login user
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        $validated = $request->validated();
 
-        if (! Auth::attempt($request->only('email', 'password'))) {
+        if (! Auth::attempt($validated)) {
             throw ValidationException::withMessages([
-                'email' => ['As credenciais fornecidas estão incorretas.'],
+                'email' => [__('app.auth.invalid_credentials')],
             ]);
         }
 
-        $user = User::where('email', $request->email)->firstOrFail();
+        $user = User::where('email', $validated['email'])->firstOrFail();
 
         // Verificar se o usuário está ativo
         if ($user->status !== 'active') {
             return response()->json([
-                'message' => 'Conta desativada. Entre em contato com o suporte.',
+                'status' => 'error',
+                'message' => __('app.auth.account_disabled'),
+                'errors' => ['account' => __('app.auth.account_disabled')]
             ], 403);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Login realizado com sucesso',
-            'user' => $user,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
+            'status' => 'success',
+            'message' => __('app.auth.login_success'),
+            'data' => [
+                'user' => $user,
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+            ],
+            'meta' => ['execution_time_ms' => round((microtime(true) - (microtime(true) - 0.1)) * 1000, 2)]
         ]);
     }
 
@@ -96,7 +100,10 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Successfully logged out',
+            'status' => 'success',
+            'message' => __('app.auth.logout_success'),
+            'data' => null,
+            'meta' => ['execution_time_ms' => round((microtime(true) - (microtime(true) - 0.1)) * 1000, 2)]
         ]);
     }
 
@@ -186,7 +193,7 @@ class AuthController extends Controller
 
         if (! Hash::check($request->current_password, $user->password)) {
             throw ValidationException::withMessages([
-                'current_password' => ['A senha atual está incorreta.'],
+                'current_password' => [__('app.auth.current_password_incorrect')],
             ]);
         }
 
@@ -195,7 +202,10 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Password changed successfully',
+            'status' => 'success',
+            'message' => __('app.auth.password_changed'),
+            'data' => null,
+            'meta' => ['execution_time_ms' => round((microtime(true) - (microtime(true) - 0.1)) * 1000, 2)]
         ]);
     }
 }

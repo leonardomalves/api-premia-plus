@@ -92,4 +92,70 @@ return [
             'recovery_email_sent' => 'Email de recuperação de carrinho deve ser enviado',
         ],
     ],
+
+    // Autenticação
+    'auth' => [
+        'user_registered' => 'Usuário registrado com sucesso',
+        'login_success' => 'Login realizado com sucesso',
+        'logout_success' => 'Logout realizado com sucesso',
+        'token_refreshed' => 'Token renovado com sucesso',
+        'invalid_credentials' => 'As credenciais fornecidas estão incorretas',
+        'account_disabled' => 'Conta desativada. Entre em contato com o suporte',
+        'password_changed' => 'Senha alterada com sucesso',
+        'current_password_incorrect' => 'A senha atual está incorreta',
+    ],
+
+    // Planos
+    'plan' => [
+        'listed' => 'Planos listados com sucesso',
+        'found' => 'Plano encontrado com sucesso',
+        'created' => 'Plano criado com sucesso',
+        'updated' => 'Plano atualizado com sucesso',
+        'deleted' => 'Plano deletado com sucesso',
+        'activated' => 'Plano ativado com sucesso',
+        'deactivated' => 'Plano desativado com sucesso',
+        'promotional_listed' => 'Planos promocionais listados com sucesso',
+        'search_completed' => 'Busca realizada com sucesso',
+        'not_found' => 'Plano não encontrado',
+        'not_found_or_inactive' => 'Plano não encontrado ou inativo',
+        'error_listing' => 'Erro ao listar planos',
+        'error_searching' => 'Erro ao buscar plano',
+        'error_creating' => 'Erro ao criar plano',
+        'error_updating' => 'Erro ao atualizar plano',
+        'error_deleting' => 'Erro ao deletar plano',
+        'error_promotional' => 'Erro ao listar planos promocionais',
+    ],
+
+    // Rifas e Tickets
+    'raffle' => [
+        'not_found' => 'Rifa não encontrada',
+        'not_found_or_inactive' => 'Rifa não encontrada ou inativa',
+        'tickets_applied' => 'Tickets aplicados com sucesso',
+        'tickets_cancelled' => 'Tickets cancelados com sucesso',
+        'tickets_partial_cancel' => 'Alguns tickets não puderam ser cancelados (já estão confirmados ou não pertencem a você)',
+        'error_listing' => 'Erro ao listar rifas',
+        'my_tickets_retrieved' => 'Meus tickets recuperados com sucesso',
+    ],
+
+    // API e Sistema
+    'api' => [
+        'working' => 'API Premia Plus funcionando!',
+        'health_ok' => 'Sistema funcionando normalmente',
+        'health_error' => 'Sistema com problemas',
+    ],
+
+    // Operações CRUD gerais
+    'crud' => [
+        'listed' => 'Dados listados com sucesso',
+        'found' => 'Registro encontrado com sucesso',
+        'created' => 'Registro criado com sucesso',
+        'updated' => 'Registro atualizado com sucesso',
+        'deleted' => 'Registro deletado com sucesso',
+        'not_found' => 'Registro não encontrado',
+        'error_listing' => 'Erro ao listar dados',
+        'error_finding' => 'Erro ao buscar registro',
+        'error_creating' => 'Erro ao criar registro',
+        'error_updating' => 'Erro ao atualizar registro',
+        'error_deleting' => 'Erro ao deletar registro',
+    ],
 ];

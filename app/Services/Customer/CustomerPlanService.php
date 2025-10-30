@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Customer;
 
 use App\Models\Plan;
@@ -62,7 +64,7 @@ class CustomerPlanService
             ->first();
 
         if (! $plan) {
-            throw new \Exception('Plano não encontrado ou inativo');
+            throw new \Exception(__('app.plan.not_found_or_inactive'));
         }
 
         return $plan;
