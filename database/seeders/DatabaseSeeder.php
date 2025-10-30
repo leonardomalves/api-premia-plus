@@ -21,6 +21,9 @@ class DatabaseSeeder extends Seeder
             // Seeds de dados complementares
             PlanSeed::class,
 
+            // Sistema de pré-lançamento (leads tracking)
+            SubscriberSeeder::class,
+
             // Simular comportamento real dos usuários
             AddToCartSeed::class,
 

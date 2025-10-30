@@ -202,6 +202,7 @@ return [
         'already_exists' => 'Email já está cadastrado',
         'invalid_email' => 'Email inválido',
         'conversion_report' => 'Relatório de conversões gerado com sucesso',
+        'seeded' => 'Database populada com subscribers de teste',
     ],
 
     // Sistema
