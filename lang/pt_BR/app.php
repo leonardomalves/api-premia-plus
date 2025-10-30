@@ -199,5 +199,8 @@ return [
         'cache_cleared' => 'Cache limpo com sucesso',
         'backup_created' => 'Backup criado com sucesso',
         'logs_cleared' => 'Logs limpos com sucesso',
+        'api_key_required' => 'Chave API é obrigatória',
+        'api_key_invalid' => 'Chave API inválida',
+        'api_key_not_configured' => 'Chave API não configurada no servidor',
     ],
 ];

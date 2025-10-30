@@ -43,6 +43,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application API Key
+    |--------------------------------------------------------------------------
+    |
+    | This value is the secret API key used for authenticating API requests
+    | and securing internal communication between services. This key should
+    | be kept secret and never exposed in client-side code or public repositories.
+    |
+    | Format: sk_api_[64-character-hex-string]
+    | Example: sk_api_7f9e8d2c5b1a4f6e8c3d9e2f1a8b5c7d4e9f2a6b8c1d3e5f7a9b2c4e6f8d1a3b5c
+    |
+    | Usage:
+    | - API endpoint authentication
+    | - Internal service communication
+    | - Webhook signature verification
+    | - Administrative operations validation
+    |
+    */
+
+    'api_key' => env('APP_API_KEY'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------
     |
