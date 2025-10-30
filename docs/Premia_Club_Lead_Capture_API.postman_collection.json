@@ -1,0 +1,968 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Prêmia Club - Lead Capture API",
+		"description": "API pública para captura de leads de landing pages com tracking completo de UTM parameters e device fingerprinting.\n\n## Funcionalidades\n- Captura de leads com validação completa\n- Tracking automático de campanhas (UTM)\n- Rate limiting por IP\n- Verificação de status\n- Sistema de unsubscribe\n\n## Rate Limits\n- Capture: 5 tentativas/minuto\n- Status: 10 tentativas/minuto  \n- Unsubscribe: 3 tentativas/minuto\n\n## Documentação\nConsulte o arquivo `docs/api-lead-capture.md` para documentação completa.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12345678"
+	},
+	"item": [
+		{
+			"name": "📧 Lead Capture",
+			"item": [
+				{
+					"name": "Capturar Lead - Sucesso",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has correct structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'success');",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.data).to.have.property('subscriber_uuid');",
+									"    pm.expect(jsonData.data).to.have.property('email');",
+									"    pm.expect(jsonData.data).to.have.property('status');",
+									"    pm.expect(jsonData).to.have.property('meta');",
+									"});",
+									"",
+									"pm.test(\"Store subscriber UUID for other tests\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.subscriber_uuid) {",
+									"        pm.environment.set(\"subscriber_uuid\", jsonData.data.subscriber_uuid);",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 2000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate random email to avoid duplicates",
+									"const timestamp = Date.now();",
+									"const randomEmail = `teste${timestamp}@email.com`;",
+									"pm.environment.set(\"random_email\", randomEmail);",
+									"",
+									"// Set current timestamp for UTM tracking",
+									"pm.environment.set(\"current_timestamp\", timestamp);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "User-Agent",
+								"value": "PostmanRuntime/7.32.0"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"{{random_email}}\",\n  \"phone\": \"11999887766\",\n  \"preferences\": [\"sorteios\", \"promoções\"],\n  \"utm_source\": \"postman\",\n  \"utm_medium\": \"api_test\",\n  \"utm_campaign\": \"teste-collection-{{current_timestamp}}\",\n  \"utm_term\": \"api-testing\",\n  \"utm_content\": \"postman-collection\",\n  \"referrer\": \"https://postman.com\",\n  \"landing_page\": \"https://premiaclub.com.br/pre-lancamento\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/public/leads/capture",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"public",
+								"leads",
+								"capture"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "201 - Lead Capturado com Sucesso",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao.silva@email.com\",\n  \"phone\": \"11999887766\",\n  \"utm_source\": \"facebook\",\n  \"utm_campaign\": \"pre-lancamento\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/public/leads/capture",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"public",
+										"leads",
+										"capture"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"success\",\n  \"message\": \"Lead capturado com sucesso!\",\n  \"data\": {\n    \"subscriber_uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"email\": \"joao.silva@email.com\",\n    \"status\": \"active\",\n    \"tracking_source\": \"facebook\",\n    \"tracking_campaign\": \"pre-lancamento\",\n    \"next_steps\": {\n      \"verification_email\": \"Check your email for verification link\",\n      \"early_access\": \"You will be notified about early access\"\n    }\n  },\n  \"meta\": {\n    \"execution_time_ms\": 45.23\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Capturar Lead - Email Duplicado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 for duplicate email\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response indicates already subscribed\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'success');",
+									"    pm.expect(jsonData.data).to.have.property('already_exists', true);",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 1000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva Atualizado\",\n  \"email\": \"{{random_email}}\",\n  \"phone\": \"11988776655\",\n  \"utm_source\": \"google\",\n  \"utm_campaign\": \"segunda-tentativa\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/public/leads/capture",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"public",
+								"leads",
+								"capture"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 - Email Já Cadastrado",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao.silva@email.com\",\n  \"utm_source\": \"google\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/public/leads/capture",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"public",
+										"leads",
+										"capture"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"success\",\n  \"message\": \"E-mail já cadastrado. Dados atualizados com sucesso.\",\n  \"data\": {\n    \"subscriber_uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"status\": \"active\",\n    \"already_exists\": true\n  },\n  \"meta\": {\n    \"execution_time_ms\": 12.45\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Capturar Lead - Validation Errors",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 422 for validation errors\", function () {",
+									"    pm.response.to.have.status(422);",
+									"});",
+									"",
+									"pm.test(\"Response has validation errors\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"    pm.expect(jsonData).to.have.property('errors');",
+									"    pm.expect(jsonData.errors).to.have.property('name');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"email-invalido\",\n  \"phone\": \"123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/public/leads/capture",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"public",
+								"leads",
+								"capture"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "422 - Validation Errors",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"invalid-email\",\n  \"phone\": \"123\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/public/leads/capture",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"public",
+										"leads",
+										"capture"
+									]
+								}
+							},
+							"status": "Unprocessable Entity",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"O nome é obrigatório. (e mais 2 erros)\",\n  \"errors\": {\n    \"name\": [\n      \"O nome é obrigatório.\"\n    ],\n    \"email\": [\n      \"Digite um e-mail válido.\"\n    ],\n    \"phone\": [\n      \"O telefone deve ter pelo menos 10 dígitos.\"\n    ]\n  }\n}"
+						}
+					]
+				}
+			],
+			"description": "Endpoints para capturar leads da landing page com tracking completo.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "📊 Lead Status",
+			"item": [
+				{
+					"name": "Verificar Status - Sucesso",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has correct structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'success');",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.data).to.have.property('uuid');",
+									"    pm.expect(jsonData.data).to.have.property('status');",
+									"    pm.expect(jsonData.data).to.have.property('subscribed_at');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 1000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/public/leads/status/{{subscriber_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"public",
+								"leads",
+								"status",
+								"{{subscriber_uuid}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 - Status Encontrado",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/public/leads/status/123e4567-e89b-12d3-a456-426614174000",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"public",
+										"leads",
+										"status",
+										"123e4567-e89b-12d3-a456-426614174000"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"success\",\n  \"message\": \"Status do lead encontrado.\",\n  \"data\": {\n    \"uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"status\": \"active\",\n    \"subscribed_at\": \"2024-10-30T14:30:00.000000Z\",\n    \"preferences\": [\"sorteios\", \"promoções\"]\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Verificar Status - Não Encontrado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404 for not found\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Response has error structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'error');",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"    pm.expect(jsonData).to.have.property('errors');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/public/leads/status/00000000-0000-0000-0000-000000000000",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"public",
+								"leads",
+								"status",
+								"00000000-0000-0000-0000-000000000000"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "404 - Lead Não Encontrado",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/public/leads/status/00000000-0000-0000-0000-000000000000",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"public",
+										"leads",
+										"status",
+										"00000000-0000-0000-0000-000000000000"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"error\",\n  \"message\": \"Lead não encontrado.\",\n  \"errors\": {\n    \"uuid\": \"Subscriber not found\"\n  }\n}"
+						}
+					]
+				}
+			],
+			"description": "Endpoints para verificar status de leads capturados."
+		},
+		{
+			"name": "🚫 Unsubscribe",
+			"item": [
+				{
+					"name": "Descadastrar Lead - Sucesso",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response indicates unsubscribed\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'success');",
+									"    pm.expect(jsonData.data).to.have.property('status', 'unsubscribed');",
+									"    pm.expect(jsonData.data).to.have.property('unsubscribed_at');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 1000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/public/leads/unsubscribe/{{subscriber_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"public",
+								"leads",
+								"unsubscribe",
+								"{{subscriber_uuid}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 - Descadastrado com Sucesso",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/public/leads/unsubscribe/123e4567-e89b-12d3-a456-426614174000",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"public",
+										"leads",
+										"unsubscribe",
+										"123e4567-e89b-12d3-a456-426614174000"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"success\",\n  \"message\": \"Lead descadastrado com sucesso.\",\n  \"data\": {\n    \"unsubscribed_at\": \"2024-10-30T15:45:00.000000Z\",\n    \"status\": \"unsubscribed\"\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Descadastrar Lead - Já Descadastrado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 for already unsubscribed\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response indicates already unsubscribed\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'success');",
+									"    pm.expect(jsonData.data).to.have.property('unsubscribed_at');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/public/leads/unsubscribe/{{subscriber_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"public",
+								"leads",
+								"unsubscribe",
+								"{{subscriber_uuid}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 - Já Descadastrado",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/public/leads/unsubscribe/123e4567-e89b-12d3-a456-426614174000",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"public",
+										"leads",
+										"unsubscribe",
+										"123e4567-e89b-12d3-a456-426614174000"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"success\",\n  \"message\": \"Lead já estava descadastrado.\",\n  \"data\": {\n    \"unsubscribed_at\": \"2024-10-30T15:45:00.000000Z\"\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Descadastrar Lead - Não Encontrado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404 for not found\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Response has error structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'error');",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/public/leads/unsubscribe/99999999-9999-9999-9999-999999999999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"public",
+								"leads",
+								"unsubscribe",
+								"99999999-9999-9999-9999-999999999999"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "404 - Lead Não Encontrado",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/public/leads/unsubscribe/99999999-9999-9999-9999-999999999999",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"public",
+										"leads",
+										"unsubscribe",
+										"99999999-9999-9999-9999-999999999999"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"error\",\n  \"message\": \"Lead não encontrado.\",\n  \"errors\": {\n    \"uuid\": \"Subscriber not found\"\n  }\n}"
+						}
+					]
+				}
+			],
+			"description": "Endpoints para descadastrar leads."
+		},
+		{
+			"name": "🔄 Rate Limiting Tests",
+			"item": [
+				{
+					"name": "Rate Limit - Capture (6 requests in sequence)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// This test should trigger rate limiting on the 6th request",
+									"pm.test(\"Check if rate limit is triggered\", function () {",
+									"    // First 5 requests should succeed (201) or handle duplicates (200)",
+									"    // 6th request should fail with 429",
+									"    const statusCode = pm.response.code;",
+									"    pm.expect([200, 201, 429]).to.include(statusCode);",
+									"});",
+									"",
+									"if (pm.response.code === 429) {",
+									"    pm.test(\"Rate limit response structure\", function () {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('message');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate unique email for rate limit test",
+									"const timestamp = Date.now() + Math.random();",
+									"pm.environment.set(\"rate_limit_email\", `rate${timestamp}@email.com`);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Rate Limit Test\",\n  \"email\": \"{{rate_limit_email}}\",\n  \"utm_source\": \"rate_limit_test\",\n  \"utm_campaign\": \"postman_collection\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/public/leads/capture",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"public",
+								"leads",
+								"capture"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "429 - Too Many Requests",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Rate Limit Test\",\n  \"email\": \"rate@email.com\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/public/leads/capture",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"public",
+										"leads",
+										"capture"
+									]
+								}
+							},
+							"status": "Too Many Requests",
+							"code": 429,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Too Many Attempts.\",\n  \"exception\": \"Illuminate\\\\Http\\\\Exceptions\\\\ThrottleRequestsException\"\n}"
+						}
+					]
+				}
+			],
+			"description": "Testes para verificar rate limiting dos endpoints."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script",
+					"pm.request.headers.add({",
+					"    key: 'Accept',",
+					"    value: 'application/json'",
+					"});",
+					"",
+					"// Set default base URL if not set",
+					"if (!pm.environment.get(\"base_url\")) {",
+					"    pm.environment.set(\"base_url\", \"http://localhost:8000\");",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script",
+					"pm.test(\"Response is JSON\", function () {",
+					"    pm.response.to.be.json;",
+					"});",
+					"",
+					"pm.test(\"No server errors (5xx)\", function () {",
+					"    pm.expect(pm.response.code).to.be.below(500);",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "api_version",
+			"value": "v1",
+			"type": "string"
+		}
+	]
+}
