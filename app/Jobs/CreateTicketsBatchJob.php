@@ -62,7 +62,7 @@ class CreateTicketsBatchJob implements ShouldQueue
 
             $ticketsData[] = [
                 'raffle_id' => $this->raffleId,
-                'number' => str_pad($i, 6, '0', STR_PAD_LEFT), // Formato 000001, 000002, etc.
+                'number' => str_pad((string) $i, 6, '0', STR_PAD_LEFT), // Formato 000001, 000002, etc.
                 'status' => 'available',
                 'user_id' => null,
                 'ticket_level' => 1,
