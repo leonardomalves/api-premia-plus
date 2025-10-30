@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Customer\ChangePasswordRequest;
+use App\Http\Requests\Customer\UpdateProfileRequest;
 use App\Services\Customer\CustomerService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class CustomerController extends Controller
@@ -24,37 +27,42 @@ class CustomerController extends Controller
      */
     public function show(Request $request): JsonResponse
     {
+        $startTime = microtime(true);
         $user = $this->customerService->show($request->user());
+        $executionTime = round((microtime(true) - $startTime) * 1000, 2);
 
         return response()->json([
-            'user' => $user,
+            'status' => 'success',
+            'message' => 'Perfil recuperado com sucesso',
+            'data' => ['user' => $user],
+            'meta' => ['execution_time_ms' => $executionTime]
         ]);
     }
 
     /**
      * Update authenticated user's profile
      */
-    public function updateProfile(Request $request): JsonResponse
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
         $user = $request->user();
-
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'phone' => 'sometimes|nullable|string|max:20',
-            'email' => ['sometimes', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'username' => ['sometimes', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
-        ]);
+        $validated = $request->validated();
 
         try {
+            $startTime = microtime(true);
             $updatedUser = $this->customerService->updateProfile($user, $validated);
+            $executionTime = round((microtime(true) - $startTime) * 1000, 2);
 
             return response()->json([
+                'status' => 'success',
                 'message' => 'Perfil atualizado com sucesso',
-                'user' => $updatedUser,
+                'data' => ['user' => $updatedUser],
+                'meta' => ['execution_time_ms' => $executionTime]
             ]);
         } catch (\Exception $e) {
             return response()->json([
+                'status' => 'error',
                 'message' => $e->getMessage(),
+                'errors' => ['validation' => $e->getMessage()]
             ], 422);
         }
     }
@@ -64,9 +72,16 @@ class CustomerController extends Controller
      */
     public function network(Request $request): JsonResponse
     {
+        $startTime = microtime(true);
         $result = $this->customerService->network($request->user());
+        $executionTime = round((microtime(true) - $startTime) * 1000, 2);
 
-        return response()->json($result);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Rede recuperada com sucesso',
+            'data' => $result,
+            'meta' => ['execution_time_ms' => $executionTime]
+        ]);
     }
 
     /**
@@ -98,26 +113,29 @@ class CustomerController extends Controller
     /**
      * Change authenticated user's password
      */
-    public function changePassword(Request $request): JsonResponse
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
-        $request->validate([
-            'current_password' => 'required',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
         $user = $request->user();
+        $validated = $request->validated();
 
         try {
-            $this->customerService->changePassword($user, $request->current_password, $request->password);
+            $startTime = microtime(true);
+            $this->customerService->changePassword($user, $validated['current_password'], $validated['password']);
+            $executionTime = round((microtime(true) - $startTime) * 1000, 2);
 
             return response()->json([
-                'message' => 'Password changed successfully',
+                'status' => 'success',
+                'message' => 'Senha alterada com sucesso',
+                'data' => null,
+                'meta' => ['execution_time_ms' => $executionTime]
             ]);
         } catch (ValidationException $e) {
             throw $e; // Laravel handles this as 422 automatically
         } catch (\Exception $e) {
             return response()->json([
+                'status' => 'error',
                 'message' => $e->getMessage(),
+                'errors' => ['password' => $e->getMessage()]
             ], 400);
         }
     }

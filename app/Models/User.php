@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -125,5 +127,54 @@ class User extends Authenticatable
         return $this->belongsToMany(Raffle::class, 'raffle_tickets')
             ->withPivot('ticket_id', 'status')
             ->withTimestamps();
+    }
+
+    // Scopes
+    /**
+     * Scope para usuários ativos
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    /**
+     * Scope para usuários inativos
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('status', 'inactive');
+    }
+
+    /**
+     * Scope para usuários suspensos
+     */
+    public function scopeSuspended($query)
+    {
+        return $query->where('status', 'suspended');
+    }
+
+    /**
+     * Scope para buscar usuários por patrocinador
+     */
+    public function scopeBySponsor($query, int $sponsorId)
+    {
+        return $query->where('sponsor_id', $sponsorId);
+    }
+
+    /**
+     * Scope para buscar usuários por papel/role
+     */
+    public function scopeByRole($query, string $role)
+    {
+        return $query->where('role', $role);
+    }
+
+    /**
+     * Scope para usuários criados em um período
+     */
+    public function scopeCreatedBetween($query, $startDate, $endDate)
+    {
+        return $query->whereBetween('created_at', [$startDate, $endDate]);
     }
 }
