@@ -42,13 +42,13 @@ class UpdateProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.string' => 'O nome deve ser um texto válido',
-            'name.max' => 'O nome não pode ter mais de 255 caracteres',
-            'phone.string' => 'O telefone deve ser um texto válido',
-            'phone.max' => 'O telefone não pode ter mais de 20 caracteres',
-            'email.email' => 'Informe um email válido',
-            'email.unique' => 'Este email já está sendo usado',
-            'username.unique' => 'Este nome de usuário já está sendo usado',
+            'name.string' => __('app.validation.name_string'),
+            'name.max' => __('app.validation.name_max', ['max' => 255]),
+            'phone.string' => __('app.validation.phone_string'),
+            'phone.max' => __('app.validation.phone_max', ['max' => 20]),
+            'email.email' => __('app.validation.email_valid'),
+            'email.unique' => __('app.validation.email_unique'),
+            'username.unique' => __('app.validation.username_unique'),
         ];
     }
 }

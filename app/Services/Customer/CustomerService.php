@@ -26,7 +26,7 @@ class CustomerService
     public function updateProfile(User $user, array $validated): User
     {
         if (empty($validated)) {
-            throw new \Exception('Nenhuma alteração fornecida.');
+            throw new \Exception(__('app.profile.no_changes'));
         }
 
         $user->update($validated);
@@ -39,7 +39,7 @@ class CustomerService
      */
     public function network(User $user): array
     {
-        Log::info('👥 Buscando rede do usuário', ['user_uuid' => $user->uuid]);
+        Log::info('👥 ' . __('app.logs.searching_user_network'), ['user_uuid' => $user->uuid]);
 
         $cacheKey = "user_network_{$user->id}";
         
@@ -68,11 +68,11 @@ class CustomerService
      */
     public function sponsor(User $user): array
     {
-        Log::info('🔍 Buscando patrocinador do usuário', ['user_uuid' => $user->uuid]);
+        Log::info('🔍 ' . __('app.logs.searching_sponsor'), ['user_uuid' => $user->uuid]);
 
         if (! $user->sponsor_id) {
-            Log::warning('⚠️ Usuário não possui patrocinador', ['user_uuid' => $user->uuid]);
-            throw new \Exception('Você não possui patrocinador');
+            Log::warning('⚠️ ' . __('app.logs.user_no_sponsor_warning'), ['user_uuid' => $user->uuid]);
+            throw new \Exception(__('app.sponsor.not_found'));
         }
 
         $sponsor = Cache::remember("user_sponsor_{$user->sponsor_id}", now()->addMinutes(30), 
@@ -101,7 +101,7 @@ class CustomerService
      */
     public function statistics(User $user): array
     {
-        Log::info('📊 Calculando estatísticas do usuário', ['user_uuid' => $user->uuid]);
+        Log::info('📊 ' . __('app.logs.calculating_statistics'), ['user_uuid' => $user->uuid]);
 
         $cacheKey = "user_stats_{$user->id}";
         
@@ -147,7 +147,7 @@ class CustomerService
     {
         if (! Hash::check($currentPassword, $user->password)) {
             throw ValidationException::withMessages([
-                'current_password' => ['A senha atual está incorreta.'],
+                'current_password' => [__('app.password.current_incorrect')],
             ]);
         }
 
@@ -165,7 +165,7 @@ class CustomerService
 
         // Verificar se o usuário pode ver esta rede
         if ($currentUser->id !== $targetUser->id && $currentUser->role !== 'admin') {
-            throw new \Exception('Acesso negado.');
+            throw new \Exception(__('app.user.access_denied'));
         }
 
         $network = User::where('sponsor_id', $targetUser->id)
@@ -192,11 +192,11 @@ class CustomerService
 
         // Verificar se o usuário pode ver este patrocinador
         if ($currentUser->id !== $targetUser->id && $currentUser->role !== 'admin') {
-            throw new \Exception('Acesso negado.');
+            throw new \Exception(__('app.user.access_denied'));
         }
 
         if (! $targetUser->sponsor_id) {
-            throw new \Exception('Usuário não possui patrocinador');
+            throw new \Exception(__('app.sponsor.user_no_sponsor'));
         }
 
         $sponsor = User::find($targetUser->sponsor_id);
@@ -226,7 +226,7 @@ class CustomerService
 
         // Verificar se o usuário pode ver estas estatísticas
         if ($currentUser->id !== $targetUser->id && $currentUser->role !== 'admin') {
-            throw new \Exception('Acesso negado.');
+            throw new \Exception(__('app.user.access_denied'));
         }
 
         $stats = [

@@ -37,10 +37,10 @@ class ChangePasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'current_password.required' => 'A senha atual é obrigatória',
-            'password.required' => 'A nova senha é obrigatória',
-            'password.min' => 'A nova senha deve ter pelo menos 8 caracteres',
-            'password.confirmed' => 'A confirmação da senha não confere',
+            'current_password.required' => __('app.validation.current_password_required'),
+            'password.required' => __('app.validation.password_required'),
+            'password.min' => __('app.validation.password_min', ['min' => 8]),
+            'password.confirmed' => __('app.validation.password_confirmed'),
         ];
     }
 }

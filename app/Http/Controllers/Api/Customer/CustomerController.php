@@ -33,7 +33,7 @@ class CustomerController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Perfil recuperado com sucesso',
+            'message' => __('app.profile.retrieved'),
             'data' => ['user' => $user],
             'meta' => ['execution_time_ms' => $executionTime]
         ]);
@@ -54,7 +54,7 @@ class CustomerController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Perfil atualizado com sucesso',
+                'message' => __('app.profile.updated'),
                 'data' => ['user' => $updatedUser],
                 'meta' => ['execution_time_ms' => $executionTime]
             ]);
@@ -78,7 +78,7 @@ class CustomerController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Rede recuperada com sucesso',
+            'message' => __('app.network.retrieved'),
             'data' => $result,
             'meta' => ['execution_time_ms' => $executionTime]
         ]);
@@ -125,7 +125,7 @@ class CustomerController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Senha alterada com sucesso',
+                'message' => __('app.password.changed'),
                 'data' => null,
                 'meta' => ['execution_time_ms' => $executionTime]
             ]);
@@ -148,15 +148,24 @@ class CustomerController extends Controller
         try {
             $result = $this->customerService->userNetwork($request->user(), $uuid);
 
-            return response()->json($result);
+            return response()->json([
+                'status' => 'success',
+                'message' => __('app.network.retrieved'),
+                'data' => $result
+            ]);
         } catch (ModelNotFoundException $e) {
             return response()->json([
-                'message' => 'Usuário não encontrado',
+                'status' => 'error',
+                'message' => __('app.user.not_found'),
+                'errors' => ['user' => __('app.user.not_found')]
             ], 404);
         } catch (\Exception $e) {
+            $statusCode = $e->getMessage() === __('app.user.access_denied') ? 403 : 500;
             return response()->json([
+                'status' => 'error',
                 'message' => $e->getMessage(),
-            ], $e->getMessage() === 'Acesso negado.' ? 403 : 500);
+                'errors' => ['access' => $e->getMessage()]
+            ], $statusCode);
         }
     }
 

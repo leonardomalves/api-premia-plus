@@ -31,7 +31,7 @@ class AbandonedCartJob implements ShouldQueue
      */
     public function handle(): void
     {
-        Log::info('🛒 Starting abandoned cart processing...');
+        Log::info('🛒 ' . __('app.jobs.abandoned_cart.starting'));
 
         // Buscar carrinhos ativos há mais de 48 horas (conforme docs/itens.txt)
         $abandonedCarts = Cart::where('status', 'active')
@@ -40,12 +40,12 @@ class AbandonedCartJob implements ShouldQueue
             ->get();
 
         if ($abandonedCarts->isEmpty()) {
-            Log::info('ℹ️ No abandoned carts found');
+            Log::info('ℹ️ ' . __('app.jobs.abandoned_cart.no_carts_found'));
 
             return;
         }
 
-        Log::info("📊 Found {$abandonedCarts->count()} abandoned carts to process");
+        Log::info('📊 ' . __('app.jobs.abandoned_cart.carts_found', ['count' => $abandonedCarts->count()]));
 
         $processedCount = 0;
         $errorCount = 0;
@@ -54,7 +54,7 @@ class AbandonedCartJob implements ShouldQueue
             try {
                 $cart->update(['status' => 'abandoned']);
 
-                Log::info("🚫 Cart {$cart->uuid} marked as abandoned", [
+                Log::info('🚫 ' . __('app.jobs.abandoned_cart.cart_marked_abandoned', ['uuid' => $cart->uuid]), [
                     'cart_id' => $cart->id,
                     'user_email' => $cart->user->email ?? 'N/A',
                     'plan_name' => $cart->plan->name ?? 'N/A',
@@ -69,7 +69,10 @@ class AbandonedCartJob implements ShouldQueue
 
             } catch (\Exception $e) {
                 $errorCount++;
-                Log::error("❌ Error processing cart {$cart->uuid}: {$e->getMessage()}", [
+                Log::error('❌ ' . __('app.jobs.abandoned_cart.error_processing_cart', [
+                    'uuid' => $cart->uuid, 
+                    'error' => $e->getMessage()
+                ]), [
                     'cart_id' => $cart->id,
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
@@ -77,7 +80,7 @@ class AbandonedCartJob implements ShouldQueue
             }
         }
 
-        Log::info('✅ Abandoned cart processing completed', [
+        Log::info('✅ ' . __('app.jobs.abandoned_cart.processing_completed'), [
             'total_found' => $abandonedCarts->count(),
             'processed' => $processedCount,
             'errors' => $errorCount,
@@ -89,7 +92,7 @@ class AbandonedCartJob implements ShouldQueue
      */
     public function failed(\Throwable $exception): void
     {
-        Log::error('❌ AbandonedCartJob failed: '.$exception->getMessage(), [
+        Log::error('❌ ' . __('app.jobs.abandoned_cart.failed', ['error' => $exception->getMessage()]), [
             'error' => $exception->getMessage(),
             'trace' => $exception->getTraceAsString(),
         ]);
@@ -103,7 +106,7 @@ class AbandonedCartJob implements ShouldQueue
         // TODO: Implementar envio de email de recuperação
         // Exemplo: Mail::to($cart->user->email)->send(new CartRecoveryMail($cart));
 
-        Log::info('📧 Cart recovery email should be sent', [
+        Log::info('📧 ' . __('app.jobs.abandoned_cart.recovery_email_sent'), [
             'cart_id' => $cart->id,
             'user_email' => $cart->user->email ?? 'N/A',
         ]);
