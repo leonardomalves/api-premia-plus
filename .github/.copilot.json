@@ -1,0 +1,49 @@
+{
+  "context": [
+    "app/Http/Controllers/Api",
+    "app/Http/Requests",
+    "app/Services",
+    "app/Models",
+    "app/Jobs",
+    "routes/api/v1",
+    "database/migrations",
+    "database/factories"
+  ],
+  "instructions": [
+    "Usar tipagem forte (declare(strict_types=1))",
+    "Evitar Model::all() — usar scopes, filtros e paginação",
+    "Gerar código seguindo PSR-12 e SOLID",
+    "Usar Cache::remember() para consultas caras",
+    "Controllers finos, Services com lógica de negócio estruturada",
+    "Jobs com ShouldQueue, tries=3, timeout=120",
+    "Models com UUIDs, SoftDeletes e relationships claras",
+    "BusinessRules services para comissões e regras complexas",
+    "API versionada (v1/) com middleware auth:sanctum",
+    "Logs estruturados com contexto (emojis para facilitar debug)",
+    "Retornar JSON padronizado com status/message/data",
+    "Minimizar N+1 queries com with() e load()",
+    "Usar scopes nos Models (scopeActive, scopeByCreator)",
+    "Commits semânticos: feat/fix/refactor/docs/test/chore",
+    "Branches descritivas: feature/fix/hotfix + descrição",
+    "PRs pequenos e focados, máximo 500 linhas por mudança",
+    "Nunca commitar .env, logs, cache ou arquivos temporários"
+  ],
+  "priority": {
+    "performance": 10,
+    "security": 9,
+    "readability": 8,
+    "maintainability": 8
+  },
+  "domain": {
+    "core_entities": ["User", "Plan", "Order", "Cart", "Raffle", "Ticket", "Commission", "Wallet"],
+    "business_rules": ["PayCommissionService", "ExecuteBusinessRule", "WalletTicketService"],
+    "job_patterns": ["AbandonedCartJob", "CreateTicketsBatchJob", "ExecuteBusinessRuleJob"]
+  },
+  "git": {
+    "commit_types": ["feat", "fix", "refactor", "docs", "test", "chore", "hotfix"],
+    "branch_prefixes": ["feature/", "fix/", "hotfix/", "refactor/"],
+    "max_pr_lines": 500,
+    "ignore_patterns": [".env*", "storage/logs/*", "bootstrap/cache/*", "node_modules/"]
+  },
+  "notes": "API Premia Plus - Sistema de rifas e comissões com foco em performance e escalabilidade."
+}
