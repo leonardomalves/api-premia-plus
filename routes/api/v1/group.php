@@ -17,4 +17,5 @@ Route::prefix('v1')->group(function () {
     require __DIR__.'/customer.php';
     require __DIR__.'/administrator.php';
     require __DIR__.'/shared.php';
+    require __DIR__.'/public.php';
 });

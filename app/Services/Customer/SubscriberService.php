@@ -24,6 +24,7 @@ class SubscriberService
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
             'country' => $data['country'] ?? 'BR',
+            'status' => Subscriber::STATUS_ACTIVE, // Ativar automaticamente
             'utm_source' => $trackingData['utm_source'],
             'utm_medium' => $trackingData['utm_medium'],
             'utm_campaign' => $trackingData['utm_campaign'],
@@ -139,7 +140,7 @@ class SubscriberService
             'additional_data' => [
                 'landing_page' => $request->fullUrl(),
                 'timestamp' => now()->toISOString(),
-                'session_id' => $request->session()->getId(),
+                'session_id' => $request->hasSession() ? $request->session()->getId() : null,
             ],
         ];
     }
