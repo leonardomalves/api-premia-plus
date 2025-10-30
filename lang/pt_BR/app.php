@@ -191,7 +191,20 @@ return [
         'invalid_operation' => 'Operação inválida',
     ],
 
-    // Sistema e monitoramento
+    // Subscribers (Lead tracking)
+    'subscriber' => [
+        'created' => 'Lead capturado com sucesso',
+        'updated' => 'Lead atualizado com sucesso',
+        'verified' => 'Email verificado com sucesso',
+        'unsubscribed' => 'Lead removido da lista',
+        'converted' => 'Lead convertido em cliente',
+        'not_found' => 'Lead não encontrado',
+        'already_exists' => 'Email já está cadastrado',
+        'invalid_email' => 'Email inválido',
+        'conversion_report' => 'Relatório de conversões gerado com sucesso',
+    ],
+
+    // Sistema
     'system' => [
         'healthy' => 'Sistema funcionando normalmente',
         'unhealthy' => 'Sistema com problemas',
