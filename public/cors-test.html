@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste CORS - API Prêmia Plus</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .success {
+            color: #28a745;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste CORS - API Prêmia Plus</h1>
+        <p>Esta página testa se o CORS está funcionando corretamente entre <strong>localhost:8080</strong> e <strong>localhost:8081</strong></p>
+        
+        <div class="test-section">
+            <h2>🏥 1. Health Check</h2>
+            <button onclick="testHealthCheck()">Testar Health Check</button>
+            <div id="health-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📧 2. Lead Capture (Preflight + POST)</h2>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" placeholder="teste@email.com" value="teste@email.com">
+            </div>
+            <div class="form-group">
+                <label for="name">Nome:</label>
+                <input type="text" id="name" placeholder="Seu Nome" value="João Teste">
+            </div>
+            <div class="form-group">
+                <label for="phone">Telefone:</label>
+                <input type="text" id="phone" placeholder="11999999999" value="11999999999">
+            </div>
+            <button onclick="testLeadCapture()">Testar Lead Capture</button>
+            <div id="lead-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔍 3. Status Check</h2>
+            <div class="form-group">
+                <label for="uuid">UUID do Subscriber:</label>
+                <input type="text" id="uuid" placeholder="UUID será preenchido após capturar lead">
+            </div>
+            <button onclick="testStatusCheck()">Testar Status Check</button>
+            <div id="status-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📋 4. Logs de Teste</h2>
+            <button onclick="clearLogs()">Limpar Logs</button>
+            <pre id="logs"></pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8081/api/v1';
+        let lastSubscriberUuid = null;
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logsElement = document.getElementById('logs');
+            logsElement.textContent += `[${timestamp}] ${message}\n`;
+            console.log(message);
+        }
+
+        function showResult(elementId, success, message, data = null) {
+            const element = document.getElementById(elementId);
+            const className = success ? 'success' : 'error';
+            let content = `<div class="${className}">${message}</div>`;
+            
+            if (data) {
+                content += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            element.innerHTML = content;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').textContent = '';
+        }
+
+        async function testHealthCheck() {
+            log('🏥 Testando Health Check...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                log(`Health Check - Status: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('health-result', true, '✅ Health Check funcionando!', data);
+                    log('✅ Health Check: OK');
+                } else {
+                    showResult('health-result', false, `❌ Health Check falhou - Status: ${response.status}`);
+                    log(`❌ Health Check falhou: ${response.status}`);
+                }
+            } catch (error) {
+                log(`❌ Erro no Health Check: ${error.message}`);
+                showResult('health-result', false, `❌ Erro CORS: ${error.message}`);
+            }
+        }
+
+        async function testLeadCapture() {
+            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+
+            if (!email) {
+                showResult('lead-result', false, '❌ Email é obrigatório');
+                return;
+            }
+
+            log('📧 Testando Lead Capture...');
+
+            const leadData = {
+                email: email,
+                name: name || undefined,
+                phone: phone || undefined,
+                utm_source: 'cors-test',
+                utm_medium: 'html-test',
+                utm_campaign: 'api-testing'
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/public/leads/capture`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'local-api-key-12345' // API key do .env
+                    },
+                    body: JSON.stringify(leadData)
+                });
+
+                log(`Lead Capture - Status: ${response.status}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    lastSubscriberUuid = data.data?.subscriber?.uuid;
+                    
+                    if (lastSubscriberUuid) {
+                        document.getElementById('uuid').value = lastSubscriberUuid;
+                    }
+                    
+                    showResult('lead-result', true, '✅ Lead capturado com sucesso!', data);
+                    log(`✅ Lead capturado: ${lastSubscriberUuid}`);
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    showResult('lead-result', false, `❌ Lead Capture falhou - Status: ${response.status}`, errorData);
+                    log(`❌ Lead Capture falhou: ${response.status}`);
+                }
+            } catch (error) {
+                log(`❌ Erro no Lead Capture: ${error.message}`);
+                showResult('lead-result', false, `❌ Erro CORS: ${error.message}`);
+            }
+        }
+
+        async function testStatusCheck() {
+            const uuid = document.getElementById('uuid').value || lastSubscriberUuid;
+
+            if (!uuid) {
+                showResult('status-result', false, '❌ UUID é obrigatório. Capture um lead primeiro.');
+                return;
+            }
+
+            log(`🔍 Testando Status Check para UUID: ${uuid}`);
+
+            try {
+                const response = await fetch(`${API_BASE}/public/leads/status/${uuid}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-API-Key': 'local-api-key-12345'
+                    }
+                });
+
+                log(`Status Check - Status: ${response.status}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('status-result', true, '✅ Status verificado com sucesso!', data);
+                    log('✅ Status Check: OK');
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    showResult('status-result', false, `❌ Status Check falhou - Status: ${response.status}`, errorData);
+                    log(`❌ Status Check falhou: ${response.status}`);
+                }
+            } catch (error) {
+                log(`❌ Erro no Status Check: ${error.message}`);
+                showResult('status-result', false, `❌ Erro CORS: ${error.message}`);
+            }
+        }
+
+        // Executar health check automaticamente ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Página carregada. Servidor deve estar em: http://127.0.0.1:8081');
+            log('🌐 Origem atual: ' + window.location.origin);
+            
+            // Aguardar um pouco para o servidor inicializar
+            setTimeout(testHealthCheck, 1000);
+        });
+    </script>
+</body>
+</html>
