@@ -1,22 +1,32 @@
-# Postman Collections - Prêmia Club Lead Capture API
+# Postman Collections - Prêmia Club API
 
-Este diretório contém as collections e environments do Postman para testar a API de captura de leads do Prêmia Club.
+Este diretório contém as collections e environments do Postman organizadas por domínio para testar toda a API do sistema Prêmia Club.
 
-## 📁 Arquivos Incluídos
+## 📁 Estrutura Organizada por Domínio
 
-### Collections
-- **`Premia_Club_Lead_Capture_API.postman_collection.json`** - Collection principal com todos os endpoints
+### Collections por Domínio
+- **`collections/Users/`** - Autenticação e gestão de usuários
+- **`collections/Subscribers/`** - Sistema de captação de leads
+- **`collections/Raffles/`** - Rifas e sorteios *(em desenvolvimento)*
+- **`collections/Commissions/`** - Sistema de comissões *(em desenvolvimento)*  
+- **`collections/Orders/`** - Pedidos e carrinho de compras
 
 ### Environments
 - **`Premia_Club_Local_Environment.postman_environment.json`** - Environment para desenvolvimento local
 - **`Premia_Club_Production_Environment.postman_environment.json`** - Environment para produção
 
+### Documentação
+- **`collections/README.md`** - Guia completo da nova organização por domínios
+
 ## 🚀 Como Importar no Postman
 
-### 1. Importar Collection
+### 1. Importar Collections por Domínio
 1. Abra o Postman
 2. Clique em **Import** (canto superior esquerdo)
-3. Selecione o arquivo `Premia_Club_Lead_Capture_API.postman_collection.json`
+3. Selecione as collections desejadas dos diretórios por domínio:
+   - `collections/Users/Premia_Club_Users_API.postman_collection.json`
+   - `collections/Subscribers/Premia_Club_Lead_Capture_API.postman_collection.json`
+   - `collections/Orders/Premia_Club_Orders_API.postman_collection.json`
 4. Clique em **Import**
 
 ### 2. Importar Environments
@@ -32,24 +42,49 @@ Este diretório contém as collections e environments do Postman para testar a A
 2. Para desenvolvimento local: **Prêmia Club - Local Development**
 3. Para produção: **Prêmia Club - Production**
 
-## 📋 Estrutura da Collection
+### 4. Ordem Recomendada de Importação
+Para melhor experiência de teste:
+1. **Users** - Para autenticação (obrigatório primeiro)
+2. **Subscribers** - Para funcionalidades públicas
+3. **Orders** - Para funcionalidades de compra (requer login)
+4. **Raffles** e **Commissions** - Conforme necessário
 
-### 📧 Lead Capture
-- **Capturar Lead - Sucesso**: Testa captura com dados válidos
-- **Capturar Lead - Email Duplicado**: Testa comportamento com email já existente
-- **Capturar Lead - Validation Errors**: Testa validações de campos obrigatórios
+## 📋 Collections Disponíveis
 
-### 📊 Lead Status
-- **Verificar Status - Sucesso**: Consulta status de um lead existente
-- **Verificar Status - Não Encontrado**: Testa consulta com UUID inexistente
+### � Users & Authentication
+**Localização:** `collections/Users/`
+- ✅ **Login/Logout**: Autenticação completa com tokens
+- ✅ **Register**: Registro de novos usuários
+- ✅ **Profile Management**: Gestão de perfil do usuário
+- ✅ **Admin CRUD**: Gestão administrativa de usuários
+- ✅ **Password Recovery**: Recuperação de senha
 
-### 🚫 Unsubscribe
-- **Descadastrar Lead - Sucesso**: Remove lead do sistema
-- **Descadastrar Lead - Já Descadastrado**: Testa descadastro de lead já removido
-- **Descadastrar Lead - Não Encontrado**: Testa descadastro com UUID inexistente
+### 📧 Subscribers (Lead Capture)
+**Localização:** `collections/Subscribers/`
+- ✅ **Capturar Lead**: Captação com tracking UTM
+- ✅ **Verificar Status**: Consulta status de leads
+- ✅ **Unsubscribe**: Sistema de descadastro
+- ✅ **Rate Limiting**: Controle de taxa implementado
 
-### 🔄 Rate Limiting Tests
-- **Rate Limit - Capture**: Testa rate limiting (5 requests/minuto)
+### � Orders & Cart
+**Localização:** `collections/Orders/`
+- ✅ **Shopping Cart**: Gestão de carrinho de compras
+- ✅ **Order Creation**: Criação de pedidos a partir do carrinho
+- ✅ **Order History**: Histórico de compras do usuário
+- ✅ **Admin Management**: Gestão administrativa de pedidos
+
+### 🎯 Raffles *(Em Desenvolvimento)*
+**Localização:** `collections/Raffles/`
+- 🚧 **Public Listings**: Listagem pública de rifas
+- 🚧 **Ticket Purchase**: Compra de tickets
+- 🚧 **Draw Results**: Resultados dos sorteios
+- 🚧 **Admin CRUD**: Gestão de rifas
+
+### � Commissions *(Em Desenvolvimento)*
+**Localização:** `collections/Commissions/`
+- 🚧 **Reports**: Relatórios de comissões
+- 🚧 **Earnings History**: Histórico de ganhos
+- 🚧 **Level Configuration**: Configuração de níveis
 
 ## 🔧 Configurações Automáticas
 
@@ -182,22 +217,65 @@ A API implementa rate limiting por IP:
 - Use emails de teste (@email.com)
 - Telefones fictícios apenas
 
+## 🏗️ Nova Organização por Domínio (v2.0)
+
+### Benefícios da Reorganização
+- **Modularidade**: Cada domínio pode ser testado independentemente
+- **Escalabilidade**: Fácil adição de novos domínios e funcionalidades
+- **Manutenibilidade**: Estrutura clara e organizada por contexto de negócio
+- **Colaboração**: Equipes podem trabalhar em collections específicas
+
+### Migração da Versão Anterior
+Se você estava usando a collection anterior (`Premia_Club_Lead_Capture_API.postman_collection.json`):
+1. A funcionalidade de lead capture agora está em `collections/Subscribers/`
+2. Importe a nova estrutura seguindo as instruções acima
+3. As variáveis e environments permanecem compatíveis
+4. Todos os testes existentes foram preservados e melhorados
+
+### Vantagens dos Scripts Automáticos
+Cada collection inclui:
+- **Auto-authentication**: Tokens salvos automaticamente
+- **Dynamic Variables**: UUIDs e IDs extraídos das respostas
+- **Comprehensive Tests**: Validação completa de estruturas
+- **Performance Monitoring**: Métricas de tempo de execução incluídas
+
 ## 📝 Próximos Passos
 
-1. **Testes de Carga**: Use Newman CLI para testes automatizados
-2. **CI/CD**: Integre os testes no pipeline de deploy
-3. **Monitoring**: Configure alertas para rate limiting excessivo
-4. **Analytics**: Implemente tracking de conversão de campanhas
+### Desenvolvimento das Collections
+1. **Raffles**: Implementar endpoints de rifas e sorteios
+2. **Commissions**: Sistema completo de comissões
+3. **Webhooks**: Collection para testes de notificações
+4. **Analytics**: Endpoints de relatórios e métricas
+
+### Automação e CI/CD
+1. **Newman CLI**: Testes automatizados no pipeline
+2. **Collection Monitoring**: Monitoramento contínuo via Postman
+3. **Data-driven Testing**: Implementar testes com datasets
+4. **Performance Testing**: Testes de carga automatizados
 
 ## 🤝 Contribuindo
 
-Para adicionar novos testes:
-1. Duplique um request existente
-2. Modifique payload e URL conforme necessário
-3. Ajuste os tests scripts
-4. Documente o novo caso de uso
-5. Exporte e commite a collection atualizada
+### Para Adicionar Nova Collection
+1. Crie o diretório do domínio em `collections/[Domain]/`
+2. Use a estrutura padrão das collections existentes
+3. Inclua scripts de teste automatizados
+4. Documente os endpoints no README do domínio
+5. Atualize este README principal
+
+### Para Modificar Collections Existentes
+1. Mantenha a compatibilidade com environments
+2. Preserve os scripts de teste existentes
+3. Documente breaking changes
+4. Teste em ambos os environments (Local/Production)
+
+### Padrões de Nomenclatura
+- **Collections**: `Premia_Club_[Domain]_API.postman_collection.json`
+- **Folders**: Usar emojis e nomes descritivos (`🛒 Shopping Cart`)
+- **Requests**: Ação + Cenário (`Get Cart`, `Add Item - Success`)
+- **Variables**: snake_case (`auth_token`, `user_uuid`)
 
 ---
 
-📚 **Documentação Completa**: Consulte `docs/api-lead-capture.md` para detalhes técnicos da API.
+📚 **Documentação Completa**: 
+- Consulte `collections/README.md` para guia detalhado da nova organização
+- Consulte `docs/api-lead-capture.md` para detalhes técnicos da API de leads
