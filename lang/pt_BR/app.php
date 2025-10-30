@@ -118,6 +118,9 @@ return [
         'search_completed' => 'Busca realizada com sucesso',
         'not_found' => 'Plano não encontrado',
         'not_found_or_inactive' => 'Plano não encontrado ou inativo',
+        'price_mismatch' => 'Preço do plano não confere',
+        'invalid_plan' => 'Plano inválido',
+        'activation_required' => 'Plano requer ativação',
         'error_listing' => 'Erro ao listar planos',
         'error_searching' => 'Erro ao buscar plano',
         'error_creating' => 'Erro ao criar plano',
@@ -157,5 +160,44 @@ return [
         'error_creating' => 'Erro ao criar registro',
         'error_updating' => 'Erro ao atualizar registro',
         'error_deleting' => 'Erro ao deletar registro',
+    ],
+
+    // Carrinho
+    'cart' => [
+        'item_added' => 'Item adicionado ao carrinho com sucesso',
+        'viewed' => 'Carrinho recuperado com sucesso',
+        'item_removed' => 'Item removido do carrinho com sucesso',
+        'cleared' => 'Carrinho limpo com sucesso',
+        'checkout_success' => 'Checkout realizado com sucesso',
+        'empty' => 'Carrinho vazio',
+        'not_found' => 'Carrinho não encontrado',
+        'item_not_found' => 'Item não encontrado no carrinho',
+        'error_adding' => 'Erro ao adicionar item ao carrinho',
+        'error_removing' => 'Erro ao remover item do carrinho',
+        'error_checkout' => 'Erro ao realizar checkout',
+        'updated' => 'Carrinho atualizado com sucesso',
+        'loaded' => 'Carrinho carregado com sucesso',
+        'load_error' => 'Erro ao carregar carrinho',
+    ],
+
+    // Administração
+    'admin' => [
+        'access_granted' => 'Acesso administrativo concedido',
+        'operation_success' => 'Operação administrativa realizada com sucesso',
+        'bulk_operation_success' => 'Operação em lote realizada com sucesso',
+        'export_success' => 'Exportação realizada com sucesso',
+        'import_success' => 'Importação realizada com sucesso',
+        'permission_denied' => 'Permissão negada para esta operação',
+        'invalid_operation' => 'Operação inválida',
+    ],
+
+    // Sistema e monitoramento
+    'system' => [
+        'healthy' => 'Sistema funcionando normalmente',
+        'unhealthy' => 'Sistema com problemas',
+        'maintenance' => 'Sistema em manutenção',
+        'cache_cleared' => 'Cache limpo com sucesso',
+        'backup_created' => 'Backup criado com sucesso',
+        'logs_cleared' => 'Logs limpos com sucesso',
     ],
 ];

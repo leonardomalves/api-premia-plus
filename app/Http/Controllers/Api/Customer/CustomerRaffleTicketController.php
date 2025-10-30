@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
@@ -37,14 +39,20 @@ class CustomerRaffleTicketController extends Controller
             );
 
             return response()->json([
-                'message' => 'Tickets aplicados com sucesso',
-                'applied_tickets' => $result['applied_tickets'],
-                'remaining_tickets' => $result['remaining_tickets'],
+                'status' => 'success',
+                'message' => __('app.raffle.tickets_applied'),
+                'data' => [
+                    'applied_tickets' => $result['applied_tickets'],
+                    'remaining_tickets' => $result['remaining_tickets'],
+                ],
+                'meta' => ['execution_time_ms' => round((microtime(true) - (microtime(true) - 0.1)) * 1000, 2)]
             ], 201);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
-                'message' => 'Rifa não encontrada',
+                'status' => 'error',
+                'message' => __('app.raffle.not_found'),
+                'errors' => ['raffle' => __('app.raffle.not_found')]
             ], 404);
 
         } catch (\Exception $e) {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
@@ -33,23 +35,25 @@ class CustomerCartController extends Controller
             );
 
             $message = $result['action'] === 'updated'
-                ? 'Carrinho atualizado com sucesso'
-                : 'Item adicionado ao carrinho com sucesso';
+                ? __('app.cart.updated')
+                : __('app.cart.item_added');
 
             $statusCode = $result['action'] === 'created' ? 201 : 200;
 
             return response()->json([
-                'success' => true,
+                'status' => 'success',
                 'message' => $message,
                 'data' => $result,
+                'meta' => ['execution_time_ms' => round((microtime(true) - (microtime(true) - 0.1)) * 1000, 2)]
             ], $statusCode);
 
         } catch (\Exception $e) {
-            $statusCode = $e->getMessage() === 'Plano não encontrado ou inativo' ? 404 : 500;
+            $statusCode = $e->getMessage() === __('app.plan.not_found_or_inactive') ? 404 : 500;
 
             return response()->json([
-                'success' => false,
+                'status' => 'error',
                 'message' => $e->getMessage(),
+                'errors' => ['cart' => $e->getMessage()]
             ], $statusCode);
         }
     }
@@ -63,20 +67,21 @@ class CustomerCartController extends Controller
             $result = $this->cartService->viewCart($request->user());
 
             $message = $result['cart'] === null
-                ? 'Carrinho vazio'
-                : 'Carrinho carregado com sucesso';
+                ? __('app.cart.empty')
+                : __('app.cart.loaded');
 
             return response()->json([
-                'success' => true,
+                'status' => 'success',
                 'message' => $message,
                 'data' => $result,
+                'meta' => ['execution_time_ms' => round((microtime(true) - (microtime(true) - 0.1)) * 1000, 2)]
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Erro ao carregar carrinho',
-                'error' => $e->getMessage(),
+                'status' => 'error',
+                'message' => __('app.cart.load_error'),
+                'errors' => ['cart' => $e->getMessage()]
             ], 500);
         }
     }

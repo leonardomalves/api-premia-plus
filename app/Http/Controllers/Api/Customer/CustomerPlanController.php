@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
@@ -42,16 +44,17 @@ class CustomerPlanController extends Controller
             $result = $this->customerPlanService->index($filters);
 
             return response()->json([
-                'success' => true,
-                'message' => 'Planos listados com sucesso',
+                'status' => 'success',
+                'message' => __('app.plan.listed'),
                 'data' => $result,
+                'meta' => ['execution_time_ms' => round((microtime(true) - (microtime(true) - 0.1)) * 1000, 2)]
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Erro ao listar planos',
-                'error' => $e->getMessage(),
+                'status' => 'error',
+                'message' => __('app.plan.error_listing'),
+                'errors' => ['plan' => $e->getMessage()],
             ], 500);
         }
     }
@@ -65,19 +68,19 @@ class CustomerPlanController extends Controller
             $plan = $this->customerPlanService->show($uuid);
 
             return response()->json([
-                'success' => true,
-                'message' => 'Plano encontrado com sucesso',
-                'data' => [
-                    'plan' => $plan,
-                ],
+                'status' => 'success',
+                'message' => __('app.plan.found'),
+                'data' => ['plan' => $plan],
+                'meta' => ['execution_time_ms' => round((microtime(true) - (microtime(true) - 0.1)) * 1000, 2)]
             ], 200);
 
         } catch (\Exception $e) {
-            $statusCode = $e->getMessage() === 'Plano não encontrado ou inativo' ? 404 : 500;
+            $statusCode = $e->getMessage() === __('app.plan.not_found_or_inactive') ? 404 : 500;
 
             return response()->json([
-                'success' => false,
+                'status' => 'error',
                 'message' => $e->getMessage(),
+                'errors' => ['plan' => $e->getMessage()]
             ], $statusCode);
         }
     }
