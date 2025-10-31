@@ -110,7 +110,41 @@ async function checkLeadStatus(subscriberUuid: string): Promise<LeadStatusRespon
 }
 ```
 
-### 3. Unsubscribe (Descadastro)
+### 3. Verificação de Email
+```typescript
+interface EmailVerificationResponse {
+  status: 'success';
+  message: string;
+  data: {
+    subscriber_uuid: string;
+    email_verified_at: string;
+    status: 'active';
+  };
+}
+
+async function verifyLeadEmail(subscriberUuid: string): Promise<EmailVerificationResponse> {
+  const response = await fetch(`/api/v1/public/leads/verify/${subscriberUuid}`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'X-API-Key': process.env.NEXT_PUBLIC_API_KEY
+    }
+  });
+  
+  const data = await response.json();
+  
+  if (data.status === 'success') {
+    // Analytics
+    gtag('event', 'email_verified', {
+      subscriber_uuid: subscriberUuid
+    });
+  }
+  
+  return data;
+}
+```
+
+### 4. Unsubscribe (Descadastro)
 ```typescript
 interface UnsubscribeResponse {
   status: 'success';
@@ -393,6 +427,11 @@ interface AnalyticsEvents {
     status: string;
   }) => void;
   
+  emailVerified: (data: {
+    subscriber_uuid: string;
+    verified_at: string;
+  }) => void;
+  
   leadUnsubscribe: (data: {
     subscriber_uuid: string;
     reason?: string;
@@ -421,6 +460,19 @@ export const analytics: AnalyticsEvents = {
         custom_parameters: {
           subscriber_uuid: data.subscriber_uuid,
           status: data.status
+        }
+      });
+    }
+  },
+  
+  emailVerified: (data) => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'email_verified', {
+        event_category: 'engagement',
+        event_label: 'email_verification_success',
+        custom_parameters: {
+          subscriber_uuid: data.subscriber_uuid,
+          verified_at: data.verified_at
         }
       });
     }
@@ -659,6 +711,6 @@ NEXT_PUBLIC_API_KEY=local-api-key-12345
 ## 📚 Recursos Adicionais
 
 - **Collection Postman:** `docs/postman/collections/Subscribers/`
-- **Rate Limits:** Capture (5/min), Status (10/min), Unsubscribe (3/min)
+- **Rate Limits:** Capture (5/min), Status (10/min), Verify Email (10/min), Unsubscribe (3/min)
 - **Validation Rules:** Ver `app/Http/Requests/Public/CaptureLeadRequest.php`
 - **Service Layer:** Ver `app/Services/Customer/SubscriberService.php`

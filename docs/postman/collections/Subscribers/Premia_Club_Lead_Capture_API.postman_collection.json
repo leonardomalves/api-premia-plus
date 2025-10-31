@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
 		"name": "Prêmia Club - Lead Capture API",
-		"description": "API pública para captura de leads de landing pages com tracking completo de UTM parameters e device fingerprinting.\n\n## Funcionalidades\n- Captura de leads com validação completa\n- Tracking automático de campanhas (UTM)\n- Rate limiting por IP\n- Verificação de status\n- Sistema de unsubscribe\n\n## Rate Limits\n- Capture: 5 tentativas/minuto\n- Status: 10 tentativas/minuto  \n- Unsubscribe: 3 tentativas/minuto\n\n## Documentação\nConsulte o arquivo `docs/api-lead-capture.md` para documentação completa.",
+		"description": "API pública para captura de leads de landing pages com tracking completo de UTM parameters e device fingerprinting.\n\n## Funcionalidades\n- Captura de leads com validação completa\n- Tracking automático de campanhas (UTM)\n- Rate limiting por IP\n- Verificação de status\n- Verificação de email (email_verified_at)\n- Sistema de unsubscribe\n\n## Rate Limits\n- Capture: 5 tentativas/minuto\n- Status: 10 tentativas/minuto\n- Verify Email: 10 tentativas/minuto\n- Unsubscribe: 3 tentativas/minuto\n\n## Documentação\nConsulte o arquivo `docs/api-lead-capture.md` para documentação completa.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "12345678"
 	},
@@ -536,6 +536,295 @@
 				}
 			],
 			"description": "Endpoints para verificar status de leads capturados."
+		},
+		{
+			"name": "✅ Email Verification",
+			"item": [
+				{
+					"name": "Verificar Email - Sucesso",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has correct structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'success');",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.data).to.have.property('subscriber_uuid');",
+									"    pm.expect(jsonData.data).to.have.property('email_verified_at');",
+									"    pm.expect(jsonData.data).to.have.property('status', 'active');",
+									"});",
+									"",
+									"pm.test(\"Email verified timestamp is valid\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.email_verified_at) {",
+									"        const timestamp = new Date(jsonData.data.email_verified_at);",
+									"        pm.expect(timestamp).to.be.a('date');",
+									"        pm.expect(timestamp.getTime()).to.be.greaterThan(0);",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 1000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/public/leads/verify/{{subscriber_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"public",
+								"leads",
+								"verify",
+								"{{subscriber_uuid}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 - Email Verificado com Sucesso",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/public/leads/verify/123e4567-e89b-12d3-a456-426614174000",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"public",
+										"leads",
+										"verify",
+										"123e4567-e89b-12d3-a456-426614174000"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"success\",\n  \"message\": \"Email verificado com sucesso\",\n  \"data\": {\n    \"subscriber_uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"email_verified_at\": \"2024-10-30T15:30:00.000000Z\",\n    \"status\": \"active\"\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Verificar Email - Já Verificado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 for already verified\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response indicates already verified\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'success');",
+									"    pm.expect(jsonData.message).to.contain('já estava verificado');",
+									"    pm.expect(jsonData.data).to.have.property('email_verified_at');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/public/leads/verify/{{subscriber_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"public",
+								"leads",
+								"verify",
+								"{{subscriber_uuid}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 - Email Já Verificado",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/public/leads/verify/123e4567-e89b-12d3-a456-426614174000",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"public",
+										"leads",
+										"verify",
+										"123e4567-e89b-12d3-a456-426614174000"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"success\",\n  \"message\": \"Email já estava verificado\",\n  \"data\": {\n    \"subscriber_uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"email_verified_at\": \"2024-10-30T15:30:00.000000Z\",\n    \"status\": \"active\"\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Verificar Email - Não Encontrado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404 for not found\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Response has error structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'error');",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"    pm.expect(jsonData).to.have.property('errors');",
+									"    pm.expect(jsonData.errors).to.have.property('uuid');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/public/leads/verify/88888888-8888-8888-8888-888888888888",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"public",
+								"leads",
+								"verify",
+								"88888888-8888-8888-8888-888888888888"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "404 - Lead Não Encontrado",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/public/leads/verify/88888888-8888-8888-8888-888888888888",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"public",
+										"leads",
+										"verify",
+										"88888888-8888-8888-8888-888888888888"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"error\",\n  \"message\": \"Lead não encontrado.\",\n  \"errors\": {\n    \"uuid\": \"Subscriber not found\"\n  }\n}"
+						}
+					]
+				}
+			],
+			"description": "Endpoints para verificar email de leads (usado em links de verificação por email)."
 		},
 		{
 			"name": "🚫 Unsubscribe",

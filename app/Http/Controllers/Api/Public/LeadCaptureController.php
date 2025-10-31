@@ -128,9 +128,62 @@ class LeadCaptureController extends Controller
             'message' => __('app.subscriber.status_found'),
             'data' => [
                 'uuid' => $subscriber->uuid,
+                'email' => $subscriber->email,
+                'name' => $subscriber->name,
                 'status' => $subscriber->status,
                 'subscribed_at' => $subscriber->subscription_date->toISOString(),
                 'preferences' => $subscriber->preferences,
+            ],
+        ], 200);
+    }
+
+    /**
+     * Verificar email do subscriber
+     * 
+     * Endpoint público para verificar email via UUID (link em email)
+     */
+    public function verifyEmail(string $uuid): JsonResponse
+    {
+        $subscriber = Subscriber::where('uuid', $uuid)->first();
+
+        if (!$subscriber) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('app.subscriber.not_found'),
+                'errors' => ['uuid' => 'Subscriber not found']
+            ], 404);
+        }
+
+        // Se já está verificado, retorna sucesso
+        if ($subscriber->is_verified) {
+            return response()->json([
+                'status' => 'success',
+                'message' => __('app.subscriber.already_verified'),
+                'data' => [
+                    'subscriber_uuid' => $subscriber->uuid,
+                    'email_verified_at' => $subscriber->email_verified_at?->toISOString(),
+                    'status' => $subscriber->status,
+                ],
+            ], 200);
+        }
+
+        // Marcar como verificado
+        $subscriber->markAsVerified();
+
+        Log::info('✅ Email verificado com sucesso', [
+            'subscriber_uuid' => $subscriber->uuid,
+            'email' => $subscriber->email,
+            'verified_at' => $subscriber->email_verified_at?->toISOString(),
+            'previous_status' => $subscriber->getOriginal('status'),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => __('app.subscriber.email_verified'),
+            'data' => [
+                'subscriber_uuid' => $subscriber->uuid,
+                'email_verified_at' => $subscriber->email_verified_at?->toISOString(),
+                'status' => $subscriber->status,
             ],
         ], 200);
     }

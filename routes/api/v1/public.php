@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\Public\LeadCaptureController;
+use App\Http\Controllers\Api\Public\SubscriberController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,6 +28,11 @@ Route::prefix('public')->group(function (): void {
         Route::get('status/{uuid}', [LeadCaptureController::class, 'checkStatus'])
             ->middleware(['throttle:lead-status'])
             ->name('public.leads.status');
+
+        // Verificar email do lead
+        Route::post('verify/{uuid}', [LeadCaptureController::class, 'verifyEmail'])
+            ->middleware(['throttle:lead-verify'])
+            ->name('public.leads.verify');
 
         // Descadastrar lead
         Route::delete('unsubscribe/{uuid}', [LeadCaptureController::class, 'unsubscribe'])
