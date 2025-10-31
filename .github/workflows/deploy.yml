@@ -15,13 +15,11 @@ jobs:
       - name: Deploy to server (Master)
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.FAOS_IP_PRODUCTION }}
-          username: ${{ secrets.FAOS_SSH_USER_NAME_PRODUCTION }}
-          key: ${{ secrets.FAOS_PRIVATE_KEY_PRODUCTION }}
+          host: ${{ secrets.IP_PRODUCTION }}
+          username: ${{ secrets.SSH_USER_NAME_PRODUCTION }}
+          key: ${{ secrets.PRIVATE_KEY_PRODUCTION }}
           script: |
-            cd /etc/scripts/ \
-            &&  ./deploy-master.sh office.grupoozonteck.com \
-            &&  ./deploy-master.sh franchise.grupoozonteck.com \
-            &&  ./deploy-master.sh administrator.grupoozonteck.com
+            cd /home/ubuntu/scripts \
+            &&  ./deploy.sh
 
 
