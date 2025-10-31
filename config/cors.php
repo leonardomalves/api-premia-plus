@@ -19,19 +19,9 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'https://rifas.club',
-        'https://www.rifas.club',
-        'http://localhost:3000',  // Next.js default
-        'http://localhost:3001',  // Alternative Next.js port
-        'http://localhost:8080',  // Vue.js/Vite default
-        'http://localhost:8081',  // Alternative front-end port
-        'http://localhost:5173',  // Vite default port
-        'http://127.0.0.1:3000',
-        'http://127.0.0.1:8080',
-        'http://127.0.0.1:8081',
-        'http://127.0.0.1:5173',
-    ],
+    'allowed_origins' => array_filter(
+        explode(',', env('CORS_ALLOWED_ORIGINS', ''))
+    ),
 
     'allowed_origins_patterns' => [
         // Permite subdomínios em desenvolvimento
