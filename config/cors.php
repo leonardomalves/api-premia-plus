@@ -20,6 +20,8 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
+        'https://rifas.club',
+        'https://www.rifas.club',
         'http://localhost:3000',  // Next.js default
         'http://localhost:3001',  // Alternative Next.js port
         'http://localhost:8080',  // Vue.js/Vite default
