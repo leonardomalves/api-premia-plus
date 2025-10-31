@@ -1,0 +1,27 @@
+name: Deploy to PremiaPlus [Boson Rewards]  Cloud
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy-master:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Deploy to server (Master)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.FAOS_IP_PRODUCTION }}
+          username: ${{ secrets.FAOS_SSH_USER_NAME_PRODUCTION }}
+          key: ${{ secrets.FAOS_PRIVATE_KEY_PRODUCTION }}
+          script: |
+            cd /etc/scripts/ \
+            &&  ./deploy-master.sh office.grupoozonteck.com \
+            &&  ./deploy-master.sh franchise.grupoozonteck.com \
+            &&  ./deploy-master.sh administrator.grupoozonteck.com
+
+
